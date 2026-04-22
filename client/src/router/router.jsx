@@ -17,6 +17,7 @@ export const routes = createBrowserRouter([
   {
     path: "/",
     element: <RootLayout />,
+    errorElement: <NotFoundPage />,
     children: [
       {
         path: "/start",
@@ -32,23 +33,43 @@ export const routes = createBrowserRouter([
       },
       {
         path: "/games",
-        element: <Games />,
+        element: (
+          <PrivateRoute>
+            <Games />
+          </PrivateRoute>
+        ),
       },
       {
         path: "/deposit",
-        element: <Deposit />,
+        element: (
+          <PrivateRoute>
+            <Deposit />
+          </PrivateRoute>
+        ),
       },
       {
         path: "/withdraw",
-        element: <Withdraw />,
+        element: (
+          <PrivateRoute>
+            <Withdraw />
+          </PrivateRoute>
+        ),
       },
       {
         path: "/account",
-        element: <Account />,
+        element: (
+          <PrivateRoute>
+            <Account />
+          </PrivateRoute>
+        ),
       },
       {
         path: "/invite-friends",
-        element: <Share />,
+        element: (
+          <PrivateRoute>
+            <Share />
+          </PrivateRoute>
+        ),
       },
       {
         path: "/",

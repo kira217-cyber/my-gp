@@ -5,8 +5,11 @@ import NotFoundPage from "../pages/NotFoundPage/NotFoundPage";
 import Login from "../pages/Login/Login";
 import Register from "../pages/Register/Register";
 import Withdraw from "../pages/Withdraw/Withdraw";
-import Deposit from "../pages/Deposit/Deposit";
 import PrivateRoute from "../PrivateRoute/PrivateRoute";
+import DashboardLayout from "../DashboardLayout/DashboardLayout";
+import Dashboard from "../pages/Dashboard/Dashboard";
+import MyUsers from "../pages/MyUsers/MyUsers";
+import CommissionStatus from "../pages/CommissionStatus/CommissionStatus";
 
 export const routes = createBrowserRouter([
   {
@@ -19,29 +22,38 @@ export const routes = createBrowserRouter([
         element: <Home />,
       },
       {
-        path: "withdraw",
-        element: (
-          <PrivateRoute>
-            {" "}
-            <Withdraw />
-          </PrivateRoute>
-        ),
-      },
-      {
-        path: "deposit",
-        element: (
-          <PrivateRoute>
-            <Deposit />
-          </PrivateRoute>
-        ),
-      },
-      {
         path: "login",
         element: <Login />,
       },
       {
         path: "register",
         element: <Register />,
+      },
+    ],
+  },
+  {
+    path: "/dashboard",
+    element: (
+      <PrivateRoute>
+        <DashboardLayout />
+      </PrivateRoute>
+    ),
+    children: [
+      {
+        index: true,
+        element: <Dashboard />,
+      },
+      {
+        path: "withdraw",
+        element: <Withdraw />,
+      },
+      {
+        path: "my-users",
+        element: <MyUsers />,
+      },
+      {
+        path: "commission-status",
+        element: <CommissionStatus />,
       },
     ],
   },

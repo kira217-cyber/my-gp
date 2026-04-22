@@ -2,9 +2,15 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Eye, EyeOff, ChevronDown, Search } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useLanguage } from "../../Context/LanguageProvider";
+import { useMutation } from "@tanstack/react-query";
+import { useDispatch } from "react-redux";
+import { toast } from "react-toastify";
+import { userLogin } from "../../features/auth/authAPI";
+import { setCredentials } from "../../features/auth/authSlice";
 
 const Login = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { isBangla } = useLanguage();
 
   const [showPin, setShowPin] = useState(false);
@@ -99,19 +105,67 @@ const Login = () => {
     searchCountry: isBangla ? "দেশ খুঁজুন..." : "Search country...",
   };
 
+  const { mutate, isPending } = useMutation({
+    mutationFn: userLogin,
+    onSuccess: (data) => {
+      dispatch(setCredentials({ user: data.user, token: data.token }));
+
+      if (remember) {
+        localStorage.setItem("remember_phone", phone);
+        localStorage.setItem("remember_country_code", selected.code);
+      } else {
+        localStorage.removeItem("remember_phone");
+        localStorage.removeItem("remember_country_code");
+      }
+
+      toast.success(data?.message || "Login successful");
+      navigate("/", { replace: true });
+    },
+    onError: (error) => {
+      toast.error(
+        error?.response?.data?.message || error?.message || "Login failed",
+      );
+    },
+  });
+
+  useEffect(() => {
+    const savedPhone = localStorage.getItem("remember_phone");
+    const savedCountryCode = localStorage.getItem("remember_country_code");
+
+    if (savedPhone) {
+      setPhone(savedPhone);
+      setRemember(true);
+    }
+
+    if (savedCountryCode) {
+      setSelected((prev) => ({
+        ...prev,
+        code: savedCountryCode,
+      }));
+    }
+  }, []);
+
   const handleLogin = () => {
-    console.log({
+    if (!phone.trim()) {
+      toast.error(isBangla ? "মোবাইল নম্বর দিন" : "Enter mobile number");
+      return;
+    }
+
+    if (!pin.trim()) {
+      toast.error(isBangla ? "পিন কোড দিন" : "Enter pin code");
+      return;
+    }
+
+    mutate({
       countryCode: selected.code,
       phone,
-      pin,
-      remember,
+      password: pin,
     });
   };
 
   return (
     <div className="min-h-full bg-[#efefef] px-3 pt-28 pb-8">
       <div className="mx-auto w-full max-w-[360px]">
-        {/* Logo */}
         <div className="flex justify-center">
           <img
             src="https://i.ibb.co.com/ds4ckFjg/image-removebg-preview-3.png"
@@ -120,7 +174,6 @@ const Login = () => {
           />
         </div>
 
-        {/* Tabs */}
         <div className="mt-3 grid grid-cols-2 rounded-[4px] bg-[#2c84ea] p-[3px]">
           <button
             type="button"
@@ -138,7 +191,6 @@ const Login = () => {
           </button>
         </div>
 
-        {/* Country + phone */}
         <div className="mt-5">
           <div className="relative" ref={dropdownRef}>
             <div className="flex items-center gap-0">
@@ -216,7 +268,6 @@ const Login = () => {
           />
         </div>
 
-        {/* PIN */}
         <div className="mt-7">
           <div className="flex items-center border-b-2 border-[#c7d8eb]">
             <input
@@ -241,7 +292,6 @@ const Login = () => {
           </div>
         </div>
 
-        {/* Remember + Forgot */}
         <div className="mt-4 flex items-center justify-between border-b-2 border-[#c7d8eb] pb-3">
           <label className="flex items-center gap-1.5 text-[14px] font-semibold text-[#1d5d99] cursor-pointer">
             <input
@@ -261,16 +311,19 @@ const Login = () => {
           </button>
         </div>
 
-        {/* Login Button */}
         <button
           type="button"
           onClick={handleLogin}
-          className="mt-5 h-[52px] w-full rounded-full bg-[#1f5f98] text-[18px] font-bold text-white cursor-pointer"
+          disabled={isPending}
+          className="mt-5 h-[52px] w-full rounded-full bg-[#1f5f98] text-[18px] font-bold text-white cursor-pointer disabled:opacity-70"
         >
-          {text.loginBtn}
+          {isPending
+            ? isBangla
+              ? "লোড হচ্ছে..."
+              : "Loading..."
+            : text.loginBtn}
         </button>
 
-        {/* Bottom Register */}
         <div className="mt-6 flex items-center justify-center gap-2 text-[14px] font-semibold text-[#1d5d99]">
           <span>{text.noAccount}</span>
           <button

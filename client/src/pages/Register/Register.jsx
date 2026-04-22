@@ -1,11 +1,18 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Eye, EyeOff, ChevronDown, Search } from "lucide-react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { useLanguage } from "../../Context/LanguageProvider";
+import { useMutation } from "@tanstack/react-query";
+import { useDispatch } from "react-redux";
+import { toast } from "react-toastify";
+import { userRegister } from "../../features/auth/authAPI";
+import { setCredentials } from "../../features/auth/authSlice";
 
 const Register = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { isBangla } = useLanguage();
+  const [searchParams] = useSearchParams();
 
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -14,7 +21,7 @@ const Register = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [showRefCode, setShowRefCode] = useState(false);
+  const [showRefCode, setShowRefCode] = useState(true);
 
   const [countries, setCountries] = useState([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -27,6 +34,16 @@ const Register = () => {
     cca2: "BD",
     flag: "https://flagcdn.com/w40/bd.png",
   });
+
+  useEffect(() => {
+    const queryRef = String(searchParams.get("ref") || "")
+      .trim()
+      .toUpperCase();
+
+    if (queryRef) {
+      setRefCode(queryRef);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const loadCountries = async () => {
@@ -107,20 +124,52 @@ const Register = () => {
     searchCountry: isBangla ? "দেশ খুঁজুন..." : "Search country...",
   };
 
+  const { mutate, isPending } = useMutation({
+    mutationFn: userRegister,
+    onSuccess: (data) => {
+      dispatch(setCredentials({ user: data.user, token: data.token }));
+      toast.success(data?.message || "Registration successful");
+      navigate("/", { replace: true });
+    },
+    onError: (error) => {
+      toast.error(
+        error?.response?.data?.message || error?.message || "Register failed",
+      );
+    },
+  });
+
   const handleRegister = () => {
-    console.log({
+    if (!phone.trim()) {
+      toast.error(isBangla ? "মোবাইল নম্বর দিন" : "Enter mobile number");
+      return;
+    }
+
+    if (!password.trim()) {
+      toast.error(isBangla ? "পিন কোড দিন" : "Enter pin code");
+      return;
+    }
+
+    if (!confirmPassword.trim()) {
+      toast.error(isBangla ? "কনফার্ম পিন কোড দিন" : "Enter confirm pin code");
+      return;
+    }
+
+    const payload = {
       countryCode: selected.code,
-      phone,
+      phone: phone.trim(),
       password,
       confirmPassword,
-      refCode,
-    });
+      refCode: refCode.trim().toUpperCase(),
+    };
+
+    console.log("REGISTER PAYLOAD:", payload);
+
+    mutate(payload);
   };
 
   return (
     <div className="min-h-full bg-[#efefef] px-3 pt-22 pb-8">
       <div className="mx-auto w-full max-w-[360px]">
-        {/* Logo */}
         <div className="flex justify-center">
           <img
             src="https://i.ibb.co.com/ds4ckFjg/image-removebg-preview-3.png"
@@ -129,7 +178,6 @@ const Register = () => {
           />
         </div>
 
-        {/* Tabs */}
         <div className="mt-3 grid grid-cols-2 rounded-[4px] bg-[#2c84ea] p-[3px]">
           <button
             type="button"
@@ -147,7 +195,6 @@ const Register = () => {
           </button>
         </div>
 
-        {/* Country + phone */}
         <div className="mt-5">
           <div className="relative" ref={dropdownRef}>
             <div className="flex items-center gap-0">
@@ -225,7 +272,6 @@ const Register = () => {
           />
         </div>
 
-        {/* Password */}
         <div className="mt-6">
           <div className="flex items-center border-b-2 border-[#c7d8eb]">
             <input
@@ -250,7 +296,6 @@ const Register = () => {
           </div>
         </div>
 
-        {/* Confirm Password */}
         <div className="mt-6">
           <div className="flex items-center border-b-2 border-[#c7d8eb]">
             <input
@@ -275,13 +320,12 @@ const Register = () => {
           </div>
         </div>
 
-        {/* Referral Code */}
         <div className="mt-6">
           <div className="flex items-center border-b-2 border-[#c7d8eb]">
             <input
               type={showRefCode ? "text" : "password"}
               value={refCode}
-              onChange={(e) => setRefCode(e.target.value)}
+              onChange={(e) => setRefCode(e.target.value.toUpperCase())}
               placeholder={text.refCodePlaceholder}
               className="h-[38px] w-full bg-transparent px-0 text-[18px] text-[#1d5d99] outline-none placeholder:text-[#1d5d99] placeholder:font-semibold"
             />
@@ -300,16 +344,19 @@ const Register = () => {
           </div>
         </div>
 
-        {/* Register Button */}
         <button
           type="button"
           onClick={handleRegister}
-          className="mt-7 h-[52px] w-full rounded-full bg-[#1f5f98] text-[18px] font-bold text-white cursor-pointer"
+          disabled={isPending}
+          className="mt-7 h-[52px] w-full rounded-full bg-[#1f5f98] text-[18px] font-bold text-white cursor-pointer disabled:opacity-70"
         >
-          {text.registerBtn}
+          {isPending
+            ? isBangla
+              ? "লোড হচ্ছে..."
+              : "Loading..."
+            : text.registerBtn}
         </button>
 
-        {/* Bottom Login */}
         <div className="mt-6 flex items-center justify-center gap-2 text-[14px] font-semibold text-[#1d5d99]">
           <span>{text.haveAccount}</span>
           <button

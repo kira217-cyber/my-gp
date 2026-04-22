@@ -49,7 +49,7 @@ const Sports = () => {
 
             <div className="mr-2 flex h-[32px] w-[32px] items-center justify-center rounded-sm bg-white/20">
               <img
-                src="https://api.1onebet.com/uploads/sports/1776360641203-402926125.svg"
+                src="https://beit365.bet/assets/images/home-page-menu/Sports.svg"
                 alt="sports"
                 className="h-[32px] w-[32px] object-contain brightness-0 invert"
               />

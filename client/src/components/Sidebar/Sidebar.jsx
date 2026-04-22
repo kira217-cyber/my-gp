@@ -11,11 +11,14 @@ import {
   HandHelping,
   Globe,
   ChevronDown,
+  LogOut,
 } from "lucide-react";
 import { useLanguage } from "../../Context/LanguageProvider";
+import { useNavigate } from "react-router";
 
 const Sidebar = ({ open, setOpen }) => {
   const { isBangla, language, changeLanguage } = useLanguage();
+  const navigate = useNavigate();
 
   const [openGames, setOpenGames] = useState(false);
   const [openAccount, setOpenAccount] = useState(false);
@@ -86,6 +89,13 @@ const Sidebar = ({ open, setOpen }) => {
     ],
     [isBangla, openGames, openAccount],
   );
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    setOpen(false);
+    navigate("/start", { replace: true });
+  };
 
   return (
     <>
@@ -219,6 +229,18 @@ const Sidebar = ({ open, setOpen }) => {
               </button>
             </div>
           </div>
+
+          {/* Logout */}
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 rounded-[8px] bg-[#1f5f98] px-4 py-3 text-left text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-[#1b5487] cursor-pointer"
+          >
+            <LogOut className="h-5 w-5 shrink-0" strokeWidth={2.2} />
+            <span className="text-[15px] font-semibold leading-none">
+              {isBangla ? "লগ আউট" : "Logout"}
+            </span>
+          </button>
         </div>
       </aside>
     </>
