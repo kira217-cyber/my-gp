@@ -10,6 +10,9 @@ import DashboardLayout from "../DashboardLayout/DashboardLayout";
 import Dashboard from "../pages/Dashboard/Dashboard";
 import MyUsers from "../pages/MyUsers/MyUsers";
 import CommissionStatus from "../pages/CommissionStatus/CommissionStatus";
+import WithdrawHistory from "../pages/WithdrawHistory/WithdrawHistory";
+import WithdrawHistoryDetails from "../pages/WithdrawHistoryDetails/WithdrawHistoryDetails";
+import Profile from "../pages/Profile/Profile";
 
 export const routes = createBrowserRouter([
   {
@@ -46,6 +49,18 @@ export const routes = createBrowserRouter([
       {
         path: "withdraw",
         element: <Withdraw />,
+      },
+      {
+        path: "profile",
+        element: <Profile />,
+      },
+      {
+        path: "withdraw-history",
+        element: <WithdrawHistory />,
+      },
+      {
+        path: "withdraw-history/:id",
+        element: <WithdrawHistoryDetails />,
       },
       {
         path: "my-users",

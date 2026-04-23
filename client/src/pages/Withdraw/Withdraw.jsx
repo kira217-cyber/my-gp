@@ -3,6 +3,10 @@ import {
   FaExclamationCircle,
   FaQuestionCircle,
   FaWallet,
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaChevronDown,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
@@ -13,6 +17,7 @@ import {
   selectUser,
 } from "../../features/auth/authSelectors";
 import { useLanguage } from "../../Context/LanguageProvider";
+import EWallateModal from "../EWallateModal/EWallateModal";
 
 const OptionLogo = ({ type }) => {
   const base = "w-10 h-10 rounded-full flex items-center justify-center";
@@ -34,13 +39,25 @@ const money = (n) => {
   })}`;
 };
 
-const beautifyKey = (key = "") =>
-  String(key)
-    .replace(/([A-Z])/g, " $1")
-    .replace(/[_-]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/^./, (m) => m.toUpperCase());
+const typeText = (value, isBangla) => {
+  const v = String(value || "").toLowerCase();
+  if (v === "personal") return isBangla ? "পার্সোনাল" : "Personal";
+  if (v === "agent") return isBangla ? "এজেন্ট" : "Agent";
+  if (v === "merchant") return isBangla ? "মার্চেন্ট" : "Merchant";
+  return "—";
+};
+
+const maskWalletNumber = (value = "") => {
+  const str = String(value || "");
+  if (str.length < 6) return str;
+  return `${str.slice(0, 3)}****${str.slice(-4)}`;
+};
+
+const getImageUrl = (url) => {
+  if (!url) return "";
+  if (url.startsWith("http")) return url;
+  return `${import.meta.env.VITE_API_URL}${url}`;
+};
 
 const Withdraw = () => {
   const navigate = useNavigate();
@@ -53,7 +70,17 @@ const Withdraw = () => {
   const t = {
     withdraw: isBangla ? "উইথড্র" : "Withdrawal",
     withdrawOptions: isBangla ? "উইথড্র অপশন" : "Withdrawal Options",
-    accountInformation: isBangla ? "একাউন্ট তথ্য" : "Account Information",
+    savedWallets: isBangla ? "সেভ করা ই-ওয়ালেট" : "Saved E-Wallets",
+    selectedWallet: isBangla ? "নির্বাচিত ওয়ালেট" : "Selected Wallet",
+    noWalletYet: isBangla
+      ? "এই মেথডে এখনো কোনো ওয়ালেট যোগ করা হয়নি।"
+      : "No wallet added yet for this method.",
+    addWallet: isBangla ? "ওয়ালেট যোগ করুন" : "Add Wallet",
+    editWallet: isBangla ? "এডিট" : "Edit",
+    deleteWallet: isBangla ? "ডিলিট" : "Delete",
+    walletType: isBangla ? "ওয়ালেট টাইপ" : "Wallet Type",
+    walletNumber: isBangla ? "ওয়ালেট নাম্বার" : "Wallet Number",
+    label: isBangla ? "লেবেল" : "Label",
     withdrawAmount: isBangla ? "উইথড্র পরিমাণ" : "Withdraw Amount",
     loading: isBangla ? "লোড হচ্ছে..." : "Loading...",
     noWithdrawMethods: isBangla
@@ -88,6 +115,9 @@ const Withdraw = () => {
     pleaseSelectMethod: isBangla
       ? "একটি উইথড্র মেথড নির্বাচন করুন"
       : "Please select a withdraw method",
+    pleaseSelectWallet: isBangla
+      ? "একটি ওয়ালেট নির্বাচন করুন"
+      : "Please select a wallet",
     validAmount: isBangla ? "সঠিক পরিমাণ লিখুন" : "Please enter a valid amount",
     minimumWithdrawMustBe: isBangla
       ? "সর্বনিম্ন উইথড্র হতে হবে"
@@ -95,24 +125,13 @@ const Withdraw = () => {
     maximumWithdrawIs: isBangla
       ? "সর্বোচ্চ উইথড্র হলো"
       : "Maximum withdraw amount is",
-    fillRequiredFields: isBangla
-      ? "সব required field পূরণ করুন"
-      : "Fill all required fields.",
-    invalidInputs: isBangla ? "কিছু input সঠিক নয়" : "Some inputs are invalid.",
     amountInvalid: isBangla ? "Amount সঠিক নয়" : "Amount is invalid.",
     remainingTurnover: isBangla ? "বাকি টার্নওভার" : "Remaining turnover",
-    thisFieldRequired: isBangla
-      ? "এই ফিল্ডটি প্রয়োজন"
-      : "This field is required",
-    validEmail: isBangla ? "সঠিক email দিন" : "Enter a valid email",
-    validPhone: isBangla
-      ? "সঠিক বাংলাদেশি নাম্বার দিন"
-      : "Enter a valid Bangladeshi phone number",
-    numberOnly: isBangla ? "শুধু সংখ্যা দিন" : "Numbers only",
     successSubmit: isBangla
       ? "Withdraw request submitted!"
       : "Withdraw request submitted!",
     importantInfo: isBangla ? "গুরুত্বপূর্ণ তথ্য" : "Important Information",
+    selectWallet: isBangla ? "ওয়ালেট সিলেক্ট করুন" : "Select Wallet",
   };
 
   const notices = useMemo(
@@ -127,11 +146,11 @@ const Withdraw = () => {
       },
       {
         title: isBangla
-          ? "সঠিক একাউন্ট তথ্য দিন"
-          : "Provide Correct Account Details",
+          ? "সঠিক ওয়ালেট তথ্য ব্যবহার করুন"
+          : "Use Correct Wallet Information",
         body: isBangla
-          ? "ভুল account number / wallet number দিলে withdraw delay হতে পারে।"
-          : "Incorrect account or wallet details may delay the withdrawal.",
+          ? "ভুল wallet number দিলে withdraw delay হতে পারে।"
+          : "Incorrect wallet details may delay the withdrawal.",
       },
       {
         title: isBangla
@@ -157,11 +176,9 @@ const Withdraw = () => {
   const loadMethods = async () => {
     try {
       setLoadingMethods(true);
-      const res = await api.get("/api/withdraw-methods");
+      const res = await api.get("/api/withdraw-methods/public");
       const rows = res?.data?.data || [];
-      setMethods(
-        Array.isArray(rows) ? rows.filter((m) => m?.isActive !== false) : [],
-      );
+      setMethods(Array.isArray(rows) ? rows : []);
     } catch (e) {
       setMethods([]);
       console.error("Failed to load withdraw methods", e);
@@ -229,34 +246,61 @@ const Withdraw = () => {
     }
   }, [methods, selectedId]);
 
-  // ✅ amount field dynamic fields থেকে বাদ
-  const visibleFields = useMemo(() => {
-    const fields = Array.isArray(selectedMethod?.fields)
-      ? selectedMethod.fields
-      : [];
-    return fields.filter(
-      (f) =>
-        String(f?.key || "")
-          .trim()
-          .toLowerCase() !== "amount",
-    );
-  }, [selectedMethod]);
+  const [walletLoading, setWalletLoading] = useState(false);
+  const [wallets, setWallets] = useState([]);
+  const [selectedWalletId, setSelectedWalletId] = useState("");
 
-  const [formValues, setFormValues] = useState({});
+  const loadWallets = async (methodId, preferredWalletId = "") => {
+    if (!isAuthed || !methodId) {
+      setWallets([]);
+      setSelectedWalletId("");
+      return [];
+    }
+
+    try {
+      setWalletLoading(true);
+
+      const { data } = await api.get("/api/e-wallets", {
+        params: { methodId },
+      });
+
+      const rows = Array.isArray(data?.data) ? data.data : [];
+      setWallets(rows);
+
+      const preferred =
+        rows.find((item) => String(item?._id) === String(preferredWalletId)) ||
+        rows.find((item) => item?.isDefault) ||
+        rows[0] ||
+        null;
+
+      setSelectedWalletId(preferred?._id || "");
+      return rows;
+    } catch (e) {
+      console.error("LOAD WALLETS ERROR:", e);
+      setWallets([]);
+      setSelectedWalletId("");
+      return [];
+    } finally {
+      setWalletLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (!selectedMethod) return;
+    if (!selectedMethod?.methodId) {
+      setWallets([]);
+      setSelectedWalletId("");
+      return;
+    }
 
-    const next = {};
-    visibleFields.forEach((f) => {
-      next[f.key] = "";
-    });
-    setFormValues(next);
-  }, [selectedMethod?._id, visibleFields]);
+    loadWallets(selectedMethod.methodId);
+  }, [selectedMethod?.methodId, isAuthed]);
 
-  const setVal = (key, value) => {
-    setFormValues((p) => ({ ...p, [key]: value }));
-  };
+  const selectedWallet = useMemo(() => {
+    if (!wallets.length) return null;
+    return (
+      wallets.find((w) => String(w._id) === String(selectedWalletId)) || null
+    );
+  }, [wallets, selectedWalletId]);
 
   const [amount, setAmount] = useState("");
 
@@ -306,66 +350,13 @@ const Withdraw = () => {
     t.maximumWithdrawIs,
   ]);
 
-  const fieldErrors = useMemo(() => {
-    const errs = {};
-
-    visibleFields.forEach((f) => {
-      const v = String(formValues?.[f.key] ?? "").trim();
-
-      if (f.required !== false && !v) {
-        errs[f.key] = t.thisFieldRequired;
-        return;
-      }
-
-      if (v) {
-        if (f.type === "email") {
-          const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-          if (!ok) errs[f.key] = t.validEmail;
-        }
-
-        if (f.type === "tel") {
-          const bdOk = /^01[3-9]\d{8}$/.test(v);
-          if (v.startsWith("01") && v.length >= 11 && !bdOk) {
-            errs[f.key] = t.validPhone;
-          }
-        }
-
-        if (f.type === "number") {
-          const n = Number(v);
-          if (!Number.isFinite(n)) errs[f.key] = t.numberOnly;
-        }
-      }
-    });
-
-    return errs;
-  }, [
-    visibleFields,
-    formValues,
-    t.thisFieldRequired,
-    t.validEmail,
-    t.validPhone,
-    t.numberOnly,
-  ]);
-
-  const allRequiredOk = useMemo(() => {
-    for (const f of visibleFields) {
-      if (f.required !== false) {
-        const v = String(formValues?.[f.key] ?? "").trim();
-        if (!v) return false;
-      }
-    }
-    return true;
-  }, [visibleFields, formValues]);
-
-  const noTypeErrors = Object.keys(fieldErrors).length === 0;
   const accountOk = isAuthed && isActiveUser;
 
   const canSubmit =
     accountOk &&
     !!selectedMethod &&
+    !!selectedWallet &&
     validAmount &&
-    allRequiredOk &&
-    noTypeErrors &&
     elig.eligible;
 
   const [submitting, setSubmitting] = useState(false);
@@ -376,33 +367,23 @@ const Withdraw = () => {
       return;
     }
 
+    if (!selectedWallet?._id) {
+      toast.error(t.pleaseSelectWallet);
+      return;
+    }
+
     if (!validAmount) {
       toast.error(amountErrorText || t.validAmount);
       return;
     }
 
-    if (!allRequiredOk) {
-      toast.error(t.fillRequiredFields);
-      return;
-    }
-
-    if (!noTypeErrors) {
-      toast.error(t.invalidInputs);
-      return;
-    }
-
     if (!canSubmit || submitting) return;
-
-    const cleanFields = { ...formValues };
-    delete cleanFields.amount;
 
     const payload = {
       methodId: String(selectedMethod?.methodId || "").trim(),
+      walletId: String(selectedWallet?._id || "").trim(),
       amount: Number(amount),
-      fields: cleanFields,
     };
-
-    console.log("WITHDRAW PAYLOAD:", payload);
 
     try {
       setSubmitting(true);
@@ -411,25 +392,61 @@ const Withdraw = () => {
 
       toast.success(t.successSubmit);
       setAmount("");
-
-      const next = {};
-      visibleFields.forEach((f) => {
-        next[f.key] = "";
-      });
-      setFormValues(next);
-
-      loadEligibility();
+      await loadEligibility();
       navigate("/withdraw");
     } catch (e) {
       console.error("WITHDRAW ERROR:", e?.response?.data || e);
       toast.error(e?.response?.data?.message || "Withdraw request failed");
-      loadEligibility();
+      await loadEligibility();
     } finally {
       setSubmitting(false);
     }
   };
 
-  const apiBase = import.meta.env.VITE_API_URL || "";
+  const [walletModalOpen, setWalletModalOpen] = useState(false);
+  const [editingWallet, setEditingWallet] = useState(null);
+
+  const closeWalletModal = () => {
+    setWalletModalOpen(false);
+    setEditingWallet(null);
+  };
+
+  const openAddWalletModal = () => {
+    if (!selectedMethod) {
+      toast.error(t.pleaseSelectMethod);
+      return;
+    }
+    setEditingWallet(null);
+    setWalletModalOpen(true);
+  };
+
+  const openEditWalletModal = () => {
+    if (!selectedWallet) {
+      toast.error(t.pleaseSelectWallet);
+      return;
+    }
+    setEditingWallet(selectedWallet);
+    setWalletModalOpen(true);
+  };
+
+  const deleteWalletNow = async () => {
+    if (!selectedWallet?._id) {
+      toast.error(t.pleaseSelectWallet);
+      return;
+    }
+
+    try {
+      const res = await api.delete(`/api/e-wallets/${selectedWallet._id}`);
+      toast.success(
+        res?.data?.message ||
+          (isBangla ? "ওয়ালেট ডিলিট হয়েছে" : "Wallet deleted successfully"),
+      );
+
+      await loadWallets(selectedMethod?.methodId);
+    } catch (e) {
+      toast.error(e?.response?.data?.message || "Delete failed");
+    }
+  };
 
   return (
     <div className="mb-28 w-full bg-white text-slate-900">
@@ -519,7 +536,7 @@ const Withdraw = () => {
                     >
                       {m.logoUrl ? (
                         <img
-                          src={`${apiBase}${m.logoUrl}`}
+                          src={getImageUrl(m.logoUrl)}
                           alt={displayMethodName}
                           className="max-h-[32px] max-w-[80px] object-contain"
                         />
@@ -552,61 +569,111 @@ const Withdraw = () => {
             )}
           </div>
 
-          {!!visibleFields.length && (
+          {!!selectedMethod && (
             <div className="mt-6">
-              <div className="flex items-center gap-2">
-                <label className="text-[14px] font-semibold text-slate-900">
-                  {t.accountInformation} <span className="text-red-500">*</span>
-                </label>
-                <FaExclamationCircle className="text-[#2f79c9]" />
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <label className="text-[14px] font-semibold text-slate-900">
+                    {t.savedWallets} <span className="text-red-500">*</span>
+                  </label>
+                  <FaExclamationCircle className="text-[#2f79c9]" />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={openAddWalletModal}
+                  disabled={!accountOk}
+                  className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-extrabold transition ${
+                    accountOk
+                      ? "cursor-pointer bg-gradient-to-r from-[#2f79c9] to-[#63a8ee] text-white shadow-lg"
+                      : "cursor-not-allowed bg-slate-200 text-slate-400"
+                  }`}
+                >
+                  <FaPlus />
+                  {t.addWallet}
+                </button>
               </div>
 
-              <div className="mt-3 max-w-[520px] space-y-4">
-                {visibleFields.map((f) => {
-                  const label =
-                    language === "Bangla"
-                      ? f?.label?.bn || f?.label?.en || beautifyKey(f.key)
-                      : f?.label?.en || f?.label?.bn || beautifyKey(f.key);
+              {walletLoading ? (
+                <div className="mt-3 text-[13px] text-slate-500">
+                  {t.loading}
+                </div>
+              ) : wallets.length ? (
+                <>
+                  <div className="relative mt-3 max-w-[520px]">
+                    <select
+                      value={selectedWalletId}
+                      onChange={(e) => setSelectedWalletId(e.target.value)}
+                      disabled={!accountOk}
+                      className={`w-full appearance-none rounded-xl border border-slate-200 bg-white px-4 py-3 pr-10 text-[14px] text-slate-900 outline-none focus:ring-2 focus:ring-[#2f79c9]/20 ${
+                        !accountOk ? "cursor-not-allowed opacity-60" : ""
+                      }`}
+                    >
+                      <option value="">{t.selectWallet}</option>
+                      {wallets.map((wallet) => (
+                        <option key={wallet._id} value={wallet._id}>
+                          {`${typeText(wallet.walletType, isBangla)} - ${
+                            wallet.walletNumber
+                          }${wallet.label ? ` - ${wallet.label}` : ""}`}
+                        </option>
+                      ))}
+                    </select>
+                    <FaChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                  </div>
 
-                  const placeholder =
-                    language === "Bangla"
-                      ? f?.placeholder?.bn || f?.placeholder?.en || ""
-                      : f?.placeholder?.en || f?.placeholder?.bn || "";
-
-                  const err = fieldErrors?.[f.key];
-
-                  return (
-                    <div key={f.key}>
-                      <label className="text-[14px] font-semibold text-slate-900">
-                        {label}{" "}
-                        {f.required !== false && (
-                          <span className="text-red-500">*</span>
-                        )}
-                      </label>
-
-                      <input
-                        disabled={!accountOk}
-                        type={f.type === "number" ? "text" : f.type}
-                        value={formValues?.[f.key] ?? ""}
-                        onChange={(e) => setVal(f.key, e.target.value)}
-                        placeholder={placeholder}
-                        className={`mt-3 w-full rounded-xl border px-4 py-3 text-[14px] outline-none focus:ring-2 focus:ring-[#2f79c9]/20 ${
-                          err
-                            ? "border-red-400 bg-red-50 text-slate-900"
-                            : "border-slate-200 bg-white text-slate-900"
-                        } ${!accountOk ? "cursor-not-allowed opacity-60" : ""}`}
-                        inputMode={f.type === "number" ? "numeric" : undefined}
-                      />
-
-                      {!!err && (
-                        <div className="mt-2 text-[12px] font-semibold text-red-500">
-                          {err}
+                  {!!selectedWallet && (
+                    <div className="mt-4 max-w-[520px] rounded-2xl border border-[#2f79c9]/15 bg-[#f8fbff] p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <div className="text-[14px] font-extrabold text-slate-900">
+                            {t.selectedWallet}
+                          </div>
+                          <div className="mt-3 space-y-2 text-[13px] text-slate-700">
+                            <div>
+                              <span className="font-bold">{t.walletType}:</span>{" "}
+                              {typeText(selectedWallet.walletType, isBangla)}
+                            </div>
+                            <div>
+                              <span className="font-bold">
+                                {t.walletNumber}:
+                              </span>{" "}
+                              {maskWalletNumber(selectedWallet.walletNumber)}
+                            </div>
+                            <div>
+                              <span className="font-bold">{t.label}:</span>{" "}
+                              {selectedWallet.label || "—"}
+                            </div>
+                          </div>
                         </div>
-                      )}
+
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={openEditWalletModal}
+                            className="inline-flex items-center gap-2 rounded-xl border border-[#2f79c9]/20 bg-white px-3 py-2 text-[12px] font-extrabold text-[#2f79c9] transition hover:bg-[#f3f8fe]"
+                          >
+                            <FaEdit />
+                            {t.editWallet}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={deleteWalletNow}
+                            className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[12px] font-extrabold text-red-600 transition hover:bg-red-100"
+                          >
+                            <FaTrash />
+                            {t.deleteWallet}
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
+                  )}
+                </>
+              ) : (
+                <div className="mt-3 rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-[13px] text-slate-500">
+                  {t.noWalletYet}
+                </div>
+              )}
             </div>
           )}
 
@@ -696,13 +763,11 @@ const Withdraw = () => {
                       ? t.turnoverBlocked
                       : !selectedMethod
                         ? t.pleaseSelectMethod
-                        : !allRequiredOk
-                          ? t.fillRequiredFields
-                          : !noTypeErrors
-                            ? t.invalidInputs
-                            : !validAmount
-                              ? t.amountInvalid
-                              : null}
+                        : !selectedWallet
+                          ? t.pleaseSelectWallet
+                          : !validAmount
+                            ? t.amountInvalid
+                            : null}
               </div>
             )}
           </div>
@@ -724,6 +789,22 @@ const Withdraw = () => {
           </div>
         </div>
       </div>
+
+      <EWallateModal
+        open={walletModalOpen}
+        onClose={closeWalletModal}
+        method={selectedMethod}
+        isBangla={isBangla}
+        editingWallet={editingWallet}
+        onSaved={async (savedWallet) => {
+          closeWalletModal();
+          await loadWallets(selectedMethod?.methodId, savedWallet?._id || "");
+        }}
+        onDeleted={async () => {
+          closeWalletModal();
+          await loadWallets(selectedMethod?.methodId);
+        }}
+      />
     </div>
   );
 };

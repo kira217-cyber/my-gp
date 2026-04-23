@@ -9,47 +9,9 @@ import {
   FaSyncAlt,
   FaSave,
   FaImage,
-  FaListAlt,
 } from "react-icons/fa";
 import { PiHandWithdrawBold } from "react-icons/pi";
 import { api } from "../../api/axios";
-
-const emptyBi = { bn: "", en: "" };
-
-const defaultField = () => ({
-  key: "",
-  label: { ...emptyBi },
-  placeholder: { ...emptyBi },
-  type: "text",
-  required: true,
-});
-
-const defaultFields = () => [
-  {
-    key: "amount",
-    label: { bn: "উত্তোলনের পরিমাণ (৳)", en: "Withdraw Amount (৳)" },
-    placeholder: { bn: "500", en: "500" },
-    type: "number",
-    required: true,
-  },
-  {
-    key: "accountNumber",
-    label: { bn: "একাউন্ট নম্বর", en: "Account Number" },
-    placeholder: { bn: "01XXXXXXXXX", en: "01XXXXXXXXX" },
-    type: "tel",
-    required: true,
-  },
-  {
-    key: "accountType",
-    label: { bn: "একাউন্ট টাইপ", en: "Account Type" },
-    placeholder: {
-      bn: "Personal / Agent / Merchant",
-      en: "Personal / Agent / Merchant",
-    },
-    type: "text",
-    required: true,
-  },
-];
 
 const sectionCard =
   "rounded-2xl border border-blue-300/20 bg-gradient-to-br from-black via-[#2f79c9]/20 to-black shadow-lg shadow-blue-900/20";
@@ -59,7 +21,6 @@ const inputBase =
 
 const labelCls = "mb-2 block text-sm font-medium text-blue-100";
 const titleCls = "text-xl font-bold text-white";
-const subTitleCls = "text-lg font-semibold text-blue-100";
 
 const btnBase =
   "cursor-pointer rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-300";
@@ -157,7 +118,6 @@ const AddWithdraw = () => {
   const [deleteName, setDeleteName] = useState("");
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState("");
-  const [fields, setFields] = useState(defaultFields());
 
   const selected = useMemo(
     () => list.find((item) => item._id === selectedId) || null,
@@ -185,7 +145,6 @@ const AddWithdraw = () => {
           minimumWithdrawAmount: 0,
           maximumWithdrawAmount: 0,
         });
-        setFields(defaultFields());
         setLogoFile(null);
         setLogoPreview("");
       }
@@ -200,12 +159,6 @@ const AddWithdraw = () => {
       minimumWithdrawAmount: selected.minimumWithdrawAmount ?? 0,
       maximumWithdrawAmount: selected.maximumWithdrawAmount ?? 0,
     });
-
-    setFields(
-      Array.isArray(selected.fields) && selected.fields.length
-        ? selected.fields
-        : defaultFields(),
-    );
 
     setLogoFile(null);
     setLogoPreview(selected?.logoUrl ? getImageUrl(selected.logoUrl) : "");
@@ -226,23 +179,7 @@ const AddWithdraw = () => {
       minimumWithdrawAmount: 0,
       maximumWithdrawAmount: 0,
     });
-
-    setFields(defaultFields());
   };
-
-  const patchField = (idx, key, val) =>
-    setFields((prev) =>
-      prev.map((item, i) => (i === idx ? { ...item, [key]: val } : item)),
-    );
-
-  const patchFieldBi = (idx, key, lang, val) =>
-    setFields((prev) =>
-      prev.map((item, i) =>
-        i === idx
-          ? { ...item, [key]: { ...(item[key] || emptyBi), [lang]: val } }
-          : item,
-      ),
-    );
 
   const validateBeforeSave = (values) => {
     const mid = String(values.methodId || "")
@@ -250,6 +187,7 @@ const AddWithdraw = () => {
       .toUpperCase();
 
     if (!mid) return "Method ID is required";
+
     if (!values.name_bn?.trim() || !values.name_en?.trim()) {
       return "Both BN and EN names are required";
     }
@@ -259,35 +197,9 @@ const AddWithdraw = () => {
 
     if (Number.isNaN(minW) || minW < 0) return "Minimum withdraw must be >= 0";
     if (Number.isNaN(maxW) || maxW < 0) return "Maximum withdraw must be >= 0";
+
     if (maxW > 0 && minW > maxW) {
       return "Minimum withdraw cannot be greater than maximum withdraw";
-    }
-
-    const normalizedKeys = new Set();
-
-    for (const field of fields) {
-      const key = String(field.key || "").trim();
-
-      if (!key) return "Field key cannot be empty";
-      if (normalizedKeys.has(key)) return "Field key must be unique";
-      normalizedKeys.add(key);
-
-      if (!field.label?.bn?.trim() || !field.label?.en?.trim()) {
-        return "Field label BN/EN both required";
-      }
-
-      if (
-        field.placeholder &&
-        typeof field.placeholder === "object" &&
-        (!String(field.placeholder.bn || "").trim() ||
-          !String(field.placeholder.en || "").trim())
-      ) {
-        return "Field placeholder BN/EN both required";
-      }
-
-      if (!["text", "number", "tel", "email"].includes(field.type || "text")) {
-        return "Invalid field type";
-      }
     }
 
     return null;
@@ -327,7 +239,6 @@ const AddWithdraw = () => {
         "maximumWithdrawAmount",
         String(values.maximumWithdrawAmount ?? 0),
       );
-      payload.append("fields", JSON.stringify(fields));
 
       if (logoFile) {
         payload.append("logo", logoFile);
@@ -437,7 +348,7 @@ const AddWithdraw = () => {
                   : "Update Withdraw Method"}
               </h2>
               <p className="mt-1 text-sm text-blue-100/70">
-                BN + EN দুই ভাষাতেই data fill করো
+                BN + EN দুই ভাষাতেই method info fill করো
               </p>
             </div>
 
@@ -552,150 +463,11 @@ const AddWithdraw = () => {
                   <img
                     src={logoPreview}
                     alt="Logo Preview"
-                    className="h-20 w-20 rounded-xl border border-blue-300/20 object-cover"
+                    className="h-20 w-20 rounded-xl border border-blue-300/20 object-contain bg-white p-2"
                   />
                   <span className="text-sm text-blue-100/80">Logo preview</span>
                 </div>
               )}
-            </div>
-          </div>
-
-          <div className="mt-8 rounded-2xl border border-blue-300/20 bg-black/30 p-4">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <FaListAlt className="text-[#8fc2f5]" />
-                <h3 className={subTitleCls}>Withdraw Modal Input Fields</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setFields((prev) => [...prev, defaultField()])}
-                className={btnGhost}
-              >
-                + Add Field
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              {fields.map((field, idx) => (
-                <div
-                  key={idx}
-                  className="rounded-2xl border border-blue-300/20 bg-gradient-to-br from-black/80 to-[#2f79c9]/10 p-4"
-                >
-                  <div className="mb-4 flex items-center justify-between gap-3">
-                    <h4 className="font-semibold text-blue-100">
-                      Field #{idx + 1}
-                    </h4>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setFields((prev) => prev.filter((_, i) => i !== idx))
-                      }
-                      disabled={fields.length === 1}
-                      className={`${btnDanger} ${
-                        fields.length === 1
-                          ? "cursor-not-allowed opacity-50"
-                          : ""
-                      }`}
-                    >
-                      Remove
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div>
-                      <label className={labelCls}>Key</label>
-                      <input
-                        className={inputBase}
-                        value={field.key || ""}
-                        onChange={(e) => patchField(idx, "key", e.target.value)}
-                        placeholder="amount / accountNumber / email"
-                      />
-                    </div>
-
-                    <div>
-                      <label className={labelCls}>Type</label>
-                      <select
-                        className={inputBase}
-                        value={field.type || "text"}
-                        onChange={(e) =>
-                          patchField(idx, "type", e.target.value)
-                        }
-                      >
-                        <option value="text">text</option>
-                        <option value="number">number</option>
-                        <option value="tel">tel</option>
-                        <option value="email">email</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="mt-4">
-                    <BiInput
-                      title="Label"
-                      bnProps={{
-                        value: field.label?.bn || "",
-                        onChange: (e) =>
-                          patchFieldBi(idx, "label", "bn", e.target.value),
-                      }}
-                      enProps={{
-                        value: field.label?.en || "",
-                        onChange: (e) =>
-                          patchFieldBi(idx, "label", "en", e.target.value),
-                      }}
-                      bnPlaceholder="বাংলা লেবেল"
-                      enPlaceholder="English label"
-                    />
-                  </div>
-
-                  <div className="mt-4">
-                    <BiInput
-                      title="Placeholder"
-                      bnProps={{
-                        value: field.placeholder?.bn || "",
-                        onChange: (e) =>
-                          patchFieldBi(
-                            idx,
-                            "placeholder",
-                            "bn",
-                            e.target.value,
-                          ),
-                      }}
-                      enProps={{
-                        value: field.placeholder?.en || "",
-                        onChange: (e) =>
-                          patchFieldBi(
-                            idx,
-                            "placeholder",
-                            "en",
-                            e.target.value,
-                          ),
-                      }}
-                      bnPlaceholder="বাংলা placeholder"
-                      enPlaceholder="English placeholder"
-                    />
-                  </div>
-
-                  <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-                    <label className="flex cursor-pointer items-center gap-3">
-                      <input
-                        type="checkbox"
-                        className="h-5 w-5 cursor-pointer accent-[#2f79c9]"
-                        checked={field.required !== false}
-                        onChange={(e) =>
-                          patchField(idx, "required", e.target.checked)
-                        }
-                      />
-                      <span className="font-medium text-blue-100">
-                        Required
-                      </span>
-                    </label>
-
-                    <div className="text-xs text-blue-100/70">
-                      Tip: key unique রাখো, যেমন amount, accountNumber, email
-                    </div>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>
@@ -749,7 +521,7 @@ const AddWithdraw = () => {
                             <img
                               src={getImageUrl(method.logoUrl)}
                               alt={displayName}
-                              className="h-full w-full object-contain"
+                              className="h-full w-full object-contain bg-white p-2"
                             />
                           ) : (
                             <FaImage className="text-3xl text-[#8fc2f5]/70" />
@@ -797,18 +569,6 @@ const AddWithdraw = () => {
                               {Number(method.maximumWithdrawAmount ?? 0)}
                             </p>
                           </div>
-                        </div>
-
-                        <div className="mt-4 rounded-xl border border-blue-300/20 bg-black/30 p-3">
-                          <p className="mb-2 text-sm font-semibold text-[#8fc2f5]">
-                            Total Fields
-                          </p>
-                          <p className="text-sm text-blue-100">
-                            {Array.isArray(method.fields)
-                              ? method.fields.length
-                              : 0}{" "}
-                            টি field
-                          </p>
                         </div>
 
                         <div className="mt-5 flex flex-wrap gap-3">

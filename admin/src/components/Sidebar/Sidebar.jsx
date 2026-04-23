@@ -211,10 +211,10 @@ const Sidebar = () => {
         text: "Deposit Request",
       },
       {
-        key: "add-auto-deposit",
-        to: "/add-auto-deposit",
+        key: "auto-deposit-settings",
+        to: "/auto-deposit-settings",
         icon: <FaCogs />,
-        text: "Auto Deposit Setting",
+        text: "Auto Deposit Settings",
       },
       {
         key: "auto-deposit-history",

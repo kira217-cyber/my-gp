@@ -407,6 +407,157 @@ router.get("/my-users", protectAffiliate, async (req, res) => {
   }
 });
 
+/* =========================
+   Affiliate Profile Update
+========================= */
+router.put("/profile", protectAffiliate, async (req, res) => {
+  try {
+    const affiliate = await User.findOne({
+      _id: req.user._id,
+      role: "aff-user",
+    });
+
+    if (!affiliate) {
+      return res.status(404).json({
+        success: false,
+        message: "Affiliate user not found",
+      });
+    }
+
+    const {
+      firstName,
+      lastName,
+      email,
+      countryCode,
+      phone,
+      password,
+      currency,
+    } = req.body || {};
+
+    const safeFirstName = String(firstName || "").trim();
+    const safeLastName = String(lastName || "").trim();
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    const normalizedCountryCode = normalizeCountryCode(countryCode || "");
+    const normalizedPhone = normalizePhone(phone || "");
+    const normalizedCurrency = String(currency || "BDT")
+      .trim()
+      .toUpperCase();
+
+    if (!safeFirstName) {
+      return res.status(400).json({
+        success: false,
+        message: "First name is required",
+      });
+    }
+
+    if (!safeLastName) {
+      return res.status(400).json({
+        success: false,
+        message: "Last name is required",
+      });
+    }
+
+    if (!normalizedCountryCode || !validateCountryCode(normalizedCountryCode)) {
+      return res.status(400).json({
+        success: false,
+        message: "Valid country code is required",
+      });
+    }
+
+    if (!normalizedPhone || !validatePhone(normalizedPhone)) {
+      return res.status(400).json({
+        success: false,
+        message: "Valid phone number is required",
+      });
+    }
+
+    if (!validateEmail(normalizedEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email address",
+      });
+    }
+
+    if (!["BDT", "USDT"].includes(normalizedCurrency)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid currency",
+      });
+    }
+
+    const existingPhone = await User.findOne({
+      countryCode: normalizedCountryCode,
+      phone: normalizedPhone,
+      _id: { $ne: affiliate._id },
+    }).select("_id");
+
+    if (existingPhone) {
+      return res.status(409).json({
+        success: false,
+        message: "Phone number already exists",
+      });
+    }
+
+    if (normalizedEmail) {
+      const existingEmail = await User.findOne({
+        email: normalizedEmail,
+        _id: { $ne: affiliate._id },
+      }).select("_id");
+
+      if (existingEmail) {
+        return res.status(409).json({
+          success: false,
+          message: "Email already exists",
+        });
+      }
+    }
+
+    affiliate.firstName = safeFirstName;
+    affiliate.lastName = safeLastName;
+    affiliate.email = normalizedEmail;
+    affiliate.countryCode = normalizedCountryCode;
+    affiliate.phone = normalizedPhone;
+    affiliate.currency = normalizedCurrency;
+
+    if (String(password || "").trim()) {
+      if (String(password).trim().length < 4) {
+        return res.status(400).json({
+          success: false,
+          message: "Password must be at least 4 characters",
+        });
+      }
+
+      affiliate.password = await bcrypt.hash(String(password).trim(), 10);
+    }
+
+    await affiliate.save();
+
+    return res.json({
+      success: true,
+      message: "Profile updated successfully",
+      user: {
+        id: affiliate._id,
+        userId: affiliate.userId,
+        firstName: affiliate.firstName,
+        lastName: affiliate.lastName,
+        countryCode: affiliate.countryCode,
+        phone: affiliate.phone,
+        email: affiliate.email,
+        role: affiliate.role,
+        isActive: affiliate.isActive,
+        referralCode: affiliate.referralCode,
+        currency: affiliate.currency,
+        balance: affiliate.balance,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update profile",
+      error: error.message,
+    });
+  }
+});
 
 router.patch("/my-users/:id/toggle-status", protectAffiliate, async (req, res) => {
   try {

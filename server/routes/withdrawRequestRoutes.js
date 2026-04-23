@@ -4,20 +4,20 @@ import WithdrawRequest from "../models/WithdrawRequest.js";
 import User from "../models/User.js";
 import TurnOver from "../models/TurnOver.js";
 import WithdrawMethod from "../models/WithdrawMethod.js";
+import EWallet from "../models/EWallet.js";
 import { protectUser } from "./userRoutes.js";
 
 const router = express.Router();
 
-const normalizeFields = (value) => {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
-  return value;
-};
-
 const getUserIdFromReq = (req) => req.user?.id || req.user?._id || null;
+
+const normalizeMethodId = (value) =>
+  String(value || "")
+    .trim()
+    .toUpperCase();
 
 /**
  * USER: eligibility
- * block withdraw if user has any running turnover
  */
 router.get("/withdraw-requests/eligibility", protectUser, async (req, res) => {
   try {
@@ -64,6 +64,7 @@ router.get("/withdraw-requests/eligibility", protectUser, async (req, res) => {
       },
     });
   } catch (e) {
+    console.error("WITHDRAW ELIGIBILITY ERROR:", e);
     return res.status(500).json({
       success: false,
       message: "Failed to check eligibility",
@@ -73,15 +74,16 @@ router.get("/withdraw-requests/eligibility", protectUser, async (req, res) => {
 
 /**
  * USER: create withdraw request
- * - turnover fulfilled check
- * - method validation
- * - balance hold instantly
  */
 router.post("/withdraw-requests", protectUser, async (req, res) => {
-  try {
-    console.log("REQ BODY:", req.body);
+  const session = await mongoose.startSession();
 
-    const userId = req.user?.id || req.user?._id;
+  try {
+    const userId = getUserIdFromReq(req);
+
+    const methodId = normalizeMethodId(req.body?.methodId);
+    const walletId = String(req.body?.walletId || "").trim();
+    const amountRaw = req.body?.amount;
 
     if (!userId) {
       return res.status(401).json({
@@ -90,22 +92,6 @@ router.post("/withdraw-requests", protectUser, async (req, res) => {
       });
     }
 
-    const methodId = String(req.body?.methodId || "").trim().toUpperCase();
-    const amount = req.body?.amount;
-    const fields =
-      req.body?.fields && typeof req.body.fields === "object"
-        ? req.body.fields
-        : {};
-
-    if (amount === undefined || amount === null || amount === "") {
-      return res.status(400).json({
-        success: false,
-        message: "amount is required",
-      });
-    }
-
-    const amt = Number(amount);
-
     if (!methodId) {
       return res.status(400).json({
         success: false,
@@ -113,10 +99,33 @@ router.post("/withdraw-requests", protectUser, async (req, res) => {
       });
     }
 
-    if (!Number.isFinite(amt) || amt <= 0) {
+    if (!walletId) {
+      return res.status(400).json({
+        success: false,
+        message: "walletId is required",
+      });
+    }
+
+    if (amountRaw === undefined || amountRaw === null || amountRaw === "") {
+      return res.status(400).json({
+        success: false,
+        message: "amount is required",
+      });
+    }
+
+    const amount = Number(amountRaw);
+
+    if (!Number.isFinite(amount) || amount <= 0) {
       return res.status(400).json({
         success: false,
         message: "amount must be a valid number",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(walletId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid wallet id",
       });
     }
 
@@ -138,6 +147,55 @@ router.post("/withdraw-requests", protectUser, async (req, res) => {
       });
     }
 
+    const method = await WithdrawMethod.findOne({
+      methodId,
+      isActive: true,
+    });
+
+    if (!method) {
+      return res.status(404).json({
+        success: false,
+        message: "Withdraw method not found or inactive",
+      });
+    }
+
+    const minAmount = Number(method.minimumWithdrawAmount || 0);
+    const maxAmount = Number(method.maximumWithdrawAmount || 0);
+
+    if (minAmount > 0 && amount < minAmount) {
+      return res.status(400).json({
+        success: false,
+        message: `Minimum withdraw amount is ${minAmount}`,
+      });
+    }
+
+    if (maxAmount > 0 && amount > maxAmount) {
+      return res.status(400).json({
+        success: false,
+        message: `Maximum withdraw amount is ${maxAmount}`,
+      });
+    }
+
+    const wallet = await EWallet.findOne({
+      _id: walletId,
+      user: userId,
+      isActive: true,
+    });
+
+    if (!wallet) {
+      return res.status(404).json({
+        success: false,
+        message: "Wallet not found",
+      });
+    }
+
+    if (String(wallet.methodId) !== methodId) {
+      return res.status(400).json({
+        success: false,
+        message: "Selected wallet does not match the method",
+      });
+    }
+
     const user = await User.findById(userId);
 
     if (!user) {
@@ -156,34 +214,54 @@ router.post("/withdraw-requests", protectUser, async (req, res) => {
 
     const currentBalance = Number(user.balance || 0);
 
-    if (currentBalance < amt) {
+    if (currentBalance < amount) {
       return res.status(400).json({
         success: false,
         message: "Insufficient balance",
       });
     }
 
-    const balanceAfter = currentBalance - amt;
+    const balanceAfter = currentBalance - amount;
 
-    const doc = await WithdrawRequest.create({
-      user: user._id,
-      methodId,
-      amount: amt,
-      fields,
-      status: "pending",
-      balanceBefore: currentBalance,
-      balanceAfter,
+    let createdDoc = null;
+
+    await session.withTransaction(async () => {
+      createdDoc = await WithdrawRequest.create(
+        [
+          {
+            user: user._id,
+            methodId,
+            wallet: wallet._id,
+            walletSnapshot: {
+              methodId: method.methodId,
+              methodName: {
+                bn: method?.name?.bn || "",
+                en: method?.name?.en || "",
+              },
+              walletType: wallet.walletType || "",
+              walletNumber: wallet.walletNumber || "",
+              label: wallet.label || "",
+            },
+            amount,
+            status: "pending",
+            balanceBefore: currentBalance,
+            balanceAfter,
+          },
+        ],
+        { session },
+      );
+
+      await User.updateOne(
+        { _id: user._id },
+        { $set: { balance: balanceAfter } },
+        { session },
+      );
     });
-
-    await User.updateOne(
-      { _id: user._id },
-      { $set: { balance: balanceAfter } },
-    );
 
     return res.json({
       success: true,
       message: "Withdraw request created successfully",
-      data: doc,
+      data: createdDoc?.[0] || null,
     });
   } catch (e) {
     console.error("WITHDRAW CREATE ERROR:", e);
@@ -191,8 +269,11 @@ router.post("/withdraw-requests", protectUser, async (req, res) => {
       success: false,
       message: e?.message || "Server error",
     });
+  } finally {
+    await session.endSession();
   }
 });
+
 /**
  * USER: my requests
  */
@@ -217,6 +298,7 @@ router.get("/withdraw-requests/my", protectUser, async (req, res) => {
       meta: { page, limit, total },
     });
   } catch (e) {
+    console.error("MY WITHDRAW REQUESTS ERROR:", e);
     return res.status(500).json({
       success: false,
       message: "Failed to load history",
@@ -248,6 +330,7 @@ router.get("/withdraw-requests/my/:id", protectUser, async (req, res) => {
       data: doc,
     });
   } catch (e) {
+    console.error("MY SINGLE WITHDRAW REQUEST ERROR:", e);
     return res.status(500).json({
       success: false,
       message: "Failed to load request",
@@ -292,6 +375,10 @@ router.get("/admin/withdraw-requests", async (req, res) => {
     const [items, total] = await Promise.all([
       WithdrawRequest.find(q)
         .populate("user", "userId phone email balance role isActive")
+        .populate(
+          "wallet",
+          "methodId walletType walletNumber label isDefault isActive",
+        )
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit),
@@ -304,6 +391,7 @@ router.get("/admin/withdraw-requests", async (req, res) => {
       meta: { page, limit, total },
     });
   } catch (e) {
+    console.error("ADMIN LIST WITHDRAW REQUESTS ERROR:", e);
     return res.status(500).json({
       success: false,
       message: "Failed to load requests",
@@ -316,10 +404,12 @@ router.get("/admin/withdraw-requests", async (req, res) => {
  */
 router.get("/admin/withdraw-requests/:id", async (req, res) => {
   try {
-    const doc = await WithdrawRequest.findById(req.params.id).populate(
-      "user",
-      "userId phone email balance role isActive",
-    );
+    const doc = await WithdrawRequest.findById(req.params.id)
+      .populate("user", "userId phone email balance role isActive")
+      .populate(
+        "wallet",
+        "methodId walletType walletNumber label isDefault isActive",
+      );
 
     if (!doc) {
       return res.status(404).json({
@@ -333,6 +423,7 @@ router.get("/admin/withdraw-requests/:id", async (req, res) => {
       data: doc,
     });
   } catch (e) {
+    console.error("ADMIN WITHDRAW DETAILS ERROR:", e);
     return res.status(500).json({
       success: false,
       message: "Failed to load details",
@@ -342,7 +433,6 @@ router.get("/admin/withdraw-requests/:id", async (req, res) => {
 
 /**
  * ADMIN: approve
- * balance already held on create
  */
 router.patch("/admin/withdraw-requests/:id/approve", async (req, res) => {
   try {
@@ -378,6 +468,7 @@ router.patch("/admin/withdraw-requests/:id/approve", async (req, res) => {
       data: doc,
     });
   } catch (e) {
+    console.error("APPROVE WITHDRAW ERROR:", e);
     return res.status(500).json({
       success: false,
       message: "Approve failed",
@@ -433,6 +524,8 @@ router.patch("/admin/withdraw-requests/:id/reject", async (req, res) => {
       data: updatedDoc,
     });
   } catch (e) {
+    console.error("REJECT WITHDRAW ERROR:", e);
+
     const status = e?.statusCode || 500;
 
     return res.status(status).json({

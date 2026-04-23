@@ -29,31 +29,12 @@ const buildPayload = (req, oldLogoUrl = "") => {
 
   const name = normalizeI18n(safeParseJSON(body.name, {}));
 
-  const fields = safeParseJSON(body.fields, []).map((item) => ({
-    key: String(item?.key || "").trim(),
-    label: {
-      bn: String(item?.label?.bn || "").trim(),
-      en: String(item?.label?.en || "").trim(),
-    },
-    placeholder: {
-      bn: String(item?.placeholder?.bn || "").trim(),
-      en: String(item?.placeholder?.en || "").trim(),
-    },
-    type: ["text", "number", "tel", "email"].includes(item?.type)
-      ? item.type
-      : "text",
-    required: item?.required !== false,
-  }));
-
   return {
     methodId,
     name,
-    logoUrl: req.file
-      ? `/${req.file.path.replace(/\\/g, "/")}`
-      : oldLogoUrl,
+    logoUrl: req.file ? `/${req.file.path.replace(/\\/g, "/")}` : oldLogoUrl,
     minimumWithdrawAmount: Number(body.minimumWithdrawAmount || 0),
     maximumWithdrawAmount: Number(body.maximumWithdrawAmount || 0),
-    fields,
     isActive: body.isActive === "false" ? false : true,
   };
 };

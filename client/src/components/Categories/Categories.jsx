@@ -233,7 +233,7 @@ const Categories = () => {
                   className="mb-1 h-[26px] w-[26px] object-contain"
                 />
                 <span
-                  className={`text-center text-[14px] text-nowrap font-semibold leading-[1.05] ${
+                  className={`text-center text-[12px] text-nowrap font-semibold leading-[1.05] ${
                     isActive ? "text-white" : "text-white"
                   }`}
                 >

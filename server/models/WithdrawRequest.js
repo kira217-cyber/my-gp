@@ -1,11 +1,47 @@
 import mongoose from "mongoose";
 
+const WalletSnapshotSchema = new mongoose.Schema(
+  {
+    methodId: {
+      type: String,
+      default: "",
+      trim: true,
+      uppercase: true,
+    },
+
+    methodName: {
+      bn: { type: String, default: "", trim: true },
+      en: { type: String, default: "", trim: true },
+    },
+
+    walletType: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    walletNumber: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    label: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+  },
+  { _id: false },
+);
+
 const WithdrawRequestSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
 
     methodId: {
@@ -13,17 +49,30 @@ const WithdrawRequestSchema = new mongoose.Schema(
       required: true,
       trim: true,
       uppercase: true,
+      index: true,
+    },
+
+    wallet: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "EWallet",
+      required: true,
+    },
+
+    walletSnapshot: {
+      type: WalletSnapshotSchema,
+      default: () => ({
+        methodId: "",
+        methodName: { bn: "", en: "" },
+        walletType: "",
+        walletNumber: "",
+        label: "",
+      }),
     },
 
     amount: {
       type: Number,
       required: true,
       min: 0,
-    },
-
-    fields: {
-      type: mongoose.Schema.Types.Mixed,
-      default: {},
     },
 
     status: {
@@ -70,5 +119,10 @@ const WithdrawRequestSchema = new mongoose.Schema(
 
 WithdrawRequestSchema.index({ user: 1, createdAt: -1 });
 WithdrawRequestSchema.index({ status: 1, createdAt: -1 });
+WithdrawRequestSchema.index({ methodId: 1, createdAt: -1 });
 
-export default mongoose.model("WithdrawRequest", WithdrawRequestSchema);
+const WithdrawRequest =
+  mongoose.models.WithdrawRequest ||
+  mongoose.model("WithdrawRequest", WithdrawRequestSchema);
+
+export default WithdrawRequest;

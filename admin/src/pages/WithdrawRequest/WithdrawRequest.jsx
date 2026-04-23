@@ -30,6 +30,14 @@ const chipClass = (status) => {
   return "bg-yellow-500/15 text-yellow-200 border-yellow-400/30";
 };
 
+const typeText = (type = "") => {
+  const v = String(type || "").toLowerCase();
+  if (v === "personal") return "Personal";
+  if (v === "agent") return "Agent";
+  if (v === "merchant") return "Merchant";
+  return "—";
+};
+
 const ConfirmModal = ({
   open,
   title,
@@ -292,7 +300,7 @@ const WithdrawRequest = () => {
 
           <div className="mt-5 overflow-hidden rounded-2xl border border-blue-300/20">
             <div className="overflow-x-auto">
-              <table className="min-w-[980px] w-full">
+              <table className="min-w-[1250px] w-full">
                 <thead className="bg-black/70">
                   <tr className="text-left">
                     <th className="px-4 py-3 text-[12px] font-extrabold text-blue-100/80">
@@ -300,6 +308,9 @@ const WithdrawRequest = () => {
                     </th>
                     <th className="px-4 py-3 text-[12px] font-extrabold text-blue-100/80">
                       Method
+                    </th>
+                    <th className="px-4 py-3 text-[12px] font-extrabold text-blue-100/80">
+                      Wallet
                     </th>
                     <th className="px-4 py-3 text-[12px] font-extrabold text-blue-100/80">
                       Amount
@@ -320,7 +331,7 @@ const WithdrawRequest = () => {
                   {loading ? (
                     <tr>
                       <td
-                        colSpan={6}
+                        colSpan={7}
                         className="px-4 py-10 text-center text-[13px] text-blue-100/70"
                       >
                         Loading...
@@ -336,6 +347,24 @@ const WithdrawRequest = () => {
                       const userId = r?.user?.userId || "—";
                       const phone = r?.user?.phone || "";
                       const email = r?.user?.email || "";
+
+                      const methodName =
+                        r?.walletSnapshot?.methodName?.en ||
+                        r?.walletSnapshot?.methodName?.bn ||
+                        r?.methodId ||
+                        "—";
+
+                      const walletType = typeText(
+                        r?.walletSnapshot?.walletType || r?.wallet?.walletType,
+                      );
+
+                      const walletNumber =
+                        r?.walletSnapshot?.walletNumber ||
+                        r?.wallet?.walletNumber ||
+                        "—";
+
+                      const walletLabel =
+                        r?.walletSnapshot?.label || r?.wallet?.label || "";
 
                       return (
                         <tr
@@ -358,8 +387,25 @@ const WithdrawRequest = () => {
 
                           <td className="px-4 py-4">
                             <div className="text-[13px] font-extrabold text-white">
+                              {methodName}
+                            </div>
+                            <div className="text-[12px] text-blue-100/60">
                               {String(r?.methodId || "—").toUpperCase()}
                             </div>
+                          </td>
+
+                          <td className="px-4 py-4">
+                            <div className="text-[13px] font-extrabold text-white">
+                              {walletNumber}
+                            </div>
+                            <div className="text-[12px] text-blue-100/60">
+                              {walletType}
+                            </div>
+                            {walletLabel ? (
+                              <div className="text-[12px] text-blue-100/50">
+                                {walletLabel}
+                              </div>
+                            ) : null}
                           </td>
 
                           <td className="px-4 py-4">
@@ -427,7 +473,7 @@ const WithdrawRequest = () => {
                   ) : (
                     <tr>
                       <td
-                        colSpan={6}
+                        colSpan={7}
                         className="px-4 py-10 text-center text-[13px] text-blue-100/70"
                       >
                         No withdraw requests found.

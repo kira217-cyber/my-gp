@@ -26,6 +26,11 @@ import DepositRequest from "../pages/DepositRequest/DepositRequest";
 import DepositRequestDetials from "../pages/DepositRequestDetials/DepositRequestDetials";
 import WithdrawRequest from "../pages/WithdrawRequest/WithdrawRequest";
 import WithdrawRequestDetials from "../pages/WithdrawRequestDetials/WithdrawRequestDetials";
+import AutoDepositSettings from "../pages/AutoDepositSettings/AutoDepositSettings";
+import AutoDepositHistory from "../pages/AutoDepositHistory/AutoDepositHistory";
+import AffAddWithdraw from "../pages/AffAddWithdraw/AffAddWithdraw";
+import AffWithdrawRequest from "../pages/AffWithdrawRequest/AffWithdrawRequest";
+import AffWithdrawRequestDetails from "../pages/AffWithdrawRequestDetails/AffWithdrawRequestDetails";
 
 export const routes = createBrowserRouter([
   {
@@ -134,6 +139,22 @@ export const routes = createBrowserRouter([
         ),
       },
       {
+        path: "/auto-deposit-settings",
+        element: (
+          <PrivateRoute permKey="auto-deposit-settings">
+            <AutoDepositSettings />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/auto-deposit-history",
+        element: (
+          <PrivateRoute permKey="auto-deposit-history">
+            <AutoDepositHistory />
+          </PrivateRoute>
+        ),
+      },
+      {
         path: "add-withdraw",
         element: (
           <PrivateRoute permKey="add-withdraw">
@@ -154,6 +175,30 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute permKey="withdraw-request-detials">
             <WithdrawRequestDetials />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/aff-add-withdraw",
+        element: (
+          <PrivateRoute permKey="aff-add-withdraw">
+            <AffAddWithdraw />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/aff-withdraw-request",
+        element: (
+          <PrivateRoute permKey="aff-withdraw-request">
+            <AffWithdrawRequest />
+          </PrivateRoute>
+        ),
+      },
+       {
+        path: "/aff-withdraw-request-details/:id",
+        element: (
+          <PrivateRoute permKey="aff-withdraw-request-detials">
+            <AffWithdrawRequestDetails />
           </PrivateRoute>
         ),
       },

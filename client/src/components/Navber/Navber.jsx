@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Menu, Bell } from "lucide-react";
 import { useLanguage } from "../../Context/LanguageProvider";
+import { Link } from "react-router";
 
 const Navber = ({ setOpen }) => {
   const { language, changeLanguage } = useLanguage();
@@ -30,11 +31,13 @@ const Navber = ({ setOpen }) => {
           <Menu size={26} strokeWidth={2.5} />
         </button>
 
-        <img
-          src="https://i.ibb.co.com/Xxf8k1SR/image-removebg-preview-5.png"
-          alt="logo"
-          className="h-[42px] object-contain"
-        />
+        <Link to={"/"}>
+          <img
+            src="https://i.ibb.co.com/Xxf8k1SR/image-removebg-preview-5.png"
+            alt="logo"
+            className="h-[42px] object-contain"
+          />
+        </Link>
       </div>
 
       {/* Right */}

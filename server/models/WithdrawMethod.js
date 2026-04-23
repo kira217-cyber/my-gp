@@ -2,33 +2,8 @@ import mongoose from "mongoose";
 
 const I18nSchema = new mongoose.Schema(
   {
-    bn: { type: String, default: "" },
-    en: { type: String, default: "" },
-  },
-  { _id: false },
-);
-
-const FieldSchema = new mongoose.Schema(
-  {
-    key: { type: String, required: true, trim: true },
-
-    label: {
-      bn: { type: String, required: true, trim: true },
-      en: { type: String, required: true, trim: true },
-    },
-
-    placeholder: {
-      bn: { type: String, default: "" },
-      en: { type: String, default: "" },
-    },
-
-    type: {
-      type: String,
-      enum: ["text", "number", "tel", "email"],
-      default: "text",
-    },
-
-    required: { type: Boolean, default: true },
+    bn: { type: String, default: "", trim: true },
+    en: { type: String, default: "", trim: true },
   },
   { _id: false },
 );
@@ -44,13 +19,15 @@ const WithdrawMethodSchema = new mongoose.Schema(
     },
 
     name: {
-      bn: { type: String, required: true, trim: true },
-      en: { type: String, required: true, trim: true },
+      type: I18nSchema,
+      required: true,
+      default: () => ({ bn: "", en: "" }),
     },
 
     logoUrl: {
       type: String,
       default: "",
+      trim: true,
     },
 
     minimumWithdrawAmount: {
@@ -65,14 +42,10 @@ const WithdrawMethodSchema = new mongoose.Schema(
       min: 0,
     },
 
-    fields: {
-      type: [FieldSchema],
-      default: [],
-    },
-
     isActive: {
       type: Boolean,
       default: true,
+      index: true,
     },
   },
   { timestamps: true },

@@ -37,6 +37,14 @@ const beautifyKey = (key = "") =>
     .trim()
     .replace(/^./, (m) => m.toUpperCase());
 
+const typeText = (type = "") => {
+  const v = String(type || "").toLowerCase();
+  if (v === "personal") return "Personal";
+  if (v === "agent") return "Agent";
+  if (v === "merchant") return "Merchant";
+  return "—";
+};
+
 const FieldRow = ({ k, v }) => (
   <div className="flex items-start justify-between gap-4 border-b border-blue-300/15 py-2">
     <div className="text-[12px] font-bold text-blue-100/70">
@@ -145,7 +153,23 @@ const WithdrawRequestDetails = () => {
   const phone = row?.user?.phone || "";
   const email = row?.user?.email || "";
 
-  const fields = useMemo(() => row?.fields || {}, [row]);
+  const walletInfo = useMemo(
+    () => ({
+      methodId: row?.walletSnapshot?.methodId || row?.methodId || "—",
+      methodName:
+        row?.walletSnapshot?.methodName?.en ||
+        row?.walletSnapshot?.methodName?.bn ||
+        row?.methodId ||
+        "—",
+      walletType: typeText(
+        row?.walletSnapshot?.walletType || row?.wallet?.walletType,
+      ),
+      walletNumber:
+        row?.walletSnapshot?.walletNumber || row?.wallet?.walletNumber || "—",
+      label: row?.walletSnapshot?.label || row?.wallet?.label || "",
+    }),
+    [row],
+  );
 
   const approveNow = async () => {
     if (!row?._id) return;
@@ -273,7 +297,7 @@ const WithdrawRequestDetails = () => {
                       {money(row?.amount || 0)}
                     </div>
                     <div className="text-[12px] text-blue-100/60">
-                      Method: {String(row?.methodId || "—").toUpperCase()}
+                      Method: {walletInfo.methodName}
                     </div>
                   </div>
                 </div>
@@ -303,7 +327,11 @@ const WithdrawRequestDetails = () => {
                 </div>
 
                 <div className="mt-3">
-                  <FieldRow k="methodId" v={String(row?.methodId || "—")} />
+                  <FieldRow
+                    k="methodId"
+                    v={String(walletInfo.methodId || "—")}
+                  />
+                  <FieldRow k="methodName" v={walletInfo.methodName} />
                   <FieldRow k="amount" v={money(row?.amount || 0)} />
                   <FieldRow k="status" v={statusText} />
                   <FieldRow k="createdAt" v={createdAt} />
@@ -333,19 +361,15 @@ const WithdrawRequestDetails = () => {
 
               <div className="rounded-2xl border border-blue-300/20 bg-black/40 p-4">
                 <div className="text-[14px] font-extrabold text-blue-100">
-                  Submitted Fields
+                  Wallet Snapshot
                 </div>
 
                 <div className="mt-3 rounded-2xl border border-blue-300/15 bg-black/30 p-3">
-                  {fields && Object.keys(fields).length ? (
-                    Object.keys(fields).map((k) => (
-                      <FieldRow key={k} k={k} v={String(fields[k] ?? "")} />
-                    ))
-                  ) : (
-                    <div className="py-3 text-[13px] text-blue-100/70">
-                      No submitted fields.
-                    </div>
-                  )}
+                  <FieldRow k="methodName" v={walletInfo.methodName} />
+                  <FieldRow k="methodId" v={walletInfo.methodId} />
+                  <FieldRow k="walletType" v={walletInfo.walletType} />
+                  <FieldRow k="walletNumber" v={walletInfo.walletNumber} />
+                  <FieldRow k="label" v={walletInfo.label || "—"} />
                 </div>
               </div>
             </div>

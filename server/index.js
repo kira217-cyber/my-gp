@@ -12,6 +12,12 @@ import depositRequestRoutes from "./routes/depositRequestRoutes.js";
 import turnOverRoutes from "./routes/turnOverRoutes.js";
 import withdrawMethodRoutes from "./routes/withdrawMethodRoutes.js";
 import withdrawRequestRoutes from "./routes/withdrawRequestRoutes.js";
+import autoDepositRoutes from "./routes/autoDepositRoutes.js";
+import bulkAdjustmentRoutes from "./routes/bulkAdjustmentRoutes.js";
+import affWithdrawRoutes from "./routes/AffWithdrawRoutes.js";
+import affWithdrawRequestRoutes from "./routes/affWithdrawRequestRoutes.js";
+import eWalletRoutes from "./routes/eWalletRoutes.js";
+
 
 
 dotenv.config();
@@ -25,8 +31,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static("uploads"));
 
-//* api routes 
-
+//* api routes
 app.use("/api/admin", adminRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/affiliate", affiliateRoutes);
@@ -37,7 +42,11 @@ app.use("/api", depositRequestRoutes);
 app.use("/api", turnOverRoutes);
 app.use("/api/withdraw-methods", withdrawMethodRoutes);
 app.use("/api", withdrawRequestRoutes);
-
+app.use("/api/auto-deposit", autoDepositRoutes);
+app.use("/api/admin", bulkAdjustmentRoutes);
+app.use("/api", affWithdrawRoutes);
+app.use("/api", affWithdrawRequestRoutes);
+app.use("/api/e-wallets", eWalletRoutes);
 
 // test route
 app.get("/", (req, res) => {
