@@ -12,6 +12,7 @@ import Start from "../components/Start/Start";
 import Games from "../pages/Games/Games";
 import Account from "../pages/Account/Account";
 import Share from "../pages/Share/Share";
+import AutoDeposit from "../pages/AutoDeposit/AutoDeposit";
 
 export const routes = createBrowserRouter([
   {
@@ -44,6 +45,14 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute>
             <Deposit />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/auto-deposit",
+        element: (
+          <PrivateRoute>
+            <AutoDeposit />
           </PrivateRoute>
         ),
       },

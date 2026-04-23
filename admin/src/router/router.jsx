@@ -19,6 +19,13 @@ import AllAffiliateUsers from "../pages/AllAffiliateUsers/AllAffiliateUsers";
 import BulkAdjustment from "../pages/BulkAdjustment/BulkAdjustment";
 import UserDetails from "../pages/UserDetials/UserDetails";
 import AffiliateUserDetials from "../pages/AffiliateUserDetails/AffiliateUserDetials";
+import AddDepositMethod from "../pages/AddDepositMethod/AddDepositMethod";
+import AddDepositBonusAndTurnover from "../pages/AddDepositBonusAndTurnover/AddDepositBonusAndTurnover";
+import AddDepositField from "../pages/AddDepositField/AddDepositField";
+import DepositRequest from "../pages/DepositRequest/DepositRequest";
+import DepositRequestDetials from "../pages/DepositRequestDetials/DepositRequestDetials";
+import WithdrawRequest from "../pages/WithdrawRequest/WithdrawRequest";
+import WithdrawRequestDetials from "../pages/WithdrawRequestDetials/WithdrawRequestDetials";
 
 export const routes = createBrowserRouter([
   {
@@ -87,10 +94,42 @@ export const routes = createBrowserRouter([
         ),
       },
       {
-        path: "add-deposit",
+        path: "/add-deposit-method",
         element: (
-          <PrivateRoute permKey="add-deposit">
-            <AddDeposit />
+          <PrivateRoute permKey="add-deposit-method">
+            <AddDepositMethod />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/add-deposit-field",
+        element: (
+          <PrivateRoute permKey="add-deposit-field">
+            <AddDepositField />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/add-deposit-bonus-turnover",
+        element: (
+          <PrivateRoute permKey="add-deposit-bonus-turnover">
+            <AddDepositBonusAndTurnover />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/deposit-request",
+        element: (
+          <PrivateRoute permKey="deposit-request">
+            <DepositRequest />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/deposit-request/:id",
+        element: (
+          <PrivateRoute permKey="deposit-request-details">
+            <DepositRequestDetials />
           </PrivateRoute>
         ),
       },
@@ -99,6 +138,22 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute permKey="add-withdraw">
             <AddWithdraw />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/withdraw-request",
+        element: (
+          <PrivateRoute permKey="withdraw-request">
+            <WithdrawRequest />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/withdraw-request/:id",
+        element: (
+          <PrivateRoute permKey="withdraw-request-detials">
+            <WithdrawRequestDetials />
           </PrivateRoute>
         ),
       },

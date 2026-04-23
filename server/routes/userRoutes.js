@@ -60,7 +60,7 @@ const signToken = (user) => {
   );
 };
 
-const protectUser = async (req, res, next) => {
+export const protectUser = async (req, res, next) => {
   try {
     const auth = req.headers.authorization || "";
     const token = auth.startsWith("Bearer ") ? auth.split(" ")[1] : null;
@@ -330,6 +330,29 @@ router.get("/profile", protectUser, async (req, res) => {
     success: true,
     user: req.user,
   });
+});
+
+/* =========================
+   Me - Balance
+========================= */
+router.get("/me/balance", protectUser, async (req, res) => {
+  try {
+    return res.json({
+      success: true,
+      data: {
+        id: req.user._id,
+        userId: req.user.userId,
+        balance: Number(req.user.balance || 0),
+        currency: req.user.currency || "BDT",
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to load balance",
+      error: error.message,
+    });
+  }
 });
 
 /* =========================

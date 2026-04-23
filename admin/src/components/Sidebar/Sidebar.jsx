@@ -19,6 +19,8 @@ import {
   FaServer,
   FaStream,
   FaHistory,
+  FaCogs,
+  FaGift,
 } from "react-icons/fa";
 import { FaDiagramProject, FaCodePullRequest } from "react-icons/fa6";
 import {
@@ -185,10 +187,22 @@ const Sidebar = () => {
   const depositItems = useMemo(
     () => [
       {
-        key: "add-deposit",
-        to: "/add-deposit",
+        key: "add-deposit-method",
+        to: "/add-deposit-method",
         icon: <PiHandDepositBold />,
-        text: "Add Deposit",
+        text: "Add Deposit Method",
+      },
+      {
+        key: "add-deposit-field",
+        to: "/add-deposit-field",
+        icon: <FaLayerGroup />,
+        text: "Add Deposit Field",
+      },
+      {
+        key: "add-deposit-bonus-turnover",
+        to: "/add-deposit-bonus-turnover",
+        icon: <FaGift />,
+        text: "Add Deposit Bonus & Turnover",
       },
       {
         key: "deposit-request",
@@ -199,7 +213,7 @@ const Sidebar = () => {
       {
         key: "add-auto-deposit",
         to: "/add-auto-deposit",
-        icon: <FaCog />,
+        icon: <FaCogs />,
         text: "Auto Deposit Setting",
       },
       {

@@ -5,6 +5,14 @@ import connectDB from "./config/db.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import affiliateRoutes from "./routes/affiliateRoutes.js";
+import depositMethodRoutes from "./routes/depositMethodRoutes.js";
+import depositFieldRoutes from "./routes/depositFieldRoutes.js";
+import depositBonusTurnoverRoutes from "./routes/depositBonusTurnoverRoutes.js";
+import depositRequestRoutes from "./routes/depositRequestRoutes.js";
+import turnOverRoutes from "./routes/turnOverRoutes.js";
+import withdrawMethodRoutes from "./routes/withdrawMethodRoutes.js";
+import withdrawRequestRoutes from "./routes/withdrawRequestRoutes.js";
+
 
 dotenv.config();
 
@@ -15,12 +23,20 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/uploads", express.static("uploads"));
 
 //* api routes 
 
 app.use("/api/admin", adminRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/affiliate", affiliateRoutes);
+app.use("/api/deposit-methods", depositMethodRoutes);
+app.use("/api/deposit-fields", depositFieldRoutes);
+app.use("/api/deposit-bonus-turnover", depositBonusTurnoverRoutes);
+app.use("/api", depositRequestRoutes);
+app.use("/api", turnOverRoutes);
+app.use("/api/withdraw-methods", withdrawMethodRoutes);
+app.use("/api", withdrawRequestRoutes);
 
 
 // test route

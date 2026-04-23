@@ -1,17 +1,16 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { RotateCw, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useLanguage } from "../../Context/LanguageProvider";
+import { api } from "../../api/axios";
 
-const Exposure = ({
-  balance = 500,
-  exposure = 500,
-  onReload,
-  loading = false,
-}) => {
+const Exposure = ({ balance: initialBalance = 0, exposure = 0 }) => {
   const navigate = useNavigate();
   const { isBangla } = useLanguage();
+
   const [hideBalance, setHideBalance] = useState(false);
+  const [balance, setBalance] = useState(initialBalance);
+  const [loading, setLoading] = useState(false);
 
   const t = {
     balance: isBangla ? "ব্যালেন্স" : "Balance",
@@ -29,12 +28,29 @@ const Exposure = ({
     });
   };
 
-  const handleReload = () => {
-    if (onReload) {
-      onReload();
-    } else {
-      console.log("Reload balance clicked");
+  // 🔥 fetch balance from API
+  const fetchBalance = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get("/api/users/me/balance");
+
+      if (res?.data?.success) {
+        setBalance(res.data.data.balance || 0);
+      }
+    } catch (err) {
+      console.error("Balance fetch error:", err);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  // 🔥 initial load
+  useEffect(() => {
+    fetchBalance();
+  }, []);
+
+  const handleReload = () => {
+    fetchBalance();
   };
 
   return (
@@ -58,7 +74,6 @@ const Exposure = ({
                   type="button"
                   onClick={() => setHideBalance((prev) => !prev)}
                   className="cursor-pointer text-[#1f5f98]"
-                  aria-label="toggle balance"
                 >
                   {hideBalance ? (
                     <EyeOff className="h-4 w-4" strokeWidth={2.4} />
@@ -73,7 +88,6 @@ const Exposure = ({
                   className={`cursor-pointer text-[#1f5f98] transition ${
                     loading ? "animate-spin" : ""
                   }`}
-                  aria-label="reload balance"
                 >
                   <RotateCw className="h-4 w-4" strokeWidth={2.4} />
                 </button>
