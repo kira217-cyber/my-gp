@@ -1,36 +1,51 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router";
 import { useLanguage } from "../../Context/LanguageProvider";
-
+import { api } from "../../api/axios";
 
 const Sports = () => {
+  const navigate = useNavigate();
   const { isBangla } = useLanguage();
 
-  const sportsList = [
-    {
-      id: 1,
-      name: "Lucky Sports",
-      icon: "https://api.1onebet.com/uploads/1776365326725-68768726.png",
-    },
-    {
-      id: 2,
-      name: "Saba Sports",
-      icon: "https://api.1onebet.com/uploads/1776365458206-833625691.png",
-    },
-    {
-      id: 3,
-      name: "VELKI",
-      icon: "https://api.1onebet.com/uploads/1776365483058-616453906.png",
-    },
-    {
-      id: 4,
-      name: "9wicket",
-      icon: "https://api.1onebet.com/uploads/1776365379309-698354557.png",
-    },
-  ];
+  const [sportsList, setSportsList] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const text = {
-    title: isBangla ? "জনপ্রিয় স্পোর্টস" : "Popular Sports",
-    matches: isBangla ? "ম্যাচ-০৪" : "Match-04",
+  useEffect(() => {
+    const fetchSports = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get("/api/sports");
+        setSportsList(res?.data?.data || []);
+      } catch (error) {
+        console.error("Failed to fetch sports:", error);
+        setSportsList([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSports();
+  }, []);
+
+  const text = useMemo(
+    () => ({
+      title: isBangla ? "জনপ্রিয় স্পোর্টস" : "Popular Sports",
+      matches: isBangla
+        ? `ম্যাচ-${String(sportsList.length).padStart(2, "0")}`
+        : `Match-${String(sportsList.length).padStart(2, "0")}`,
+    }),
+    [isBangla, sportsList.length],
+  );
+
+  const getName = (item) => {
+    return isBangla
+      ? item?.name?.bn || item?.name?.en
+      : item?.name?.en || item?.name?.bn;
+  };
+
+  const handleClick = (item) => {
+    if (!item?.gameId) return;
+    navigate(`/sports/${item.gameId}`);
   };
 
   return (
@@ -75,30 +90,46 @@ const Sports = () => {
         </div>
 
         {/* Cards */}
-        <div className="mt-1 grid grid-cols-4 gap-2 bg-white px-1 pb-1 pt-1">
-          {sportsList.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className="cursor-pointer overflow-hidden rounded-[6px] border border-[#d59b72] bg-white shadow-sm transition hover:-translate-y-[1px] hover:shadow-md"
-            >
-              <div className="flex h-[80px] items-center justify-center bg-[#fffdf8] px-2">
-                <div className="flex h-[60px] w-[60px] items-center justify-center rounded-[10px] border border-[#d8d8d8] bg-white shadow-sm">
-                  <img
-                    src={item.icon}
-                    alt={item.name}
-                    className="h-[60px] w-[60px] object-contain"
-                  />
-                </div>
-              </div>
+        <div className="mt-1 grid grid-cols-4 gap-2 bg-white px-2 pb-1 pt-1">
+          {loading
+            ? Array.from({ length: 4 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="h-[116px] animate-pulse rounded-[6px] bg-slate-200"
+                />
+              ))
+            : sportsList.map((item) => (
+                <button
+                  key={item._id}
+                  type="button"
+                  onClick={() => handleClick(item)}
+                  className="cursor-pointer overflow-hidden rounded-[6px] border border-[#d59b72] bg-white shadow-sm transition hover:-translate-y-[1px] hover:shadow-md"
+                >
+                  <div className="flex h-[80px] items-center justify-center bg-[#fffdf8] px-2">
+                    <div className="flex h-[60px] w-[60px] items-center justify-center rounded-[10px] border border-[#d8d8d8] bg-white shadow-sm">
+                      {item.iconImageUrl ? (
+                        <img
+                          src={item.iconImageUrl}
+                          alt={getName(item)}
+                          className="h-[60px] w-[60px] object-contain"
+                        />
+                      ) : (
+                        <img
+                          src="https://beit365.bet/assets/images/home-page-menu/Sports.svg"
+                          alt={getName(item)}
+                          className="h-[60px] w-[60px] object-contain"
+                        />
+                      )}
+                    </div>
+                  </div>
 
-              <div className="bg-[#3f87d4] px-1 py-2">
-                <p className="truncate text-center text-[11px] font-bold leading-none text-white">
-                  {item.name}
-                </p>
-              </div>
-            </button>
-          ))}
+                  <div className="bg-[#3f87d4] px-1 py-2">
+                    <p className="truncate text-center text-[11px] font-bold leading-none text-white">
+                      {getName(item)}
+                    </p>
+                  </div>
+                </button>
+              ))}
         </div>
       </div>
     </div>

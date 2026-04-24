@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { NavLink, useNavigate } from "react-router";
 import {
   Gift,
   CreditCard,
@@ -13,8 +14,11 @@ import {
   ChevronDown,
   LogOut,
 } from "lucide-react";
+import { FaHandshake, FaPlayCircle } from "react-icons/fa";
 import { useLanguage } from "../../Context/LanguageProvider";
-import { useNavigate } from "react-router";
+import { api } from "../../api/axios";
+
+const AFFILIATE_URL = "http://localhost:5174/";
 
 const Sidebar = ({ open, setOpen }) => {
   const { isBangla, language, changeLanguage } = useLanguage();
@@ -22,28 +26,67 @@ const Sidebar = ({ open, setOpen }) => {
 
   const [openGames, setOpenGames] = useState(false);
   const [openAccount, setOpenAccount] = useState(false);
+  const [gameCategories, setGameCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await api.get("/api/game-categories");
+        setGameCategories(res?.data?.data || []);
+      } catch (error) {
+        console.error("Failed to fetch game categories:", error);
+        setGameCategories([]);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  const closeAndNavigate = (path) => {
+    setOpen(false);
+    navigate(path);
+  };
+
+  const openAffiliate = () => {
+    setOpen(false);
+    window.open(AFFILIATE_URL, "_blank", "noopener,noreferrer");
+  };
+
+  const categoryChildren = useMemo(() => {
+    return gameCategories.map((cat) => ({
+      key: cat._id,
+      label: isBangla
+        ? cat?.categoryName?.bn || cat?.categoryTitle?.bn || "ক্যাটাগরি"
+        : cat?.categoryName?.en || cat?.categoryTitle?.en || "Category",
+      to: `/games/${cat._id}`,
+    }));
+  }, [gameCategories, isBangla]);
 
   const items = useMemo(
     () => [
-      {
-        key: "offers",
-        label: isBangla ? "অফার" : "Offers",
-        icon: Gift,
-      },
-      {
-        key: "withdraw",
-        label: isBangla ? "উত্তোলন" : "Withdraw",
-        icon: CreditCard,
-      },
+      // {
+      //   key: "offers",
+      //   label: isBangla ? "অফার" : "Offers",
+      //   icon: Gift,
+      //   to: "/offers",
+      // },
+      // {
+      //   key: "withdraw",
+      //   label: isBangla ? "উত্তোলন" : "Withdraw",
+      //   icon: CreditCard,
+      //   to: "/withdraw",
+      // },
       {
         key: "invite",
         label: isBangla ? "বন্ধুদের আমন্ত্রণ জানান" : "Invite Friends",
         icon: Users,
+        to: "/invite-friends",
       },
       {
         key: "rewards",
         label: isBangla ? "পুরস্কার কেন্দ্র" : "Reward Center",
         icon: Trophy,
+        to: "/rewards",
       },
       {
         key: "games",
@@ -52,11 +95,7 @@ const Sidebar = ({ open, setOpen }) => {
         hasDropdown: true,
         isOpen: openGames,
         onClick: () => setOpenGames((prev) => !prev),
-        children: [
-          isBangla ? "ক্যাসিনো" : "Casino",
-          isBangla ? "স্পোর্টস" : "Sports",
-          isBangla ? "স্লট" : "Slots",
-        ],
+        children: categoryChildren,
       },
       {
         key: "account",
@@ -66,28 +105,55 @@ const Sidebar = ({ open, setOpen }) => {
         isOpen: openAccount,
         onClick: () => setOpenAccount((prev) => !prev),
         children: [
-          isBangla ? "প্রোফাইল" : "Profile",
-          isBangla ? "নিরাপত্তা" : "Security",
-          isBangla ? "হিস্টোরি" : "History",
+          {
+            key: "profile",
+            label: isBangla ? "প্রোফাইল" : "Profile",
+            to: "/profile",
+          },
+          {
+            key: "security",
+            label: isBangla ? "নিরাপত্তা" : "Security",
+            to: "/security",
+          },
+          {
+            key: "history",
+            label: isBangla ? "হিস্টোরি" : "History",
+            to: "/history",
+          },
         ],
+      },
+      {
+        key: "affiliate",
+        label: isBangla ? "পার্টনার" : "Affiliate",
+        icon: FaHandshake,
+        onClick: openAffiliate,
       },
       {
         key: "download",
         label: isBangla ? "অ্যাপ ডাউনলোড করুন" : "Download App",
         icon: Download,
+        to: "/download",
       },
-      {
-        key: "support",
-        label: isBangla ? "গ্রাহক পরিসেবা" : "Customer Service",
-        icon: Headphones,
-      },
+      // {
+      //   key: "support",
+      //   label: isBangla ? "গ্রাহক পরিসেবা" : "Customer Service",
+      //   icon: Headphones,
+      //   to: "/support",
+      // },
       {
         key: "help",
         label: isBangla ? "সাহায্য কেন্দ্র" : "Help Center",
         icon: HandHelping,
+        to: "/help",
+      },
+      {
+        key: "tutorial",
+        label: isBangla ? "টিউটোরিয়াল" : "Tutorial",
+        icon: FaPlayCircle,
+        to: "/tutorial",
       },
     ],
-    [isBangla, openGames, openAccount],
+    [isBangla, openGames, openAccount, categoryChildren],
   );
 
   const handleLogout = () => {
@@ -127,28 +193,44 @@ const Sidebar = ({ open, setOpen }) => {
           {items.map((item) => {
             const Icon = item.icon;
 
+            const content = (
+              <>
+                <div className="flex items-center gap-3">
+                  <Icon className="h-5 w-5 shrink-0" strokeWidth={2.2} />
+                  <span className="text-[15px] font-semibold leading-none">
+                    {item.label}
+                  </span>
+                </div>
+
+                {item.hasDropdown ? (
+                  <ChevronDown
+                    className={`h-5 w-5 shrink-0 transition-transform duration-300 ${
+                      item.isOpen ? "rotate-180" : "rotate-0"
+                    }`}
+                  />
+                ) : null}
+              </>
+            );
+
             return (
               <div key={item.key}>
-                <button
-                  type="button"
-                  onClick={item.onClick ? item.onClick : undefined}
-                  className="flex w-full items-center justify-between rounded-[8px] bg-[#1f5f98] px-4 py-3 text-left text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-[#1b5487] cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <Icon className="h-5 w-5 shrink-0" strokeWidth={2.2} />
-                    <span className="text-[15px] font-semibold leading-none">
-                      {item.label}
-                    </span>
-                  </div>
-
-                  {item.hasDropdown ? (
-                    <ChevronDown
-                      className={`h-5 w-5 shrink-0 transition-transform duration-300 ${
-                        item.isOpen ? "rotate-180" : "rotate-0"
-                      }`}
-                    />
-                  ) : null}
-                </button>
+                {item.hasDropdown || item.onClick ? (
+                  <button
+                    type="button"
+                    onClick={item.onClick}
+                    className="flex w-full items-center justify-between rounded-[8px] bg-[#1f5f98] px-4 py-3 text-left text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-[#1b5487] cursor-pointer"
+                  >
+                    {content}
+                  </button>
+                ) : (
+                  <NavLink
+                    to={item.to}
+                    onClick={() => setOpen(false)}
+                    className="flex w-full items-center justify-between rounded-[8px] bg-[#1f5f98] px-4 py-3 text-left text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-[#1b5487] cursor-pointer"
+                  >
+                    {content}
+                  </NavLink>
+                )}
 
                 {/* Smooth Dropdown */}
                 {item.hasDropdown && (
@@ -167,15 +249,22 @@ const Sidebar = ({ open, setOpen }) => {
                             : "-translate-y-2 pointer-events-none"
                         }`}
                       >
-                        {item.children?.map((child) => (
-                          <button
-                            key={child}
-                            type="button"
-                            className="block w-full rounded-[6px] bg-[#174a79] px-4 py-2 text-left text-[14px] font-medium text-white/95 transition hover:bg-[#143f67] cursor-pointer"
-                          >
-                            {child}
-                          </button>
-                        ))}
+                        {item.children?.length ? (
+                          item.children.map((child) => (
+                            <NavLink
+                              key={child.key}
+                              to={child.to}
+                              onClick={() => setOpen(false)}
+                              className="block w-full rounded-[6px] bg-[#174a79] px-4 py-2 text-left text-[14px] font-medium text-white/95 transition hover:bg-[#143f67] cursor-pointer"
+                            >
+                              {child.label}
+                            </NavLink>
+                          ))
+                        ) : (
+                          <div className="block w-full rounded-[6px] bg-[#174a79] px-4 py-2 text-left text-[14px] font-medium text-white/70">
+                            {isBangla ? "কোনো ক্যাটাগরি নেই" : "No category"}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

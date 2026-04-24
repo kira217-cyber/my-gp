@@ -354,216 +354,217 @@ const Games = () => {
   }
 
   return (
-    <div className="px-3 pb-4 mb-32">
-      <h2 className="py-2 text-yellow-400 font-semibold text-lg">
-        {categoryTitle}
+    <>
+      <h2 className="py-2 text-white text-center font-bold text-2xl bg-[#2469A7]  mb-2">
+      ----  {categoryTitle}  ----
       </h2>
-
-      {/* Provider Tabs */}
-      {/* Provider Tabs */}
-      <div className="relative border border-[#8cb9e8] bg-[#2f79c9] px-2 sm:px-10 py-2 shadow-sm rounded-md">
-        {/* Left arrow */}
-        <button
-          type="button"
-          onClick={() => {
-            if (!providerScrollRef.current) return;
-            providerScrollRef.current.scrollBy({
-              left: -180,
-              behavior: "smooth",
-            });
-          }}
-          className="hidden sm:block absolute left-1 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-sm transition hover:bg-white/25 cursor-pointer"
-        >
-          <span className="text-center flex justify-center">
-            <ChevronLeft className="h-4 w-4" />
-          </span>
-        </button>
-
-        {/* Right arrow */}
-        <button
-          type="button"
-          onClick={() => {
-            if (!providerScrollRef.current) return;
-            providerScrollRef.current.scrollBy({
-              left: 180,
-              behavior: "smooth",
-            });
-          }}
-          className="hidden sm:block absolute right-1 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-sm transition hover:bg-white/25 cursor-pointer"
-        >
-          <span className="text-center flex justify-center">
-            <ChevronRight className="h-4 w-4" />
-          </span>
-        </button>
-
-        {/* Scroll list */}
-        <div
-          ref={providerScrollRef}
-          className="flex gap-2 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
+      <div className="px-3 pb-4 mb-32">
+        {/* Provider Tabs */}
+        {/* Provider Tabs */}
+        <div className="relative border border-[#8cb9e8] bg-[#2f79c9] px-2 sm:px-10 py-2 shadow-sm rounded-md">
+          {/* Left arrow */}
           <button
             type="button"
-            onClick={() => handleProviderTabClick("")}
-            className={`flex min-w-[78px] flex-col items-center justify-center rounded-[12px] border px-3 py-4 transition-all duration-200 cursor-pointer ${
-              !selectedProviderDbId
-                ? "border-white/80 bg-[#2469a7] text-white shadow-md"
-                : "border-white/25 bg-[#2f79c9] text-white hover:bg-[#3f87d4]"
-            }`}
+            onClick={() => {
+              if (!providerScrollRef.current) return;
+              providerScrollRef.current.scrollBy({
+                left: -180,
+                behavior: "smooth",
+              });
+            }}
+            className="hidden sm:block absolute left-1 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-sm transition hover:bg-white/25 cursor-pointer"
           >
-            <div className="mb-1 flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white/20 text-[10px] font-black">
-              ALL
-            </div>
-
-            <span className="text-center text-[12px] text-nowrap font-semibold leading-[1.05] text-white">
-              {isBangla ? "সব" : "All"}
+            <span className="text-center flex justify-center">
+              <ChevronLeft className="h-4 w-4" />
             </span>
           </button>
 
-          {providers.map((provider) => {
-            const active =
-              String(selectedProviderDbId) === String(provider._id);
+          {/* Right arrow */}
+          <button
+            type="button"
+            onClick={() => {
+              if (!providerScrollRef.current) return;
+              providerScrollRef.current.scrollBy({
+                left: 180,
+                behavior: "smooth",
+              });
+            }}
+            className="hidden sm:block absolute right-1 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-sm transition hover:bg-white/25 cursor-pointer"
+          >
+            <span className="text-center flex justify-center">
+              <ChevronRight className="h-4 w-4" />
+            </span>
+          </button>
 
-            const icon =
-              provider?.providerIconUrl ||
-              provider?.providerIcon ||
-              provider?.providerImageUrl ||
-              "";
+          {/* Scroll list */}
+          <div
+            ref={providerScrollRef}
+            className="flex gap-2 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            <button
+              type="button"
+              onClick={() => handleProviderTabClick("")}
+              className={`flex min-w-[78px] flex-col items-center justify-center rounded-[12px] border px-3 py-4 transition-all duration-200 cursor-pointer ${
+                !selectedProviderDbId
+                  ? "border-white/80 bg-[#2469a7] text-white shadow-md"
+                  : "border-white/25 bg-[#2f79c9] text-white hover:bg-[#3f87d4]"
+              }`}
+            >
+              <div className="mb-1 flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white/20 text-[10px] font-black">
+                ALL
+              </div>
 
-            return (
-              <button
-                key={provider._id}
-                type="button"
-                onClick={() => handleProviderTabClick(provider._id)}
-                className={`flex min-w-[78px] flex-col items-center justify-center rounded-[12px] border transition-all duration-200 cursor-pointer ${
-                  active
-                    ? "border-white/80 bg-[#2469a7] text-white shadow-md"
-                    : "border-white/25 bg-[#2f79c9] text-white hover:bg-[#3f87d4]"
-                }`}
-              >
-                {icon ? (
-                  <img
-                    src={icon}
-                    alt={provider?.providerId || "Provider"}
-                    className="mb-1 h-[32px] w-[72px] object-contain"
-                  />
-                ) : (
-                  <FaImage className="mb-1 h-[32px] w-[72px] text-white/80" />
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Search */}
-      <div className="mt-2 flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setSearchOpen((prev) => !prev)}
-          className={`cursor-pointer h-[40px] w-[44px] shrink-0 rounded-[8px] flex items-center justify-center transition-all duration-200 ${
-            searchOpen
-              ? "bg-[#2469a7] text-white"
-              : "bg-[#2f79c9] text-white hover:bg-[#3f87d4]"
-          }`}
-        >
-          <FaSearch className="text-[16px]" />
-        </button>
-
-        {searchOpen && (
-          <div className="relative flex-1">
-            <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-[#2f79c9]/70 text-[14px]" />
-            <input
-              type="text"
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              placeholder={isBangla ? "গেম খুঁজুন..." : "Search games..."}
-              className="h-[40px] w-full rounded-[8px] border border-[#8cb9e8] bg-white pl-11 pr-4 text-[#1f5f98] outline-none placeholder:text-[#1f5f98]/50"
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Games */}
-      {/* Games */}
-      {finalFilteredGames.length === 0 ? (
-        <div className="rounded-2xl border border-[#2f79c9]/20 bg-white p-5 text-center shadow-sm mt-2">
-          <p className="text-sm font-semibold text-[#1f5f98]">
-            {isBangla ? "কোনো গেম পাওয়া যায়নি।" : "No games found."}
-          </p>
-        </div>
-      ) : (
-        <>
-          <div className="mt-2 overflow-hidden rounded-[6px] bg-white">
-            <div className="mt-1 grid grid-cols-4 gap-2 bg-white px-1 pb-2 pt-1">
-              {paginatedGames.map((game) => (
-                <button
-                  key={game._id}
-                  type="button"
-                  onClick={() => handleGameClick(game)}
-                  className="cursor-pointer overflow-hidden rounded-[6px] bg-white transition hover:-translate-y-[1px] hover:shadow-md"
-                >
-                  <div className="overflow-hidden rounded-t-[6px]">
-                    {game.displayImage ? (
-                      <img
-                        src={game.displayImage}
-                        alt={game.displayName}
-                        className="h-[92px] w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-[92px] w-full items-center justify-center bg-[#eef5fc]">
-                        <FaImage className="text-2xl text-[#2f79c9]/60" />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex h-[30px] items-center justify-center bg-[#2f79c9] px-1">
-                    {game.providerIcon ? (
-                      <img
-                        src={game.providerIcon}
-                        alt="provider"
-                        className="h-[20px] w-auto object-contain"
-                      />
-                    ) : (
-                      <span className="truncate text-[10px] font-bold text-white">
-                        {game.displayName}
-                      </span>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-3 mt-4">
-              <button
-                type="button"
-                onClick={() => goToPage(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="cursor-pointer px-4 py-2 rounded-lg bg-[#2f79c9] text-white disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                {isBangla ? "আগে" : "Previous"}
-              </button>
-
-              <span className="text-white text-sm font-semibold">
-                {isBangla
-                  ? `পৃষ্ঠা ${currentPage} / ${totalPages}`
-                  : `Page ${currentPage} / ${totalPages}`}
+              <span className="text-center text-[12px] text-nowrap font-semibold leading-[1.05] text-white">
+                {isBangla ? "সব" : "All"}
               </span>
+            </button>
 
-              <button
-                type="button"
-                onClick={() => goToPage(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="cursor-pointer px-4 py-2 rounded-lg bg-[#2f79c9] text-white disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                {isBangla ? "পরে" : "Next"}
-              </button>
+            {providers.map((provider) => {
+              const active =
+                String(selectedProviderDbId) === String(provider._id);
+
+              const icon =
+                provider?.providerIconUrl ||
+                provider?.providerIcon ||
+                provider?.providerImageUrl ||
+                "";
+
+              return (
+                <button
+                  key={provider._id}
+                  type="button"
+                  onClick={() => handleProviderTabClick(provider._id)}
+                  className={`flex min-w-[78px] flex-col items-center justify-center rounded-[12px] border transition-all duration-200 cursor-pointer ${
+                    active
+                      ? "border-white/80 bg-[#2469a7] text-white shadow-md"
+                      : "border-white/25 bg-[#2f79c9] text-white hover:bg-[#3f87d4]"
+                  }`}
+                >
+                  {icon ? (
+                    <img
+                      src={icon}
+                      alt={provider?.providerId || "Provider"}
+                      className="mb-1 h-[32px] w-[72px] object-contain"
+                    />
+                  ) : (
+                    <FaImage className="mb-1 h-[32px] w-[72px] text-white/80" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="mt-2 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setSearchOpen((prev) => !prev)}
+            className={`cursor-pointer h-[40px] w-[44px] shrink-0 rounded-[8px] flex items-center justify-center transition-all duration-200 ${
+              searchOpen
+                ? "bg-[#2469a7] text-white"
+                : "bg-[#2f79c9] text-white hover:bg-[#3f87d4]"
+            }`}
+          >
+            <FaSearch className="text-[16px]" />
+          </button>
+
+          {searchOpen && (
+            <div className="relative flex-1">
+              <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-[#2f79c9]/70 text-[14px]" />
+              <input
+                type="text"
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                placeholder={isBangla ? "গেম খুঁজুন..." : "Search games..."}
+                className="h-[40px] w-full rounded-[8px] border border-[#8cb9e8] bg-white pl-11 pr-4 text-[#1f5f98] outline-none placeholder:text-[#1f5f98]/50"
+              />
             </div>
           )}
-        </>
-      )}
-    </div>
+        </div>
+
+        {/* Games */}
+        {/* Games */}
+        {finalFilteredGames.length === 0 ? (
+          <div className="rounded-2xl border border-[#2f79c9]/20 bg-white p-5 text-center shadow-sm mt-2">
+            <p className="text-sm font-semibold text-[#1f5f98]">
+              {isBangla ? "কোনো গেম পাওয়া যায়নি।" : "No games found."}
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="mt-2 overflow-hidden rounded-[6px] bg-white">
+              <div className="mt-1 grid grid-cols-4 gap-2 bg-white px-1 pb-2 pt-1">
+                {paginatedGames.map((game) => (
+                  <button
+                    key={game._id}
+                    type="button"
+                    onClick={() => handleGameClick(game)}
+                    className="cursor-pointer overflow-hidden rounded-[6px] bg-white transition hover:-translate-y-[1px] hover:shadow-md"
+                  >
+                    <div className="overflow-hidden rounded-t-[6px]">
+                      {game.displayImage ? (
+                        <img
+                          src={game.displayImage}
+                          alt={game.displayName}
+                          className="h-[92px] w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-[92px] w-full items-center justify-center bg-[#eef5fc]">
+                          <FaImage className="text-2xl text-[#2f79c9]/60" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex h-[30px] items-center justify-center bg-[#2f79c9] px-1">
+                      {game.providerIcon ? (
+                        <img
+                          src={game.providerIcon}
+                          alt="provider"
+                          className="h-[20px] w-auto object-contain"
+                        />
+                      ) : (
+                        <span className="truncate text-[10px] font-bold text-white">
+                          {game.displayName}
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-3 mt-4">
+                <button
+                  type="button"
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="cursor-pointer px-4 py-2 rounded-lg bg-[#2f79c9] text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {isBangla ? "আগে" : "Previous"}
+                </button>
+
+                <span className="text-white text-sm font-semibold">
+                  {isBangla
+                    ? `পৃষ্ঠা ${currentPage} / ${totalPages}`
+                    : `Page ${currentPage} / ${totalPages}`}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="cursor-pointer px-4 py-2 rounded-lg bg-[#2f79c9] text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {isBangla ? "পরে" : "Next"}
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </>
   );
 };
 

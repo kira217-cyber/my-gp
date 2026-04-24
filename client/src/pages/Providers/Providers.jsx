@@ -58,7 +58,6 @@ const Providers = ({ categoryId, category }) => {
   if (loading) {
     return (
       <div className="px-2 py-3">
-        <h2 className="mb-3 text-yellow-400 font-semibold text-lg">{title}</h2>
 
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
           {[...Array(8)].map((_, index) => (

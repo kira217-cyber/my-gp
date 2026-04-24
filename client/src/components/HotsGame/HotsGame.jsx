@@ -28,6 +28,7 @@ const HotsGame = () => {
   const [dbGames, setDbGames] = useState([]);
   const [oracleGameMap, setOracleGameMap] = useState({});
   const [loading, setLoading] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(12);
 
   useEffect(() => {
     const fetchHotGames = async () => {
@@ -122,10 +123,20 @@ const HotsGame = () => {
     });
   }, [dbGames, oracleGameMap]);
 
+  const visibleGames = useMemo(() => {
+    return games.slice(0, visibleCount);
+  }, [games, visibleCount]);
+
+  const hasMoreGames = games.length > visibleCount;
+
   const text = {
     title: isBangla ? "গরম খেলা" : "Hot Games",
     total: isBangla ? `মোট-${games.length}` : `TOTAL-${games.length}`,
-    seeAll: isBangla ? "সব দেখুন" : "See All",
+    seeAll: isBangla ? "আরও দেখান" : "Show More",
+  };
+
+  const handleShowMore = () => {
+    setVisibleCount((prev) => prev + 12);
   };
 
   const handleGameClick = (game) => {
@@ -141,7 +152,6 @@ const HotsGame = () => {
 
       <div className="w-full px-2 py-2">
         <div className="overflow-hidden rounded-[6px] bg-white">
-          {/* Header */}
           <div className="flex items-stretch gap-[6px]">
             <div className="relative flex h-[44px] flex-1 items-center bg-gradient-to-r from-[#ff5a1f] to-[#ff8c1a] pl-3 pr-6">
               <div
@@ -174,7 +184,6 @@ const HotsGame = () => {
             </div>
           </div>
 
-          {/* Game Grid */}
           <div className="mt-1 grid grid-cols-4 gap-2 bg-white px-1 pb-2 pt-1">
             {loading
               ? Array.from({ length: 12 }).map((_, index) => (
@@ -183,7 +192,7 @@ const HotsGame = () => {
                     className="h-[122px] animate-pulse rounded-[6px] bg-slate-200"
                   />
                 ))
-              : games.map((game) => (
+              : visibleGames.map((game) => (
                   <button
                     key={game._id}
                     type="button"
@@ -227,16 +236,17 @@ const HotsGame = () => {
             </div>
           )}
 
-          {/* See All */}
-          <div className="px-2 pb-2 flex justify-center mt-2">
-            <button
-              type="button"
-              onClick={() => navigate("/games")}
-              className="w-20 cursor-pointer rounded-full bg-[#1f5f98] py-1 text-sm text-white transition hover:bg-[#184d7d]"
-            >
-              {text.seeAll}
-            </button>
-          </div>
+          {!loading && hasMoreGames && (
+            <div className="px-2 pb-2 flex justify-center mt-2">
+              <button
+                type="button"
+                onClick={handleShowMore}
+                className="w-24 cursor-pointer rounded-full bg-[#1f5f98] py-1 text-sm text-white transition hover:bg-[#184d7d]"
+              >
+                {text.seeAll}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </>
