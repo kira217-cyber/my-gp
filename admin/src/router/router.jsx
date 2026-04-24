@@ -31,6 +31,11 @@ import AutoDepositHistory from "../pages/AutoDepositHistory/AutoDepositHistory";
 import AffAddWithdraw from "../pages/AffAddWithdraw/AffAddWithdraw";
 import AffWithdrawRequest from "../pages/AffWithdrawRequest/AffWithdrawRequest";
 import AffWithdrawRequestDetails from "../pages/AffWithdrawRequestDetails/AffWithdrawRequestDetails";
+import AddCategories from "../pages/AddCategories/AddCategories";
+import AddProviders from "../pages/AddProviders/AddProviders";
+import AddGames from "../pages/AddGames/AddGames";
+import AddSports from "../pages/AddSports/AddSports";
+import BetHistory from "../pages/BetHistory/BetHistory";
 
 export const routes = createBrowserRouter([
   {
@@ -95,6 +100,46 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute permKey="bulk-adjustment">
             <BulkAdjustment />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "add-game-categories",
+        element: (
+          <PrivateRoute permKey="add-game-categories">
+            <AddCategories />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "add-providers",
+        element: (
+          <PrivateRoute permKey="add-providers">
+            <AddProviders />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "add-games",
+        element: (
+          <PrivateRoute permKey="add-games">
+            <AddGames />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "add-sports",
+        element: (
+          <PrivateRoute permKey="add-sports">
+            <AddSports />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "bet-history",
+        element: (
+          <PrivateRoute permKey="bet-history">
+            <BetHistory />
           </PrivateRoute>
         ),
       },
@@ -194,7 +239,7 @@ export const routes = createBrowserRouter([
           </PrivateRoute>
         ),
       },
-       {
+      {
         path: "/aff-withdraw-request-details/:id",
         element: (
           <PrivateRoute permKey="aff-withdraw-request-detials">

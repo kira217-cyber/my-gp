@@ -1,90 +1,126 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router";
 import { Flame } from "lucide-react";
+import { FaImage } from "react-icons/fa";
 import { useLanguage } from "../../Context/LanguageProvider";
 import Sports from "../Sports/Sports";
+import { api } from "../../api/axios";
+
+const ORACLE_BY_IDS_API = "https://api.oraclegames.live/api/games/by-ids";
+const ORACLE_KEY = import.meta.env.VITE_ORACLE_TOKEN;
+const ORACLE_CHUNK_SIZE = 100;
+
+const getFileUrl = (filePath = "") => {
+  if (!filePath) return "";
+  if (/^https?:\/\//i.test(filePath)) return filePath;
+
+  const baseUrl = import.meta.env.VITE_API_URL || "";
+  const cleanPath = filePath.startsWith("/") ? filePath : `/${filePath}`;
+
+  return `${baseUrl}${cleanPath}`;
+};
 
 const HotsGame = () => {
   const navigate = useNavigate();
   const { isBangla } = useLanguage();
 
-  const providerLogo =
-    "https://images.6492394993.com//TCG_PROD_IMAGES/RNG_LIST_VENDOR/JL-COLOR.png";
+  const [dbGames, setDbGames] = useState([]);
+  const [oracleGameMap, setOracleGameMap] = useState({});
+  const [loading, setLoading] = useState(false);
 
-  const games = [
-    {
-      id: 1,
-      name: "Fortune Gems",
-      image:
-        "https://img.capalangresource.com/images/public/images/games/jilis//49.png",
-    },
-    {
-      id: 2,
-      name: "Super Ace",
-      image:
-        "https://img.capalangresource.com/images/public/images/games/jilis//27.png",
-    },
-    {
-      id: 3,
-      name: "Boxing King",
-      image:
-        "https://img.capalangresource.com/images/public/images/games/jilis//144.png",
-    },
-    {
-      id: 4,
-      name: "Crazy Seven",
-      image:
-        "https://img.capalangresource.com/images/public/images/games/jilis//409.png",
-    },
-    {
-      id: 5,
-      name: "Fortune Gems",
-      image:
-        "https://img.capalangresource.com/images/public/images/games/jilis//302.png",
-    },
-    {
-      id: 6,
-      name: "Super Ace",
-      image:
-        "https://img.capalangresource.com/images/public/images/games/jilis//116.png",
-    },
-    {
-      id: 7,
-      name: "Boxing King",
-      image:
-        "https://img.capalangresource.com/images/public/images/games/jilis//26.png",
-    },
-    {
-      id: 8,
-      name: "Crazy Seven",
-      image:
-        "https://img.capalangresource.com/images/public/images/games/jilis//82.png",
-    },
-    {
-      id: 9,
-      name: "Fortune Gems",
-      image:
-        "https://img.capalangresource.com/images/public/images/games/jilis//191.png",
-    },
-    {
-      id: 10,
-      name: "Super Ace",
-      image:
-        "https://img.capalangresource.com/images/public/images/games/jilis//58.png",
-    },
-    {
-      id: 11,
-      name: "Boxing King",
-      image:
-        "https://img.capalangresource.com/images/public/images/games/jilis//233.png",
-    },
-    {
-      id: 12,
-      name: "Crazy Seven",
-      image:
-        "https://img.capalangresource.com/images/public/images/games/jilis//182.png",
-    },
-  ];
+  useEffect(() => {
+    const fetchHotGames = async () => {
+      try {
+        setLoading(true);
+
+        const res = await api.get("/api/games?isHot=true&status=active");
+        const gamesFromDb = res?.data?.data || [];
+        setDbGames(gamesFromDb);
+
+        const uniqueIds = [
+          ...new Set(
+            gamesFromDb
+              .map((item) => item?.gameId)
+              .filter(Boolean)
+              .map((id) => String(id)),
+          ),
+        ];
+
+        if (!uniqueIds.length) {
+          setOracleGameMap({});
+          return;
+        }
+
+        const chunks = [];
+
+        for (let i = 0; i < uniqueIds.length; i += ORACLE_CHUNK_SIZE) {
+          chunks.push(uniqueIds.slice(i, i + ORACLE_CHUNK_SIZE));
+        }
+
+        const results = await Promise.all(
+          chunks.map((chunk) =>
+            axios.post(
+              ORACLE_BY_IDS_API,
+              { ids: chunk },
+              {
+                headers: {
+                  "x-api-key": ORACLE_KEY,
+                },
+              },
+            ),
+          ),
+        );
+
+        const fullMap = {};
+
+        for (const response of results) {
+          const list = response?.data?.data || [];
+
+          for (const game of list) {
+            fullMap[String(game._id)] = game;
+          }
+        }
+
+        setOracleGameMap(fullMap);
+      } catch (error) {
+        console.error("Failed to fetch hot games:", error);
+        setDbGames([]);
+        setOracleGameMap({});
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHotGames();
+  }, []);
+
+  const games = useMemo(() => {
+    return dbGames.map((dbGame) => {
+      const oracleGame = oracleGameMap[String(dbGame.gameId)] || null;
+
+      const providerIcon =
+        dbGame?.providerDbId?.providerIconUrl ||
+        getFileUrl(dbGame?.providerDbId?.providerIcon) ||
+        "";
+
+      return {
+        ...dbGame,
+        name:
+          oracleGame?.gameName ||
+          oracleGame?.name ||
+          oracleGame?.game_code ||
+          "Unnamed Game",
+        image:
+          dbGame?.imageUrl ||
+          oracleGame?.image ||
+          oracleGame?.img ||
+          oracleGame?.thumbnail ||
+          "",
+        providerLogo: providerIcon,
+      };
+    });
+  }, [dbGames, oracleGameMap]);
 
   const text = {
     title: isBangla ? "গরম খেলা" : "Hot Games",
@@ -92,9 +128,17 @@ const HotsGame = () => {
     seeAll: isBangla ? "সব দেখুন" : "See All",
   };
 
+  const handleGameClick = (game) => {
+    const targetId = game?._id || game?.gameId;
+    if (!targetId) return;
+
+    navigate(`/play-game/${targetId}`);
+  };
+
   return (
     <>
       <Sports />
+
       <div className="w-full px-2 py-2">
         <div className="overflow-hidden rounded-[6px] bg-white">
           {/* Header */}
@@ -123,6 +167,7 @@ const HotsGame = () => {
                   clipPath: "polygon(0 0, 0 100%, 100% 0)",
                 }}
               />
+
               <span className="text-[18px] font-extrabold text-white">
                 {text.total}
               </span>
@@ -131,31 +176,56 @@ const HotsGame = () => {
 
           {/* Game Grid */}
           <div className="mt-1 grid grid-cols-4 gap-2 bg-white px-1 pb-2 pt-1">
-            {games.map((game) => (
-              <button
-                key={game.id}
-                type="button"
-                onClick={() => console.log("Game clicked:", game.name)}
-                className="cursor-pointer overflow-hidden rounded-[6px] bg-white transition hover:-translate-y-[1px] hover:shadow-md"
-              >
-                <div className="overflow-hidden rounded-t-[6px]">
-                  <img
-                    src={game.image}
-                    alt={game.name}
-                    className="h-[92px] w-full object-cover"
+            {loading
+              ? Array.from({ length: 12 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="h-[122px] animate-pulse rounded-[6px] bg-slate-200"
                   />
-                </div>
+                ))
+              : games.map((game) => (
+                  <button
+                    key={game._id}
+                    type="button"
+                    onClick={() => handleGameClick(game)}
+                    className="cursor-pointer overflow-hidden rounded-[6px] bg-white transition hover:-translate-y-[1px] hover:shadow-md"
+                  >
+                    <div className="overflow-hidden rounded-t-[6px]">
+                      {game.image ? (
+                        <img
+                          src={game.image}
+                          alt={game.name}
+                          className="h-[92px] w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-[92px] w-full items-center justify-center bg-[#eef5fc]">
+                          <FaImage className="text-2xl text-[#2f79c9]/60" />
+                        </div>
+                      )}
+                    </div>
 
-                <div className="flex h-[30px] items-center justify-center bg-[#2f79c9] px-1">
-                  <img
-                    src={providerLogo}
-                    alt="JILI"
-                    className="h-[20px] w-auto object-contain"
-                  />
-                </div>
-              </button>
-            ))}
+                    <div className="flex h-[30px] items-center justify-center bg-[#2f79c9] px-1">
+                      {game.providerLogo ? (
+                        <img
+                          src={game.providerLogo}
+                          alt="Provider"
+                          className="h-[20px] w-auto object-contain"
+                        />
+                      ) : (
+                        <span className="truncate text-[10px] font-bold text-white">
+                          {game.name}
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                ))}
           </div>
+
+          {!loading && games.length === 0 && (
+            <div className="px-3 py-6 text-center text-sm font-semibold text-[#1f5f98]">
+              {isBangla ? "কোনো হট গেম পাওয়া যায়নি।" : "No hot games found."}
+            </div>
+          )}
 
           {/* See All */}
           <div className="px-2 pb-2 flex justify-center mt-2">

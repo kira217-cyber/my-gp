@@ -17,6 +17,10 @@ import bulkAdjustmentRoutes from "./routes/bulkAdjustmentRoutes.js";
 import affWithdrawRoutes from "./routes/AffWithdrawRoutes.js";
 import affWithdrawRequestRoutes from "./routes/affWithdrawRequestRoutes.js";
 import eWalletRoutes from "./routes/eWalletRoutes.js";
+import gameCategoriesRoutes from "./routes/gameCategoriesRoutes.js";
+import gameProvidersRoutes from "./routes/gameProvidersRoutes.js";
+import gamesRoutes from "./routes/gamesRoutes.js";
+import sportsRoutes from "./routes/sportsRoutes.js";
 
 
 
@@ -47,8 +51,14 @@ app.use("/api/admin", bulkAdjustmentRoutes);
 app.use("/api", affWithdrawRoutes);
 app.use("/api", affWithdrawRequestRoutes);
 app.use("/api/e-wallets", eWalletRoutes);
+app.use("/api/game-categories", gameCategoriesRoutes);
+app.use("/api/game-providers", gameProvidersRoutes);
+app.use("/api/games", gamesRoutes);
+app.use("/api/sports", sportsRoutes);
 
-// test route
+
+
+// route
 app.get("/", (req, res) => {
   res.json({
     success: true,

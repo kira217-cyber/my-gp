@@ -121,16 +121,16 @@ const Sidebar = () => {
   const gamesItems = useMemo(
     () => [
       {
-        key: "add-game-category",
-        to: "/add-game-category",
+        key: "add-game-categories",
+        to: "/add-game-categories",
         icon: <FaLayerGroup />,
-        text: "Add Game Category",
+        text: "Add Game Categories",
       },
       {
-        key: "add-provider",
-        to: "/add-provider",
+        key: "add-providers",
+        to: "/add-providers",
         icon: <FaServer />,
-        text: "Add Provider",
+        text: "Add Providers",
       },
       {
         key: "add-games",
@@ -143,12 +143,6 @@ const Sidebar = () => {
         to: "/add-sports",
         icon: <FaStream />,
         text: "Add Sports",
-      },
-      {
-        key: "add-feature-games",
-        to: "/add-feature-games",
-        icon: <FaStream />,
-        text: "Add Feature Games",
       },
       {
         key: "bet-history",

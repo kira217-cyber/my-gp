@@ -33,7 +33,7 @@ export const routes = createBrowserRouter([
         element: <Register />,
       },
       {
-        path: "/games",
+        path: "/games/:categoryId",
         element: (
           <PrivateRoute>
             <Games />

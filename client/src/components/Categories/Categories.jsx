@@ -1,65 +1,61 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useLanguage } from "../../Context/LanguageProvider";
 import Sports from "../Sports/Sports";
 import HotsGame from "../HotsGame/HotsGame";
 import Slider from "../Slider/Slider";
+import { api } from "../../api/axios";
+import Providers from "../../pages/Providers/Providers";
 
 const Categories = () => {
   const { isBangla } = useLanguage();
   const scrollRef = useRef(null);
   const [selectedCategory, setSelectedCategory] = useState("hot");
+  const [dbCategories, setDbCategories] = useState([]);
 
-  const categories = useMemo(
-    () => [
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await api.get("/api/game-categories");
+        setDbCategories(res?.data?.data || []);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+        setDbCategories([]);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  const categories = useMemo(() => {
+    const defaultCategories = [
       {
         key: "hot",
         label: isBangla ? "জনপ্রিয় গেম" : "Hot Games",
         icon: "https://melbets.live/fire-flame.gif",
-      },
-      {
-        key: "casino",
-        label: isBangla ? "ক্যাসিনো" : "Casino",
-        icon: "https://api.1onebet.com/uploads/1776366139409-121059665.png",
-      },
-      {
-        key: "slots",
-        label: isBangla ? "স্লটস" : "Slots",
-        icon: "https://api.1onebet.com/uploads/1776365827855-559530296.png",
-      },
-      {
-        key: "fishing",
-        label: isBangla ? "মাছ ধরা" : "Fishing",
-        icon: "https://api.1onebet.com/uploads/1776359748419-805933936.svg",
+        type: "default",
       },
       {
         key: "sports",
         label: isBangla ? "স্পোর্টস" : "Sports",
-        icon: "https://api.1onebet.com/uploads/sports/1776360641203-402926125.svg",
+        icon: "https://beit365.bet/assets/images/home-page-menu/Sports.svg",
+        type: "default",
       },
-      {
-        key: "crash",
-        label: isBangla ? "ক্র্যাশ" : "Crash",
-        icon: "https://api.1onebet.com/uploads/1776365991653-848723889.png",
-      },
-      {
-        key: "live",
-        label: isBangla ? "লাইভ" : "Live",
-        icon: "https://api.1onebet.com/uploads/1776359683563-933484237.svg",
-      },
-      {
-        key: "table",
-        label: isBangla ? "টেবিল" : "Table",
-        icon: "https://api.1onebet.com/uploads/1776359711944-529730975.svg",
-      },
-      {
-        key: "lottery",
-        label: isBangla ? "লটারি" : "Lottery",
-        icon: "https://api.1onebet.com/uploads/1776359778550-933102375.svg",
-      },
-    ],
-    [isBangla],
-  );
+    ];
+
+    const dynamicCategories = dbCategories.map((item) => ({
+      key: item._id,
+      categoryId: item._id,
+      label: isBangla
+        ? item?.categoryName?.bn || item?.categoryTitle?.bn || "ক্যাটাগরি"
+        : item?.categoryName?.en || item?.categoryTitle?.en || "Category",
+      icon: item?.iconImageUrl || item?.iconImage || "",
+      type: "dynamic",
+      raw: item,
+    }));
+
+    return [...defaultCategories, ...dynamicCategories];
+  }, [isBangla, dbCategories]);
 
   const scrollByAmount = (amount) => {
     if (!scrollRef.current) return;
@@ -79,105 +75,16 @@ const Categories = () => {
       case "sports":
         return <Sports />;
 
-      case "crash":
-        return (
-          <div className="rounded-2xl border border-[#2f79c9]/20 bg-white p-5 shadow-sm">
-            <h3 className="text-lg font-bold text-[#1f5f98]">
-              {isBangla ? "ক্র্যাশ" : "Crash"}
-            </h3>
-            <p className="mt-2 text-sm text-slate-600">
-              {isBangla
-                ? "এইখানে Crash component show হবে।"
-                : "Selected Crash component will show here."}
-            </p>
-          </div>
-        );
-
-      case "slots":
-        return (
-          <div className="rounded-2xl border border-[#2f79c9]/20 bg-white p-5 shadow-sm">
-            <h3 className="text-lg font-bold text-[#1f5f98]">
-              {isBangla ? "স্লটস" : "Slots"}
-            </h3>
-            <p className="mt-2 text-sm text-slate-600">
-              {isBangla
-                ? "এইখানে Slots component show হবে।"
-                : "Selected Slots component will show here."}
-            </p>
-          </div>
-        );
-
-      case "casino":
-        return (
-          <div className="rounded-2xl border border-[#2f79c9]/20 bg-white p-5 shadow-sm">
-            <h3 className="text-lg font-bold text-[#1f5f98]">
-              {isBangla ? "ক্যাসিনো" : "Casino"}
-            </h3>
-            <p className="mt-2 text-sm text-slate-600">
-              {isBangla
-                ? "এইখানে Casino component show হবে।"
-                : "Selected Casino component will show here."}
-            </p>
-          </div>
-        );
-
-      case "live":
-        return (
-          <div className="rounded-2xl border border-[#2f79c9]/20 bg-white p-5 shadow-sm">
-            <h3 className="text-lg font-bold text-[#1f5f98]">
-              {isBangla ? "লাইভ" : "Live"}
-            </h3>
-            <p className="mt-2 text-sm text-slate-600">
-              {isBangla
-                ? "এইখানে Live component show হবে।"
-                : "Selected Live component will show here."}
-            </p>
-          </div>
-        );
-
-      case "table":
-        return (
-          <div className="rounded-2xl border border-[#2f79c9]/20 bg-white p-5 shadow-sm">
-            <h3 className="text-lg font-bold text-[#1f5f98]">
-              {isBangla ? "টেবিল" : "Table"}
-            </h3>
-            <p className="mt-2 text-sm text-slate-600">
-              {isBangla
-                ? "এইখানে Table component show হবে।"
-                : "Selected Table component will show here."}
-            </p>
-          </div>
-        );
-
-      case "fishing":
-        return (
-          <div className="rounded-2xl border border-[#2f79c9]/20 bg-white p-5 shadow-sm">
-            <h3 className="text-lg font-bold text-[#1f5f98]">
-              {isBangla ? "মাছ ধরা" : "Fishing"}
-            </h3>
-            <p className="mt-2 text-sm text-slate-600">
-              {isBangla
-                ? "এইখানে Fishing component show হবে।"
-                : "Selected Fishing component will show here."}
-            </p>
-          </div>
-        );
-
-      case "lottery":
-        return (
-          <div className="rounded-2xl border border-[#2f79c9]/20 bg-white p-5 shadow-sm">
-            <h3 className="text-lg font-bold text-[#1f5f98]">
-              {isBangla ? "লটারি" : "Lottery"}
-            </h3>
-            <p className="mt-2 text-sm text-slate-600">
-              {isBangla
-                ? "এইখানে Lottery component show হবে।"
-                : "Selected Lottery component will show here."}
-            </p>
-          </div>
-        );
-
       default:
+        if (selectedData?.type === "dynamic") {
+          return (
+            <Providers
+              categoryId={selectedData.categoryId}
+              category={selectedData.raw}
+            />
+          );
+        }
+
         return null;
     }
   };
@@ -227,11 +134,16 @@ const Categories = () => {
                     : "border-white/25 bg-[#2f79c9] text-white hover:bg-[#3f87d4]"
                 }`}
               >
-                <img
-                  src={item.icon}
-                  alt={item.label}
-                  className="mb-1 h-[26px] w-[26px] object-contain"
-                />
+                {item.icon ? (
+                  <img
+                    src={item.icon}
+                    alt={item.label}
+                    className="mb-1 h-[26px] w-[26px] object-contain"
+                  />
+                ) : (
+                  <div className="mb-1 h-[26px] w-[26px] rounded-full bg-white/20" />
+                )}
+
                 <span
                   className={`text-center text-[12px] text-nowrap font-semibold leading-[1.05] ${
                     isActive ? "text-white" : "text-white"
@@ -244,18 +156,11 @@ const Categories = () => {
           })}
         </div>
       </div>
+
       {selectedCategory === "hot" && <Slider />}
 
       {/* Selected category area */}
       <div className="mt-2">{renderSelectedComponent()}</div>
-
-      {/* Optional selected summary */}
-      {/* <div className="mt-3 px-2">
-        <div className="rounded-xl bg-[#eef5fc] px-4 py-3 text-sm font-medium text-[#1f5f98]">
-          {isBangla ? "নির্বাচিত ক্যাটাগরি:" : "Selected Category:"}{" "}
-          <span className="font-bold">{selectedData?.label}</span>
-        </div>
-      </div> */}
     </div>
   );
 };
