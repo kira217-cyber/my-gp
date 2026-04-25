@@ -6,6 +6,9 @@ import { FaImage } from "react-icons/fa";
 import { useLanguage } from "../../Context/LanguageProvider";
 import Sports from "../Sports/Sports";
 import { api } from "../../api/axios";
+import { toast } from "react-toastify";
+import HomeProviders from "../HomeProviders/HomeProviders";
+import Footer from "../Footer/Footer";
 
 const ORACLE_BY_IDS_API = "https://api.oraclegames.live/api/games/by-ids";
 const ORACLE_KEY = import.meta.env.VITE_ORACLE_TOKEN;
@@ -140,8 +143,12 @@ const HotsGame = () => {
   };
 
   const handleGameClick = (game) => {
-    const targetId = game?._id || game?.gameId;
-    if (!targetId) return;
+    const targetId = game?._id;
+
+    if (!targetId) {
+      toast.error(isBangla ? "গেম আইডি পাওয়া যায়নি" : "Game id not found");
+      return;
+    }
 
     navigate(`/play-game/${targetId}`);
   };
@@ -249,6 +256,8 @@ const HotsGame = () => {
           )}
         </div>
       </div>
+      <HomeProviders />
+      <Footer />
     </>
   );
 };

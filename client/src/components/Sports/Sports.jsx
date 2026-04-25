@@ -45,7 +45,7 @@ const Sports = () => {
 
   const handleClick = (item) => {
     if (!item?.gameId) return;
-    navigate(`/sports/${item.gameId}`);
+    navigate(`/play-game/${item.gameId}`);
   };
 
   return (

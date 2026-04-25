@@ -21,9 +21,9 @@ import gameCategoriesRoutes from "./routes/gameCategoriesRoutes.js";
 import gameProvidersRoutes from "./routes/gameProvidersRoutes.js";
 import gamesRoutes from "./routes/gamesRoutes.js";
 import sportsRoutes from "./routes/sportsRoutes.js";
-
-
-
+import playGameRoutes from "./routes/playGameRoutes.js";
+import callbackRoutes from "./routes/callbackRoutes.js";
+import historyRoutes from "./routes/historyRoutes.js";
 dotenv.config();
 
 const app = express();
@@ -55,8 +55,9 @@ app.use("/api/game-categories", gameCategoriesRoutes);
 app.use("/api/game-providers", gameProvidersRoutes);
 app.use("/api/games", gamesRoutes);
 app.use("/api/sports", sportsRoutes);
-
-
+app.use("/api/play-game", playGameRoutes);
+app.use("/api/callback", callbackRoutes);
+app.use("/api/history", historyRoutes);
 
 // route
 app.get("/", (req, res) => {

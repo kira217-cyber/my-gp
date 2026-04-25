@@ -315,7 +315,7 @@ const Games = () => {
       return;
     }
 
-    const targetId = game?._id || game?.gameId;
+    const targetId = game?._id;
 
     if (!targetId) {
       toast.error(isBangla ? "গেম আইডি পাওয়া যায়নি" : "Game id not found");
@@ -356,7 +356,7 @@ const Games = () => {
   return (
     <>
       <h2 className="py-2 text-white text-center font-bold text-2xl bg-[#2469A7]  mb-2">
-      ----  {categoryTitle}  ----
+        ---- {categoryTitle} ----
       </h2>
       <div className="px-3 pb-4 mb-32">
         {/* Provider Tabs */}

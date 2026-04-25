@@ -58,7 +58,7 @@ const BottomNavbar = () => {
         </NavLink>
 
         {/* Deposit */}
-        <NavLink to="/deposit" className="flex flex-col items-center text-xs">
+        <NavLink to="/auto-deposit" className="flex flex-col items-center text-xs">
           {({ isActive }) => (
             <>
               <div

@@ -1,239 +1,218 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { useLanguage } from "../../Context/LanguageProvider";
-import {
-  FaFacebookF,
-  FaTwitter,
-  FaYoutube,
-  FaInstagram,
-  FaTelegramPlane,
-} from "react-icons/fa";
+
+const API_URL = "https://api.1onebet.com";
+
+const footerData = {
+  paymentTitle: {
+    bn: "পেমেন্ট পদ্ধতি",
+    en: "Payment Methods",
+  },
+  responsibleTitle: {
+    bn: "দায়িত্বশীল গেমিং",
+    en: "Responsible Gaming",
+  },
+  communityTitle: {
+    bn: "কমিউনিটি ওয়েবসাইট",
+    en: "Community Websites",
+  },
+  licenseTitle: {
+    bn: "গেমিং লাইসেন্স",
+    en: "Gaming License",
+  },
+  appDownloadTitle: {
+    bn: "অ্যাপ ডাউনলোড",
+    en: "APP Download",
+  },
+  providerTitle: {
+    bn: "গেম প্রোভাইডার",
+    en: "Game Providers",
+  },
+  bottomHeading: {
+    bn: "সেরা মানের প্ল্যাটফর্ম",
+    en: "The Best Quality Platform",
+  },
+  bottomCopyright: {
+    bn: "©২০২৫ অনলাইন গেমিং প্ল্যাটফর্ম",
+    en: "©2025 Online Gaming Platform.",
+  },
+  appDownloadLink: "https://oracleapkstore.com/",
+
+  paymentImages: [
+    "/uploads/footer/1776613112527-87848484.png",
+    "/uploads/footer/1776613112528-257603482.png",
+    "/uploads/footer/1776613112528-417346148.png",
+    "/uploads/footer/1776613112528-809722411.png",
+    "/uploads/footer/1776613112528-84572755.png",
+    "/uploads/footer/1776613112528-139846322.png",
+    "/uploads/footer/1776613112528-387965004.png",
+    "/uploads/footer/1776613112528-316034325.png",
+  ],
+
+  responsibleImages: [
+    "/uploads/footer/1776613112528-190840007.png",
+    "/uploads/footer/1776613112528-597596165.png",
+    "/uploads/footer/1776613112528-697155249.png",
+  ],
+
+  communityImages: ["/uploads/footer/1776613112528-359721001.png"],
+
+  licenseImage: "/uploads/footer/1776613112529-211116653.png",
+  appDownloadImage: "/uploads/footer/1776613112529-274831077.png",
+
+  providerImages: [
+    "https://images.185949949.com/TCG_PROD_IMAGES/RNG_LIST_VENDOR/JL-COLOR.png",
+    "https://images.185949949.com/TCG_PROD_IMAGES/RNG_LIST_VENDOR/PG-COLOR.png",
+    "https://images.185949949.com/TCG_PROD_IMAGES/RNG_LIST_VENDOR/SPB-COLOR.png",
+    "https://images.185949949.com/TCG_PROD_IMAGES/RNG_LIST_VENDOR/BNG-COLOR.png",
+    "https://images.185949949.com/TCG_PROD_IMAGES/RNG_LIST_VENDOR/MG-COLOR.png",
+    "https://images.185949949.com/TCG_PROD_IMAGES/RNG_LIST_VENDOR/FC-COLOR.png",
+    "https://images.185949949.com/TCG_PROD_IMAGES/RNG_LIST_VENDOR/JDB-COLOR.png",
+    "https://images.185949949.com/TCG_PROD_IMAGES/RNG_LIST_VENDOR/SS-COLOR.png",
+    "https://images.185949949.com/TCG_PROD_IMAGES/RNG_LIST_VENDOR/AMBS-COLOR.png",
+    "https://images.185949949.com/TCG_PROD_IMAGES/RNG_LIST_VENDOR/PS-COLOR.png",
+    "https://images.185949949.com/TCG_PROD_IMAGES/RNG_LIST_VENDOR/FP-COLOR.png",
+    "https://images.185949949.com/TCG_PROD_IMAGES/RNG_LIST_VENDOR/EZG-COLOR.png",
+    "https://images.185949949.com/TCG_PROD_IMAGES/RNG_LIST_VENDOR/5G-COLOR.png",
+    "https://images.185949949.com/TCG_PROD_IMAGES/RNG_LIST_VENDOR/BOM-COLOR.png",
+    "https://images.185949949.com/TCG_PROD_IMAGES/RNG_LIST_VENDOR/RT-COLOR.png",
+    "https://images.185949949.com/TCG_PROD_IMAGES/RNG_LIST_VENDOR/NE-COLOR.png",
+    "https://images.185949949.com/TCG_PROD_IMAGES/RNG_LIST_VENDOR/AE-COLOR.png",
+  ],
+};
 
 const Footer = () => {
   const { isBangla } = useLanguage();
 
-  // ✅ TEXT
-  const t = useMemo(() => {
-    return {
-      leftTitle: isBangla
-        ? "BABU88 এশিয়ার বিশ্বস্ত অনলাইন ক্যাসিনো। বাংলাদেশ, ভারত, নেপাল পাওয়া যাচ্ছে।"
-        : "BABU88 is Asia’s trusted online casino. Available in Bangladesh, India, and Nepal.",
-      leftBody: isBangla
-        ? "BABU88 হল একটি অনলাইন জুয়া কোম্পানি, যা বিশ্বস্তভাবে বাজি এবং ক্যাসিনো অফার করে। ২০২১ সাল থেকে BABU88 দক্ষিণ এশিয়ার সবচেয়ে জনপ্রিয় একটি প্ল্যাটফর্ম হিসেবে পরিচিত। আমাদের লক্ষ্য হল নিরাপদ এবং দ্রুত সার্ভিস প্রদান করা।"
-        : "BABU88 is an online betting and casino platform known for reliable service. Since 2021, BABU88 has become one of the most popular platforms in South Asia. Our goal is to provide safe and fast service.",
-      siteName: isBangla ? "সাইটনেম" : "Site Name",
-      official: "BABU88 OFFICIAL",
+  const getText = (obj) => (isBangla ? obj?.bn || "" : obj?.en || "");
 
-      rightTitle: isBangla
-        ? "অফিসিয়াল পার্টনার এবং স্পনসর"
-        : "Official Partners & Sponsors",
-      responsibleTitle: isBangla ? "দায়িত্বশীল গেমিং" : "Responsible Gaming",
-
-      paymentTitle: isBangla ? "পেমেন্ট পদ্ধতি" : "Payment Methods",
-      followTitle: isBangla ? "আমাদের অনুসরণ করুন" : "Follow Us",
-
-      copyright: isBangla
-        ? "Copyright © 2025 BABU88. All rights reserved"
-        : "Copyright © 2025 BABU88. All rights reserved",
-    };
-  }, [isBangla]);
-
-  // ✅ IMAGES (Replace these with your real assets / urls)
-  const paymentMethods = [
-    { name: "bKash", src: "https://i.ibb.co.com/m53MnsJ1/bkash.png" },
-    {
-      name: "Nagad",
-      src: "https://i.ibb.co.com/qYG7H89W/nagan-logo-horizontal-bangla-mobile-banking-app-icon-transparent-background-free-png.webp",
-    },
-    {
-      name: "Rocket",
-      src: "https://i.ibb.co.com/dwf24nF8/Pixahunt-4218df4e68e104c26a82ebca34e79fe0-removebg-preview.png",
-    },
-    {
-      name: "Upay",
-      src: "https://i.ibb.co.com/WC62rnf/upay-logo-color-mobile-banking-app-icon-free-png.webp",
-    },
-  ];
-
-  const partners = [
-    {
-      name: "Montreal Tigers",
-      src: "https://i.ibb.co.com/bg3F0Y2N/vintage-badge-hand-holding-joystick-vector-illustration-round-label-with-gamepad-74855-11224.avif",
-    },
-    {
-      name: "Dambulla Aura",
-      src: "https://i.ibb.co.com/hxL0ntLZ/pngtree-awesome-gamer-illustration-for-t-shirt-design-png-image-4219646.png",
-    },
-    {
-      name: "Northern Warriors",
-      src: "https://i.ibb.co.com/Z62Q4Qtv/pngtree-a-lively-and-entertaining-cartoon-character-holding-cold-drink-video-game-png-image-14875526.png",
-    },
-  ];
-
-  const responsible = [
-    {
-      name: "18+",
-      src: "https://i.ibb.co.com/R4Nm1GTT/aa630c8cf6d3a6f304d85b39c46af784.png",
-    },
-    { name: "G", src: "https://i.ibb.co.com/tMGkZrV1/Add-a-heading-1.png" },
-  ];
+  const fileUrl = (path) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    return `${API_URL}${path}`;
+  };
 
   return (
-    <footer className="w-full bg-black text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
-        {/* top dotted line */}
-        <div className="border-t border-dashed border-white/30 mb-10" />
+    <>
+      {" "}
+      <footer className="bg-white px-2 py-2 text-sm text-[#1f2937]">
+        {/* Payment */}
+        <div>
+          <h2 className="mb-3 text-xl font-black text-[#2f79c9]">
+            {getText(footerData.paymentTitle)}
+          </h2>
 
-        {/* TOP GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-          {/* LEFT SIDE */}
+          <div className="grid grid-cols-4 items-center gap-4 rounded-[8px] border border-[#2f79c9]/15 bg-[#f86e3c] p-4">
+            {footerData.paymentImages.map((img) => (
+              <img
+                key={img}
+                src={fileUrl(img)}
+                className="h-7 w-full object-contain"
+                alt=""
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Responsible + Community */}
+        {/* <div className="mt-6 grid grid-cols-2 gap-5">
+        <div>
+          <h2 className="mb-3 text-lg font-black text-[#2f79c9]">
+            {getText(footerData.responsibleTitle)}
+          </h2>
+
+          <div className="flex flex-wrap gap-3 rounded-[18px] border border-[#2f79c9]/15 bg-[#f86e3c] p-4">
+            {footerData.responsibleImages.map((img) => (
+              <img
+                key={img}
+                src={fileUrl(img)}
+                className="h-8 object-contain"
+                alt=""
+              />
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h2 className="mb-3 text-lg font-black text-[#2f79c9]">
+            {getText(footerData.communityTitle)}
+          </h2>
+
+          <div className="flex flex-wrap gap-3 rounded-[18px] border border-[#2f79c9]/15 bg-[#f86e3c] p-4">
+            {footerData.communityImages.map((img) => (
+              <img
+                key={img}
+                src={fileUrl(img)}
+                className="h-8 object-contain"
+                alt=""
+              />
+            ))}
+          </div>
+        </div>
+      </div> */}
+
+        <div className="my-6 border-t border-[#2f79c9]/15" />
+
+        {/* License + App */}
+        <div className="grid grid-cols-2 gap-5">
           <div>
-            <h3 className="text-base sm:text-lg font-bold leading-snug">
-              {t.leftTitle}
-            </h3>
+            <h2 className="mb-3 text-lg font-black text-[#2f79c9]">
+              {getText(footerData.licenseTitle)}
+            </h2>
 
-            <p className="mt-4 text-sm sm:text-[15px] text-white/80 leading-relaxed max-w-2xl">
-              {t.leftBody}
-            </p>
-
-            <div className="mt-10">
-              <p className="text-sm font-semibold text-white/90">
-                {t.siteName}
-              </p>
-
-              {/* BABU88 OFFICIAL logo text (replace with image if you have) */}
-              <div className="mt-4 flex items-center gap-2">
-                <span className="text-2xl sm:text-3xl font-extrabold italic">
-                  BABU
-                </span>
-                <span className="text-2xl sm:text-3xl font-extrabold italic text-yellow-500">
-                  88
-                </span>
-                <span className="text-xs sm:text-sm font-bold tracking-wide text-white/80">
-                  OFFICIAL
-                </span>
-              </div>
+            <div className="rounded-[8px] border border-[#2f79c9]/15 bg-[#f86e3c] p-4">
+              <img
+                src={fileUrl(footerData.licenseImage)}
+                className="h-10 object-contain"
+                alt=""
+              />
             </div>
           </div>
 
-          {/* RIGHT SIDE */}
           <div>
-            <h3 className="text-base sm:text-lg font-bold">{t.rightTitle}</h3>
+            <h2 className="mb-3 text-lg font-black text-[#2f79c9]">
+              {getText(footerData.appDownloadTitle)}
+            </h2>
 
-            {/* partner logos */}
-            <div className="mt-5 flex flex-wrap items-center gap-6">
-              {partners.map((p) => (
-                <div key={p.name} className="text-center">
-                  <img
-                    src={p.src}
-                    alt={p.name}
-                    className="h-10 sm:h-12 w-auto mx-auto
-                               opacity-80 grayscale
-                               hover:grayscale-0 hover:opacity-100
-                               transition duration-300"
-                    loading="lazy"
-                  />
-                  <p className="mt-2 text-[10px] sm:text-xs text-white/70">
-                    {p.name}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {/* responsible gaming */}
-            <h3 className="mt-10 text-base sm:text-lg font-bold">
-              {t.responsibleTitle}
-            </h3>
-
-            <div className="mt-4 flex items-center gap-6">
-              {responsible.map((r) => (
+            <div className="rounded-[8px] border border-[#2f79c9]/15 bg-[#f86e3c] p-4">
+              <a
+                href={footerData.appDownloadLink}
+                target="_blank"
+                rel="noreferrer"
+              >
                 <img
-                  key={r.name}
-                  src={r.src}
-                  alt={r.name}
-                  className="h-8 sm:h-10 w-auto opacity-70 hover:opacity-100 transition"
-                  loading="lazy"
+                  src={fileUrl(footerData.appDownloadImage)}
+                  className="h-10 cursor-pointer object-contain"
+                  alt=""
                 />
-              ))}
+              </a>
             </div>
           </div>
         </div>
 
-        {/* bottom dotted line */}
-        <div className="border-t border-dashed border-white/30 my-10" />
+        <div className="my-6 border-t border-[#2f79c9]/15" />
 
-        {/* BOTTOM GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
-          {/* payment */}
-          <div>
-            <h4 className="text-base sm:text-lg font-bold">{t.paymentTitle}</h4>
+        {/* <div className="my-6 border-t border-[#2f79c9]/15" /> */}
+      </footer>
+      {/* Provider Images Instead Of Text */}
+      <div>
+        <h2 className="mb-3 ml-2 text-xl font-black text-[#2f79c9]">
+          {getText(footerData.providerTitle)}
+        </h2>
 
-            <div className="mt-5 flex flex-wrap items-center gap-6">
-              {paymentMethods.map((m) => (
-                <img
-                  key={m.name}
-                  src={m.src}
-                  alt={m.name}
-                  className="h-6 sm:h-7 w-auto opacity-60 grayscale
-                             hover:grayscale-0 hover:opacity-100
-                             transition duration-300"
-                  loading="lazy"
-                />
-              ))}
+        <div className="grid grid-cols-3 gap-1 p-2 border bg-[#2f79c9] border-[#2f79c9]/15  sm:grid-cols-4">
+          {footerData.providerImages.map((img) => (
+            <div key={img} className="flex h-14 items-center justify-center">
+              <img
+                src={fileUrl(img)}
+                className="max-h-14 object-contain"
+                alt=""
+              />
             </div>
-
-            <p className="mt-10 text-sm text-white/80">{t.copyright}</p>
-          </div>
-
-          {/* social */}
-          <div className="lg:text-center">
-            <h4 className="text-base sm:text-lg font-bold">{t.followTitle}</h4>
-
-            <div className="mt-5 flex lg:justify-center items-center gap-4">
-              <a
-                href="#"
-                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center
-                           hover:bg-white hover:text-black transition"
-                aria-label="Facebook"
-              >
-                <FaFacebookF />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center
-                           hover:bg-white hover:text-black transition"
-                aria-label="Twitter"
-              >
-                <FaTwitter />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center
-                           hover:bg-white hover:text-black transition"
-                aria-label="YouTube"
-              >
-                <FaYoutube />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center
-                           hover:bg-white hover:text-black transition"
-                aria-label="Instagram"
-              >
-                <FaInstagram />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center
-                           hover:bg-white hover:text-black transition"
-                aria-label="Telegram"
-              >
-                <FaTelegramPlane />
-              </a>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
-    </footer>
+    </>
   );
 };
 

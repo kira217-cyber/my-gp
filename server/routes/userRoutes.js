@@ -102,10 +102,11 @@ router.post("/register", async (req, res) => {
       refCode: rawRefCode,
     } = req.body || {};
 
-
     const countryCode = normalizeCountryCode(rawCountryCode);
     const phone = normalizePhone(rawPhone);
-    const refCode = String(rawRefCode || "").trim().toUpperCase();
+    const refCode = String(rawRefCode || "")
+      .trim()
+      .toUpperCase();
 
     if (!countryCode || !phone || !password || !confirmPassword) {
       return res.status(400).json({
@@ -160,7 +161,6 @@ router.post("/register", async (req, res) => {
       }).select(
         "_id referralCode role referCommission createdUsers referralCount commissionBalance referCommissionBalance",
       );
-
 
       if (!referredByUser) {
         return res.status(400).json({
@@ -342,6 +342,7 @@ router.get("/me/balance", protectUser, async (req, res) => {
       data: {
         id: req.user._id,
         userId: req.user.userId,
+        phone: req.user.phone,
         balance: Number(req.user.balance || 0),
         currency: req.user.currency || "BDT",
       },
@@ -351,6 +352,256 @@ router.get("/me/balance", protectUser, async (req, res) => {
       success: false,
       message: "Failed to load balance",
       error: error.message,
+    });
+  }
+});
+
+// ✅ GET /api/users/me
+router.get("/me", protectUser, async (req, res) => {
+  try {
+    const user = req.user;
+
+    return res.json({
+      success: true,
+      user: {
+        _id: user._id,
+        userId: user.userId,
+        email: user.email,
+        phone: user.phone,
+        countryCode: user.countryCode,
+
+        firstName: user.firstName,
+        lastName: user.lastName,
+
+        role: user.role,
+        isActive: user.isActive,
+        currency: user.currency,
+
+        balance: user.balance,
+
+        referralCode: user.referralCode,
+        referralCount: user.referralCount,
+
+        commissionBalance: user.commissionBalance,
+
+        gameLossCommission: user.gameLossCommission,
+        gameWinCommission: user.gameWinCommission,
+
+        gameLossCommissionBalance: user.gameLossCommissionBalance,
+        gameWinCommissionBalance: user.gameWinCommissionBalance,
+
+        depositCommission: user.depositCommission,
+        depositCommissionBalance: user.depositCommissionBalance,
+
+        referCommission: user.referCommission,
+        referCommissionBalance: user.referCommissionBalance,
+
+        createdAt: user.createdAt,
+      },
+    });
+  } catch (error) {
+    console.error("❌ /me error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+});
+
+router.put("/update-profile", protectUser, async (req, res) => {
+  try {
+    const { userId, email, phone, firstName, lastName } = req.body || {};
+
+    const cleanUserId = String(userId || "").trim();
+    const cleanEmail = String(email || "").trim().toLowerCase();
+    const cleanPhone = String(phone || "").trim();
+    const cleanFirstName = String(firstName || "").trim();
+    const cleanLastName = String(lastName || "").trim();
+
+    if (!cleanUserId || !cleanPhone) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID and phone are required",
+      });
+    }
+
+    if (cleanUserId.length < 4 || cleanUserId.length > 15) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID must be 4-15 characters",
+      });
+    }
+
+    if (!/^[a-zA-Z0-9]+$/.test(cleanUserId)) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID can contain only letters and numbers",
+      });
+    }
+
+    if (cleanEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email address",
+      });
+    }
+
+    const userIdExists = await User.findOne({
+      _id: { $ne: req.user._id },
+      userId: cleanUserId,
+    });
+
+    if (userIdExists) {
+      return res.status(409).json({
+        success: false,
+        message: "User ID already exists",
+      });
+    }
+
+    const phoneExists = await User.findOne({
+      _id: { $ne: req.user._id },
+      countryCode: req.user.countryCode,
+      phone: cleanPhone,
+    });
+
+    if (phoneExists) {
+      return res.status(409).json({
+        success: false,
+        message: "Phone already exists",
+      });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        $set: {
+          userId: cleanUserId,
+          email: cleanEmail,
+          phone: cleanPhone,
+          firstName: cleanFirstName,
+          lastName: cleanLastName,
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      },
+    ).select("-password");
+
+    return res.json({
+      success: true,
+      message: "Profile updated successfully. Please login again.",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("❌ update-profile error:", error);
+
+    if (error?.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "User ID or phone already exists",
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+});
+
+router.put("/reset-password", protectUser, async (req, res) => {
+  try {
+    const { currentPassword, newPassword, confirmNewPassword } = req.body || {};
+
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "All password fields are required",
+      });
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Confirm password does not match",
+      });
+    }
+
+    if (currentPassword === newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "New password must be different from current password",
+      });
+    }
+
+    if (newPassword.length < 8 || newPassword.length > 20) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be 8-20 characters",
+      });
+    }
+
+    if (!/[A-Z]/.test(newPassword)) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must contain at least 1 uppercase letter",
+      });
+    }
+
+    if (!/[a-z]/.test(newPassword)) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must contain at least 1 lowercase letter",
+      });
+    }
+
+    if (!/[0-9]/.test(newPassword)) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must contain at least 1 number",
+      });
+    }
+
+    if (!/[^A-Za-z0-9]/.test(newPassword)) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must contain at least 1 special character",
+      });
+    }
+
+    const user = await User.findById(req.user._id).select("+password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Current password is incorrect",
+      });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    return res.json({
+      success: true,
+      message: "Password changed successfully. Please login again.",
+    });
+  } catch (error) {
+    console.error("❌ reset-password error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
     });
   }
 });

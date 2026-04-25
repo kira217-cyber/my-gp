@@ -7,7 +7,27 @@ import BottomNavbar from "../components/BottomNavbar/BottomNavbar";
 const RootLayout = () => {
   const [open, setOpen] = useState(false);
   const location = useLocation();
-  const hideNavbarRoutes = ["/login", "/register", "/start"];
+  const hideNavbarRoutes = [
+    "/login",
+    "/register",
+    "/start",
+    "/account",
+    "/history",
+    "/history/turnover-history",
+    "/history/bet-history",
+    "/auto-deposit-history",
+    "/history/withdraw-history",
+    "/history/deposit-history",
+    "/history/turnover-history",
+    "/history/auto-deposit-history",
+    "/reset-password",
+    "/wallet",
+    "/personal-info",
+    "/dispute",
+    "/pl",
+    "/inbox",
+    "/rewards"
+  ];
   const hideNavbar = hideNavbarRoutes.includes(location.pathname);
 
   return (
