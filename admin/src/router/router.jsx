@@ -36,6 +36,13 @@ import AddProviders from "../pages/AddProviders/AddProviders";
 import AddGames from "../pages/AddGames/AddGames";
 import AddSports from "../pages/AddSports/AddSports";
 import BetHistory from "../pages/BetHistory/BetHistory";
+import SliderController from "../pages/SliderController/SliderController";
+import AffSliderController from "../pages/AffSliderController/AffSliderController";
+import SiteIdentityController from "../pages/SiteIdentityController/SiteIdentityController";
+import AffSiteIdentityController from "../pages/AffSiteIdentityController/AffSiteIdentityController";
+import AddSocialLink from "../pages/AddSocialLink/AddSocialLink";
+import AddAffSocialLink from "../pages/AddAffSocialLink/AddAffSocialLink";
+import AddAffNotice from "../pages/AddAffNotice/AddAffNotice";
 
 export const routes = createBrowserRouter([
   {
@@ -252,6 +259,62 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute motherOnly>
             <CreateAdmin />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "slider-controller",
+        element: (
+          <PrivateRoute permKey="slider-controller">
+            <SliderController />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "add-social-link",
+        element: (
+          <PrivateRoute permKey="add-social-link">
+            <AddSocialLink />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "add-aff-social-link",
+        element: (
+          <PrivateRoute permKey="add-aff-social-link">
+            <AddAffSocialLink />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "add-aff-notice",
+        element: (
+          <PrivateRoute permKey="add-aff-notice">
+            <AddAffNotice />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "aff-slider-controller",
+        element: (
+          <PrivateRoute permKey="aff-slider-controller">
+            <AffSliderController />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "site-identity-controller",
+        element: (
+          <PrivateRoute permKey="site-identity-controller">
+            <SiteIdentityController />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "aff-site-identity-controller",
+        element: (
+          <PrivateRoute permKey="aff-site-identity-controller">
+            <AffSiteIdentityController />
           </PrivateRoute>
         ),
       },

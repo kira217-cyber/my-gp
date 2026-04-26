@@ -3,6 +3,8 @@ import { Outlet, useLocation } from "react-router";
 import Navber from "../components/Navber/Navber";
 import Sidebar from "../components/Sidebar/Sidebar";
 import BottomNavbar from "../components/BottomNavbar/BottomNavbar";
+import SiteIdentity from "../components/SiteIdentity/SiteIdentity";
+import SocialLink from "../components/SocialLink/SocialLink";
 
 const RootLayout = () => {
   const [open, setOpen] = useState(false);
@@ -26,7 +28,7 @@ const RootLayout = () => {
     "/dispute",
     "/pl",
     "/inbox",
-    "/rewards"
+    "/rewards",
   ];
   const hideNavbar = hideNavbarRoutes.includes(location.pathname);
 
@@ -49,6 +51,8 @@ const RootLayout = () => {
 
         <div className="h-[calc(100%-64px)] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <Outlet />
+          <SiteIdentity />
+          <SocialLink />
         </div>
         {!hideNavbar && <BottomNavbar />}
       </div>

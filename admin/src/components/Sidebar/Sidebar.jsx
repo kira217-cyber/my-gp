@@ -22,7 +22,7 @@ import {
   FaCogs,
   FaGift,
 } from "react-icons/fa";
-import { FaDiagramProject, FaCodePullRequest } from "react-icons/fa6";
+import { FaDiagramProject, FaCodePullRequest, FaTextSlash } from "react-icons/fa6";
 import {
   PiBridgeBold,
   PiHandWithdrawBold,
@@ -108,12 +108,12 @@ const Sidebar = () => {
         icon: <GrUserAdmin />,
         text: "Create Admin",
       },
-      {
-        key: "add-promotion",
-        to: "/add-promotion",
-        icon: <FaDiagramProject />,
-        text: "Add Promotion",
-      },
+      // {
+      //   key: "add-promotion",
+      //   to: "/add-promotion",
+      //   icon: <FaDiagramProject />,
+      //   text: "Add Promotion",
+      // },
     ],
     [],
   );
@@ -259,16 +259,10 @@ const Sidebar = () => {
         text: "Site Identity Controller",
       },
       {
-        key: "add-slider",
-        to: "/add-slider",
+        key: "slider-controller",
+        to: "/slider-controller",
         icon: <FaImage />,
-        text: "Add Slider",
-      },
-      {
-        key: "add-notice",
-        to: "/add-notice",
-        icon: <FaBullhorn />,
-        text: "Add Notice",
+        text: "Slider Controller",
       },
       {
         key: "add-social-link",
@@ -276,18 +270,7 @@ const Sidebar = () => {
         icon: <FaImage />,
         text: "Add Social Link",
       },
-      {
-        key: "footer-controller",
-        to: "/footer-controller",
-        icon: <RiFootprintFill />,
-        text: "Footer Controller",
-      },
-      {
-        key: "color-controller-client",
-        to: "/color-controller-client",
-        icon: <FaPaintBrush />,
-        text: "Color Controller",
-      },
+
     ],
     [],
   );
@@ -300,17 +283,23 @@ const Sidebar = () => {
         icon: <FaCog />,
         text: "Aff Site Identity Controller",
       },
+     {
+        key: "add-aff-notice",
+        to: "/add-aff-notice",
+        icon: <FaTextSlash />,
+        text: "Affiliate Notice Controller",
+      },
       {
+        key: "aff-slider-controller",
+        to: "/aff-slider-controller",
+        icon: <FaPaintBrush />,
+        text: "Affiliate Slider Controller",
+      },
+       {
         key: "add-aff-social-link",
         to: "/add-aff-social-link",
         icon: <FaImage />,
         text: "Add Affiliate Social Link",
-      },
-      {
-        key: "aff-color-controller-client",
-        to: "/aff-color-controller-client",
-        icon: <FaPaintBrush />,
-        text: "Affiliate Color Controller",
       },
     ],
     [],

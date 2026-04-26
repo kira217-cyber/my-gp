@@ -18,7 +18,16 @@ import { FaHandshake, FaPlayCircle } from "react-icons/fa";
 import { useLanguage } from "../../Context/LanguageProvider";
 import { api } from "../../api/axios";
 
-const AFFILIATE_URL = "http://localhost:5174/";
+const AFFILIATE_URL = import.meta.env.VITE_AFF_CLIENT_URL;
+
+const APP_URL =
+  import.meta.env.VITE_APP_URL || import.meta.env.VITE_API_URL || "";
+
+const makeUrl = (url = "") => {
+  if (!url) return "";
+  if (url.startsWith("http")) return url;
+  return `${APP_URL}${url}`;
+};
 
 const Sidebar = ({ open, setOpen }) => {
   const { isBangla, language, changeLanguage } = useLanguage();
@@ -27,6 +36,7 @@ const Sidebar = ({ open, setOpen }) => {
   const [openGames, setOpenGames] = useState(false);
   const [openAccount, setOpenAccount] = useState(false);
   const [gameCategories, setGameCategories] = useState([]);
+  const [logo, setLogo] = useState("");
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -51,6 +61,10 @@ const Sidebar = ({ open, setOpen }) => {
     setOpen(false);
     window.open(AFFILIATE_URL, "_blank", "noopener,noreferrer");
   };
+  const openOracleApkStore = () => {
+    setOpen(false);
+    window.open("https://oracleapkstore.com/", "_blank", "noopener,noreferrer");
+  };
 
   const categoryChildren = useMemo(() => {
     return gameCategories.map((cat) => ({
@@ -64,18 +78,6 @@ const Sidebar = ({ open, setOpen }) => {
 
   const items = useMemo(
     () => [
-      // {
-      //   key: "offers",
-      //   label: isBangla ? "অফার" : "Offers",
-      //   icon: Gift,
-      //   to: "/offers",
-      // },
-      // {
-      //   key: "withdraw",
-      //   label: isBangla ? "উত্তোলন" : "Withdraw",
-      //   icon: CreditCard,
-      //   to: "/withdraw",
-      // },
       {
         key: "invite",
         label: isBangla ? "বন্ধুদের আমন্ত্রণ জানান" : "Invite Friends",
@@ -108,17 +110,17 @@ const Sidebar = ({ open, setOpen }) => {
           {
             key: "profile",
             label: isBangla ? "প্রোফাইল" : "Profile",
-            to: "/profile",
+            to: "/personal-info",
           },
           {
             key: "security",
             label: isBangla ? "নিরাপত্তা" : "Security",
-            to: "/security",
+            to: "/reset-password",
           },
           {
-            key: "history",
-            label: isBangla ? "হিস্টোরি" : "History",
-            to: "/history",
+            key: "betHistory",
+            label: isBangla ? "বেট হিস্ট্রি" : "Bet History",
+            to: "/history/bet-history",
           },
         ],
       },
@@ -132,29 +134,36 @@ const Sidebar = ({ open, setOpen }) => {
         key: "download",
         label: isBangla ? "অ্যাপ ডাউনলোড করুন" : "Download App",
         icon: Download,
-        to: "/download",
+        onClick: openOracleApkStore,
       },
-      // {
-      //   key: "support",
-      //   label: isBangla ? "গ্রাহক পরিসেবা" : "Customer Service",
-      //   icon: Headphones,
-      //   to: "/support",
-      // },
       {
         key: "help",
         label: isBangla ? "সাহায্য কেন্দ্র" : "Help Center",
         icon: HandHelping,
-        to: "/help",
+        to: "/",
       },
       {
         key: "tutorial",
         label: isBangla ? "টিউটোরিয়াল" : "Tutorial",
         icon: FaPlayCircle,
-        to: "/tutorial",
+        to: "/",
       },
     ],
     [isBangla, openGames, openAccount, categoryChildren],
   );
+
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const res = await api.get("/api/site-identity");
+        setLogo(res?.data?.data?.logo || "");
+      } catch (error) {
+        console.error("Failed to fetch logo:", error);
+      }
+    };
+
+    fetchLogo();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -182,7 +191,11 @@ const Sidebar = ({ open, setOpen }) => {
         {/* Top */}
         <div className="mb-5 flex items-center justify-center">
           <img
-            src="https://i.ibb.co.com/Xxf8k1SR/image-removebg-preview-5.png"
+            src={
+              logo
+                ? makeUrl(logo)
+                : ""
+            }
             alt="logo"
             className="h-[48px] object-contain"
           />

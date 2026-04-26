@@ -1,134 +1,125 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
-import { Home, ArrowLeft } from "lucide-react";
-import { useLanguage } from "../../Context/LanguageProvider";
+import { FaArrowLeft, FaHome } from "react-icons/fa";
 
 const NotFoundPage = () => {
   const navigate = useNavigate();
-  const { isBangla } = useLanguage();
-
-  const t = useMemo(() => {
-    return {
-      badge: isBangla ? "পেজ নেই" : "NOT FOUND",
-      title: isBangla ? "পেজটি পাওয়া যায়নি" : "Page Not Found",
-      desc: isBangla
-        ? "আপনি যে পেজটি খুঁজছেন তা হয়তো সরানো হয়েছে, নাম পরিবর্তন হয়েছে অথবা সাময়িকভাবে অনুপলব্ধ।"
-        : "The page you’re looking for may have been removed, renamed, or is temporarily unavailable.",
-      home: isBangla ? "হোমে যান" : "Go Home",
-      back: isBangla ? "পিছনে যান" : "Go Back",
-      tip: isBangla
-        ? "Tip: Navbar থেকে মেনু ব্যবহার করে আবার খুঁজে দেখুন।"
-        : "Tip: Use the navbar menu to find what you need.",
-      wrongRoute: isBangla ? "ভুল লিংক" : "Wrong Route",
-      hint: isBangla
-        ? "সঠিক লিংক দিয়ে আবার চেষ্টা করুন।"
-        : "Try again with the correct link.",
-      copyright: isBangla
-        ? `© ${new Date().getFullYear()} BABU88 — সর্বস্বত্ব সংরক্ষিত।`
-        : `© ${new Date().getFullYear()} BABU88 — All rights reserved.`,
-    };
-  }, [isBangla]);
 
   return (
-    <div className="min-h-screen bg-[#2b2b2b] text-white flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-4xl">
-        {/* Card */}
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-black via-[#2f79c9]/20 to-black flex items-center justify-center px-4">
+      {/* Background Glow */}
+      <div className="absolute inset-0 overflow-hidden">
+        <motion.div
+          animate={{
+            x: [0, 40, -30, 0],
+            y: [0, -30, 20, 0],
+            scale: [1, 1.08, 0.95, 1],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="absolute top-20 left-10 h-72 w-72 rounded-full bg-[#2f79c9]/20 blur-3xl"
+        />
+
+        <motion.div
+          animate={{
+            x: [0, -50, 20, 0],
+            y: [0, 30, -20, 0],
+            scale: [1, 0.92, 1.05, 1],
+          }}
+          transition={{
+            duration: 12,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="absolute bottom-10 right-10 h-80 w-80 rounded-full bg-[#63a8ee]/20 blur-3xl"
+        />
+      </div>
+
+      {/* Main Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 60, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
+        className="relative z-10 w-full max-w-2xl rounded-3xl border border-blue-300/20 bg-gradient-to-br from-black/70 via-[#2f79c9]/80 to-black/70 p-8 md:p-12 text-center shadow-2xl shadow-blue-900/30 backdrop-blur-xl"
+      >
+        {/* Floating Icon Circle */}
+        <motion.div
+          animate={{ y: [0, -10, 0] }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-[#63a8ee] to-[#2f79c9] shadow-xl shadow-blue-600/40"
+        >
+          <span className="text-4xl font-black text-white">404</span>
+        </motion.div>
+
+        {/* Big Text */}
+        <motion.h1
+          initial={{ opacity: 0, letterSpacing: "0.4em" }}
+          animate={{ opacity: 1, letterSpacing: "0.08em" }}
+          transition={{ delay: 0.2, duration: 0.8 }}
+          className="text-5xl md:text-7xl font-extrabold text-white tracking-wider"
+        >
+          OOPS!
+        </motion.h1>
+
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35, duration: 0.7 }}
+          className="mt-4 text-2xl md:text-3xl font-bold text-[#8fc2f5]"
+        >
+          Page Not Found
+        </motion.h2>
+
+        <motion.p
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.7 }}
+          className="mx-auto mt-4 max-w-xl text-sm md:text-base leading-7 text-blue-100/80"
+        >
+          The page you are looking for does not exist, may have been removed, or
+          the link might be broken.
+        </motion.p>
+
+        {/* Decorative Line */}
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: "120px" }}
+          transition={{ delay: 0.7, duration: 0.6 }}
+          className="mx-auto mt-6 h-1 rounded-full bg-gradient-to-r from-[#63a8ee] to-[#2f79c9]"
+        />
+
+        {/* Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-          className="bg-black/25 border border-white/10 rounded-xl shadow-[0_12px_40px_rgba(0,0,0,0.55)] overflow-hidden"
+          transition={{ delay: 0.85, duration: 0.7 }}
+          className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
         >
-          {/* Top highlight bar */}
-          <div className="h-2 w-full bg-[#f5b400]" />
+          <button
+            onClick={() => navigate("/")}
+            className="inline-flex cursor-pointer items-center gap-3 rounded-xl bg-gradient-to-r from-[#63a8ee] to-[#2f79c9] px-6 py-3 text-white font-semibold shadow-lg shadow-blue-700/40 transition-all duration-300 hover:scale-[1.03] hover:from-[#7ab6f2] hover:to-[#3c88db]"
+          >
+            <FaHome />
+            Go To Home
+          </button>
 
-          <div className="p-6 sm:p-10">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-              {/* Left */}
-              <div>
-                <motion.div
-                  initial={{ scale: 0.95, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.35, delay: 0.08 }}
-                  className="inline-flex items-center gap-2 bg-[#f5b400] text-black font-extrabold px-4 py-2 rounded-md"
-                >
-                  <span className="text-lg">404</span>
-                  <span className="text-sm font-bold">{t.badge}</span>
-                </motion.div>
-
-                <h1 className="mt-5 text-2xl sm:text-4xl font-extrabold leading-tight">
-                  {t.title}
-                </h1>
-
-                <p className="mt-3 text-white/80 text-sm sm:text-base leading-relaxed">
-                  {t.desc}
-                </p>
-
-                {/* Buttons */}
-                <div className="mt-6 flex flex-col sm:flex-row gap-3">
-                  <button
-                    onClick={() => navigate("/")}
-                    className="cursor-pointer inline-flex items-center justify-center gap-2 bg-[#f5b400] text-black font-extrabold px-6 py-3 rounded-md hover:bg-[#e2a800] transition"
-                  >
-                    <Home size={18} />
-                    {t.home}
-                  </button>
-
-                  <button
-                    onClick={() => navigate(-1)}
-                    className="cursor-pointer inline-flex items-center justify-center gap-2 bg-white/10 border border-white/15 text-white font-bold px-6 py-3 rounded-md hover:bg-white/15 transition"
-                  >
-                    <ArrowLeft size={18} />
-                    {t.back}
-                  </button>
-                </div>
-
-                <p className="mt-4 text-xs sm:text-sm text-white/60">{t.tip}</p>
-              </div>
-
-              {/* Right (Visual) */}
-              <div className="relative">
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.12 }}
-                  className="relative bg-[#f5b400] rounded-xl p-8 sm:p-10 shadow-[0_10px_30px_rgba(0,0,0,0.45)] overflow-hidden"
-                >
-                  {/* decorative circles */}
-                  <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-black/10" />
-                  <div className="absolute -bottom-12 -left-12 w-40 h-40 rounded-full bg-black/10" />
-
-                  <div className="text-center">
-                    <motion.div
-                      animate={{ y: [0, -6, 0] }}
-                      transition={{ duration: 2.2, repeat: Infinity }}
-                      className="text-black font-extrabold text-6xl sm:text-7xl leading-none"
-                    >
-                      404
-                    </motion.div>
-
-                    <div className="mt-3 inline-block bg-[#2b67b8] px-4 py-2">
-                      <span className="text-white font-extrabold text-base sm:text-lg">
-                        {t.wrongRoute}
-                      </span>
-                    </div>
-
-                    <p className="mt-4 text-black/80 text-sm sm:text-base">
-                      {t.hint}
-                    </p>
-                  </div>
-                </motion.div>
-              </div>
-            </div>
-          </div>
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex cursor-pointer items-center gap-3 rounded-xl border border-blue-300/20 bg-white/10 px-6 py-3 text-blue-50 font-medium transition-all duration-300 hover:bg-white/15 hover:scale-[1.02]"
+          >
+            <FaArrowLeft />
+            Go Back
+          </button>
         </motion.div>
-
-        {/* Bottom small note */}
-        <div className="mt-6 text-center text-xs sm:text-sm text-white/50">
-          {t.copyright}
-        </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

@@ -2,11 +2,36 @@ import React, { useState, useRef, useEffect } from "react";
 import { Menu, Bell } from "lucide-react";
 import { useLanguage } from "../../Context/LanguageProvider";
 import { Link } from "react-router";
+import { api } from "../../api/axios";
+
+const APP_URL =
+  import.meta.env.VITE_APP_URL || import.meta.env.VITE_API_URL || "";
+
+const makeUrl = (url = "") => {
+  if (!url) return "";
+  if (url.startsWith("http")) return url;
+  return `${APP_URL}${url}`;
+};
 
 const Navber = ({ setOpen }) => {
   const { language, changeLanguage } = useLanguage();
   const [openDropdown, setOpenDropdown] = useState(false);
+  const [logo, setLogo] = useState("");
   const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const res = await api.get("/api/site-identity");
+        const data = res?.data?.data;
+        setLogo(data?.logo || "");
+      } catch (error) {
+        console.error("Failed to load logo:", error);
+      }
+    };
+
+    fetchLogo();
+  }, []);
 
   useEffect(() => {
     const handleClick = (e) => {
@@ -21,7 +46,6 @@ const Navber = ({ setOpen }) => {
 
   return (
     <div className="relative z-30 flex h-[64px] w-full items-center justify-between bg-[#2f79c9] px-3">
-      {/* Left */}
       <div className="flex items-center gap-2">
         <button
           type="button"
@@ -31,16 +55,19 @@ const Navber = ({ setOpen }) => {
           <Menu size={26} strokeWidth={2.5} />
         </button>
 
-        <Link to={"/"}>
+        <Link to="/">
           <img
-            src="https://i.ibb.co.com/Xxf8k1SR/image-removebg-preview-5.png"
+            src={
+              logo
+                ? makeUrl(logo)
+                : " "
+            }
             alt="logo"
             className="h-[42px] object-contain"
           />
         </Link>
       </div>
 
-      {/* Right */}
       <div className="flex items-center gap-3">
         <button type="button" className="text-[#ff7a21] cursor-pointer">
           <Bell size={26} strokeWidth={2.4} fill="#ff7a21" />

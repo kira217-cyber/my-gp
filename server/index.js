@@ -24,6 +24,17 @@ import sportsRoutes from "./routes/sportsRoutes.js";
 import playGameRoutes from "./routes/playGameRoutes.js";
 import callbackRoutes from "./routes/callbackRoutes.js";
 import historyRoutes from "./routes/historyRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
+import sliderRoutes from "./routes/sliderRoutes.js";
+import affSliderRoutes from "./routes/affSliderRoutes.js";
+import siteIdentityRoutes from "./routes/siteIdentityRoutes.js";
+import affSiteIdentityRoutes from "./routes/affSiteIdentityRoutes.js";
+import socialLinkRoutes from "./routes/socialLinkRoutes.js";
+import affSocialLinkRoutes from "./routes/affSocialLinkRoutes.js";
+import affNoticeRoutes from "./routes/affNoticeRoutes.js";
+
+
+
 dotenv.config();
 
 const app = express();
@@ -58,6 +69,14 @@ app.use("/api/sports", sportsRoutes);
 app.use("/api/play-game", playGameRoutes);
 app.use("/api/callback", callbackRoutes);
 app.use("/api/history", historyRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/sliders", sliderRoutes);
+app.use("/api/aff-sliders", affSliderRoutes);
+app.use("/api/site-identity", siteIdentityRoutes);
+app.use("/api/aff-site-identity", affSiteIdentityRoutes);
+app.use("/api/social-link", socialLinkRoutes);
+app.use("/api/aff-social-link", affSocialLinkRoutes);
+app.use("/api/aff-notice", affNoticeRoutes);
 
 // route
 app.get("/", (req, res) => {

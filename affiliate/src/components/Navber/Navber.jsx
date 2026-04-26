@@ -4,9 +4,19 @@ import { FaBars, FaTimes } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useLanguage } from "../../Context/LanguageProvider";
+import { api } from "../../api/axios";
+const APP_URL =
+  import.meta.env.VITE_APP_URL || import.meta.env.VITE_API_URL || "";
+
+const makeUrl = (url = "") => {
+  if (!url) return "";
+  if (url.startsWith("http")) return url;
+  return `${APP_URL}${url}`;
+};
 
 const Navber = () => {
   const { language, changeLanguage, isBangla } = useLanguage();
+  const [logo, setLogo] = useState("");
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
@@ -18,7 +28,20 @@ const Navber = () => {
   const PRIMARY = "#2f79c9";
   const SECONDARY = "#f07a2a";
 
-  const logoUrl = "https://i.ibb.co.com/Xxf8k1SR/image-removebg-preview-5.png";
+  useEffect(() => {
+  const fetchLogo = async () => {
+    try {
+      const res = await api.get("/api/aff-site-identity");
+      setLogo(res?.data?.data?.logo || "");
+    } catch (error) {
+      console.error("Failed to fetch affiliate logo:", error);
+    }
+  };
+
+  fetchLogo();
+}, []);
+
+  const logoUrl = logo ? makeUrl(logo) : " ";
 
   const t = useMemo(
     () => ({

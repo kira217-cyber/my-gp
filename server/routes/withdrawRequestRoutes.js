@@ -76,8 +76,6 @@ router.get("/withdraw-requests/eligibility", protectUser, async (req, res) => {
  * USER: create withdraw request
  */
 router.post("/withdraw-requests", protectUser, async (req, res) => {
-  const session = await mongoose.startSession();
-
   try {
     const userId = getUserIdFromReq(req);
 
@@ -189,7 +187,7 @@ router.post("/withdraw-requests", protectUser, async (req, res) => {
       });
     }
 
-    if (String(wallet.methodId) !== methodId) {
+    if (String(wallet.methodId).toUpperCase() !== methodId) {
       return res.status(400).json({
         success: false,
         message: "Selected wallet does not match the method",
@@ -223,45 +221,35 @@ router.post("/withdraw-requests", protectUser, async (req, res) => {
 
     const balanceAfter = currentBalance - amount;
 
-    let createdDoc = null;
-
-    await session.withTransaction(async () => {
-      createdDoc = await WithdrawRequest.create(
-        [
-          {
-            user: user._id,
-            methodId,
-            wallet: wallet._id,
-            walletSnapshot: {
-              methodId: method.methodId,
-              methodName: {
-                bn: method?.name?.bn || "",
-                en: method?.name?.en || "",
-              },
-              walletType: wallet.walletType || "",
-              walletNumber: wallet.walletNumber || "",
-              label: wallet.label || "",
-            },
-            amount,
-            status: "pending",
-            balanceBefore: currentBalance,
-            balanceAfter,
-          },
-        ],
-        { session },
-      );
-
-      await User.updateOne(
-        { _id: user._id },
-        { $set: { balance: balanceAfter } },
-        { session },
-      );
+    const createdDoc = await WithdrawRequest.create({
+      user: user._id,
+      methodId,
+      wallet: wallet._id,
+      walletSnapshot: {
+        methodId: method.methodId,
+        methodName: {
+          bn: method?.name?.bn || "",
+          en: method?.name?.en || "",
+        },
+        walletType: wallet.walletType || "",
+        walletNumber: wallet.walletNumber || "",
+        label: wallet.label || "",
+      },
+      amount,
+      status: "pending",
+      balanceBefore: currentBalance,
+      balanceAfter,
     });
+
+    await User.updateOne(
+      { _id: user._id },
+      { $set: { balance: balanceAfter } },
+    );
 
     return res.json({
       success: true,
       message: "Withdraw request created successfully",
-      data: createdDoc?.[0] || null,
+      data: createdDoc,
     });
   } catch (e) {
     console.error("WITHDRAW CREATE ERROR:", e);
@@ -269,8 +257,6 @@ router.post("/withdraw-requests", protectUser, async (req, res) => {
       success: false,
       message: e?.message || "Server error",
     });
-  } finally {
-    await session.endSession();
   }
 });
 
@@ -481,59 +467,50 @@ router.patch("/admin/withdraw-requests/:id/approve", async (req, res) => {
  * refund held balance
  */
 router.patch("/admin/withdraw-requests/:id/reject", async (req, res) => {
-  const session = await mongoose.startSession();
-
   try {
     const { adminNote } = req.body || {};
-    let updatedDoc = null;
 
-    await session.withTransaction(async () => {
-      const doc = await WithdrawRequest.findById(req.params.id).session(
-        session,
-      );
+    const doc = await WithdrawRequest.findById(req.params.id);
 
-      if (!doc) {
-        throw Object.assign(new Error("Not found"), { statusCode: 404 });
-      }
+    if (!doc) {
+      return res.status(404).json({
+        success: false,
+        message: "Not found",
+      });
+    }
 
-      if (doc.status !== "pending") {
-        throw Object.assign(new Error("Only pending can be rejected"), {
-          statusCode: 400,
-        });
-      }
+    if (doc.status !== "pending") {
+      return res.status(400).json({
+        success: false,
+        message: "Only pending can be rejected",
+      });
+    }
 
-      await User.updateOne(
-        { _id: doc.user },
-        { $inc: { balance: Number(doc.amount || 0) } },
-        { session },
-      );
+    await User.updateOne(
+      { _id: doc.user },
+      { $inc: { balance: Number(doc.amount || 0) } },
+    );
 
-      doc.status = "rejected";
-      doc.rejectedAt = new Date();
-      doc.approvedAt = null;
-      doc.adminNote = adminNote || "";
-      doc.adminId = getUserIdFromReq(req) || null;
+    doc.status = "rejected";
+    doc.rejectedAt = new Date();
+    doc.approvedAt = null;
+    doc.adminNote = adminNote || "";
+    doc.adminId = getUserIdFromReq(req) || null;
 
-      await doc.save({ session });
-      updatedDoc = doc;
-    });
+    await doc.save();
 
     return res.json({
       success: true,
       message: "Rejected successfully and balance refunded",
-      data: updatedDoc,
+      data: doc,
     });
   } catch (e) {
     console.error("REJECT WITHDRAW ERROR:", e);
 
-    const status = e?.statusCode || 500;
-
-    return res.status(status).json({
+    return res.status(500).json({
       success: false,
       message: e?.message || "Reject failed",
     });
-  } finally {
-    await session.endSession();
   }
 });
 

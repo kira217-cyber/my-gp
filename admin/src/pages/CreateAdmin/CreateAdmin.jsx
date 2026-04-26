@@ -11,21 +11,43 @@ const CreateAdmin = () => {
       { key: "dashboard", label: "Dashboard ( / )" },
       { key: "profile", label: "Profile ( /profile )" },
 
-      { key: "all-user", label: "All Users ( /all-user )" },
-      {
-        key: "all-affiliate-user",
-        label: "All Affiliate Users ( /all-affiliate-user )",
-      },
+      { key: "all-users", label: "All Users ( /all-users )" },
       {
         key: "all-user-details",
         label: "User Details ( /all-user-details/:id )",
+      },
+      {
+        key: "all-affiliate-users",
+        label: "All Affiliate Users ( /all-affiliate-users )",
       },
       {
         key: "affiliate-user-details",
         label: "Affiliate User Details ( /affiliate-user-details/:id )",
       },
 
-      { key: "add-deposit", label: "Add Deposit ( /add-deposit )" },
+      { key: "bulk-adjustment", label: "Bulk Adjustment ( /bulk-adjustment )" },
+
+      {
+        key: "add-game-categories",
+        label: "Add Game Categories ( /add-game-categories )",
+      },
+      { key: "add-providers", label: "Add Providers ( /add-providers )" },
+      { key: "add-games", label: "Add Games ( /add-games )" },
+      { key: "add-sports", label: "Add Sports ( /add-sports )" },
+      { key: "bet-history", label: "Bet History ( /bet-history )" },
+
+      {
+        key: "add-deposit-method",
+        label: "Add Deposit Method ( /add-deposit-method )",
+      },
+      {
+        key: "add-deposit-field",
+        label: "Add Deposit Field ( /add-deposit-field )",
+      },
+      {
+        key: "add-deposit-bonus-turnover",
+        label: "Add Deposit Bonus & Turnover ( /add-deposit-bonus-turnover )",
+      },
       {
         key: "deposit-request",
         label: "Deposit Request ( /deposit-request )",
@@ -35,8 +57,8 @@ const CreateAdmin = () => {
         label: "Deposit Request Details ( /deposit-request/:id )",
       },
       {
-        key: "add-auto-deposit",
-        label: "Auto Deposit Setting ( /add-auto-deposit )",
+        key: "auto-deposit-settings",
+        label: "Auto Deposit Settings ( /auto-deposit-settings )",
       },
       {
         key: "auto-deposit-history",
@@ -49,70 +71,52 @@ const CreateAdmin = () => {
         label: "Withdraw Request ( /withdraw-request )",
       },
       {
-        key: "withdraw-request-details",
+        key: "withdraw-request-detials",
         label: "Withdraw Request Details ( /withdraw-request/:id )",
       },
 
       {
         key: "aff-add-withdraw",
-        label: "Aff Add Withdraw ( /aff-add-withdraw )",
+        label: "Affiliate Add Withdraw ( /aff-add-withdraw )",
       },
       {
         key: "aff-withdraw-request",
-        label: "Aff Withdraw Request ( /aff-withdraw-request )",
+        label: "Affiliate Withdraw Request ( /aff-withdraw-request )",
       },
       {
-        key: "aff-withdraw-request-details",
+        key: "aff-withdraw-request-detials",
         label:
-          "Aff Withdraw Request Details ( /aff-withdraw-request-details/:id )",
+          "Affiliate Withdraw Request Details ( /aff-withdraw-request-details/:id )",
       },
 
       {
-        key: "add-game-category",
-        label: "Add Game Category ( /add-game-category )",
-      },
-      { key: "add-provider", label: "Add Provider ( /add-provider )" },
-      { key: "add-games", label: "Add Games ( /add-games )" },
-      { key: "add-sports", label: "Add Sports ( /add-sports )" },
-      {
-        key: "add-feature-games",
-        label: "Add Feature Games ( /add-feature-games )",
-      },
-      { key: "bet-history", label: "Bet History ( /bet-history )" },
-
-      { key: "bulk-adjustment", label: "Bulk Adjustment ( /bulk-adjustment )" },
-
-      { key: "add-promotion", label: "Add Promotion ( /add-promotion )" },
-
-      {
-        key: "add-slider",
-        label: "Add Slider ( /add-slider )",
+        key: "slider-controller",
+        label: "Slider Controller ( /slider-controller )",
       },
       {
-        key: "add-notice",
-        label: "Add Notice ( /add-notice )",
-      },
-      {
-        key: "footer-controller",
-        label: "Footer Controller ( /footer-controller )",
+        key: "aff-slider-controller",
+        label: "Affiliate Slider Controller ( /aff-slider-controller )",
       },
       {
         key: "site-identity-controller",
         label: "Site Identity Controller ( /site-identity-controller )",
       },
       {
-        key: "add-social-link",
-        label: "Add Social Link ( /add-social-link )",
-      },
-
-      {
         key: "aff-site-identity-controller",
         label:
           "Affiliate Site Identity Controller ( /aff-site-identity-controller )",
       },
       {
+        key: "add-social-link",
+        label: "Add Social Link ( /add-social-link )",
+      },
+      {
         key: "add-aff-social-link",
         label: "Add Affiliate Social Link ( /add-aff-social-link )",
+      },
+      {
+        key: "add-aff-notice",
+        label: "Add Affiliate Notice ( /add-aff-notice )",
       },
     ],
     [],

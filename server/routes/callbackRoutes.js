@@ -1,5 +1,4 @@
 import express from "express";
-import mongoose from "mongoose";
 import User from "../models/User.js";
 import TurnOver from "../models/TurnOver.js";
 import GameHistory from "../models/GameHistory.js";
@@ -11,15 +10,13 @@ const num = (value) => {
   return Number.isFinite(n) ? n : 0;
 };
 
-const applyTurnoverProgress = async ({ session, userId, amount }) => {
+const applyTurnoverProgress = async ({ userId, amount }) => {
   if (amount <= 0) return;
 
   const turnovers = await TurnOver.find({
     user: userId,
     status: "running",
-  })
-    .sort({ createdAt: 1 })
-    .session(session);
+  }).sort({ createdAt: 1 });
 
   let remaining = amount;
 
@@ -45,15 +42,13 @@ const applyTurnoverProgress = async ({ session, userId, amount }) => {
             }
           : {}),
       },
-    ).session(session);
+    );
 
     remaining -= add;
   }
 };
 
 router.post("/", async (req, res) => {
-  const session = await mongoose.startSession();
-
   try {
     const {
       username,
@@ -71,7 +66,8 @@ router.post("/", async (req, res) => {
     if (
       !username ||
       !provider_code ||
-      !game_code ||
+      game_code === undefined ||
+      game_code === null ||
       !bet_type ||
       amount === undefined
     ) {
@@ -121,118 +117,117 @@ router.post("/", async (req, res) => {
       status = "cancelled";
     }
 
-    let result = null;
+    const user = await User.findOne({ userId: cleanUserId });
 
-    await session.withTransaction(async () => {
-      const user = await User.findOne({ userId: cleanUserId }).session(session);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
 
-      if (!user) {
-        throw Object.assign(new Error("User not found"), { statusCode: 404 });
-      }
+    if (user.isActive === false) {
+      return res.status(403).json({
+        success: false,
+        message: "User inactive",
+      });
+    }
 
-      if (user.isActive === false) {
-        throw Object.assign(new Error("User inactive"), { statusCode: 403 });
-      }
+    const cleanVerificationKey = verification_key
+      ? String(verification_key).trim()
+      : null;
 
-      const cleanVerificationKey = verification_key
-        ? String(verification_key).trim()
-        : null;
+    if (cleanVerificationKey) {
+      const exists = await GameHistory.findOne({
+        verification_key: cleanVerificationKey,
+      });
 
-      if (cleanVerificationKey) {
-        const exists = await GameHistory.findOne({
-          verification_key: cleanVerificationKey,
-        }).session(session);
-
-        if (exists) {
-          throw Object.assign(new Error("DUPLICATE_CALLBACK"), {
-            statusCode: 200,
-            duplicate: true,
-            currentBalance: num(user.balance),
-          });
-        }
-      }
-
-      const currentBalance = num(user.balance);
-      const newBalance = currentBalance + balanceChange;
-
-      if (betType === "BET" && newBalance < 0) {
-        throw Object.assign(new Error("Insufficient balance"), {
-          statusCode: 400,
-        });
-      }
-
-      const [history] = await GameHistory.create(
-        [
-          {
-            user: user._id,
-            userId: user.userId,
-            provider_code: providerCode,
-            game_code: gameCode,
-            bet_type: betType,
-            amount: amountValue,
-            win_amount: winAmount,
-            balance_after: newBalance,
-            transaction_id: transaction_id
-              ? String(transaction_id).trim()
-              : null,
-            round_id: round_id ? String(round_id).trim() : null,
+      if (exists) {
+        return res.json({
+          success: true,
+          message: "Already processed",
+          data: {
             verification_key: cleanVerificationKey,
-            times: times ? String(times).trim() : null,
-            status,
-            bet_details:
-              bet_details && typeof bet_details === "object" ? bet_details : {},
+            current_balance: num(user.balance),
           },
-        ],
-        { session },
-      );
-
-      await User.updateOne(
-        { _id: user._id },
-        { $inc: { balance: balanceChange } },
-      ).session(session);
-
-      if (betType === "BET" && amountValue > 0) {
-        await applyTurnoverProgress({
-          session,
-          userId: user._id,
-          amount: amountValue,
         });
       }
+    }
 
-      // affiliate commission
-      if (user.referredBy) {
-        const affiliator = await User.findById(user.referredBy).session(
-          session,
-        );
+    const currentBalance = num(user.balance);
+    const newBalance = currentBalance + balanceChange;
 
-        if (
-          affiliator &&
-          affiliator.role === "aff-user" &&
-          affiliator.isActive === true
-        ) {
-          if (betType === "BET" && num(affiliator.gameLossCommission) > 0) {
-            const commission =
-              (amountValue * num(affiliator.gameLossCommission)) / 100;
+    if (betType === "BET" && newBalance < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient balance",
+      });
+    }
 
-            await User.updateOne(
-              { _id: affiliator._id },
-              { $inc: { gameLossCommissionBalance: commission } },
-            ).session(session);
-          }
+    const history = await GameHistory.create({
+      user: user._id,
+      userId: user.userId,
+      provider_code: providerCode,
+      game_code: gameCode,
+      bet_type: betType,
+      amount: amountValue,
+      win_amount: winAmount,
+      balance_after: newBalance,
+      transaction_id: transaction_id ? String(transaction_id).trim() : null,
+      round_id: round_id ? String(round_id).trim() : null,
+      verification_key: cleanVerificationKey,
+      times: times ? String(times).trim() : null,
+      status,
+      bet_details:
+        bet_details && typeof bet_details === "object" ? bet_details : {},
+    });
 
-          if (betType === "SETTLE" && num(affiliator.gameWinCommission) > 0) {
-            const commission =
-              (amountValue * num(affiliator.gameWinCommission)) / 100;
+    await User.updateOne(
+      { _id: user._id },
+      { $inc: { balance: balanceChange } },
+    );
 
-            await User.updateOne(
-              { _id: affiliator._id },
-              { $inc: { gameWinCommissionBalance: commission } },
-            ).session(session);
-          }
+    if (betType === "BET" && amountValue > 0) {
+      await applyTurnoverProgress({
+        userId: user._id,
+        amount: amountValue,
+      });
+    }
+
+    if (user.referredBy) {
+      const affiliator = await User.findById(user.referredBy);
+
+      if (
+        affiliator &&
+        affiliator.role === "aff-user" &&
+        affiliator.isActive === true
+      ) {
+        if (betType === "BET" && num(affiliator.gameLossCommission) > 0) {
+          const commission =
+            (amountValue * num(affiliator.gameLossCommission)) / 100;
+
+          await User.updateOne(
+            { _id: affiliator._id },
+            { $inc: { gameLossCommissionBalance: commission } },
+          );
+        }
+
+        if (betType === "SETTLE" && num(affiliator.gameWinCommission) > 0) {
+          const commission =
+            (amountValue * num(affiliator.gameWinCommission)) / 100;
+
+          await User.updateOne(
+            { _id: affiliator._id },
+            { $inc: { gameWinCommissionBalance: commission } },
+          );
         }
       }
+    }
 
-      result = {
+    return res.json({
+      success: true,
+      message: "Processed successfully",
+      data: {
         historyId: history._id,
         user: user._id,
         userId: user.userId,
@@ -240,26 +235,9 @@ router.post("/", async (req, res) => {
         amount: amountValue,
         balanceChange,
         balance_after: newBalance,
-      };
-    });
-
-    return res.json({
-      success: true,
-      message: "Processed successfully",
-      data: result,
+      },
     });
   } catch (error) {
-    if (error?.duplicate) {
-      return res.json({
-        success: true,
-        message: "Already processed",
-        data: {
-          verification_key: req.body?.verification_key || null,
-          current_balance: error.currentBalance,
-        },
-      });
-    }
-
     if (error?.code === 11000) {
       return res.json({
         success: true,
@@ -267,12 +245,10 @@ router.post("/", async (req, res) => {
       });
     }
 
-    return res.status(error?.statusCode || 500).json({
+    return res.status(500).json({
       success: false,
       message: error?.message || "Server error",
     });
-  } finally {
-    session.endSession();
   }
 });
 
