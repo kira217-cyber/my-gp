@@ -7,6 +7,7 @@ import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import { userRegister } from "../../features/auth/authAPI";
 import { setCredentials } from "../../features/auth/authSlice";
+import logo from "../../assets/logo.mp4";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -171,10 +172,13 @@ const Register = () => {
     <div className="min-h-full bg-[#efefef] px-3 pt-22 pb-8">
       <div className="mx-auto w-full max-w-[360px]">
         <div className="flex justify-center">
-          <img
-            src="https://i.ibb.co.com/ds4ckFjg/image-removebg-preview-3.png"
-            alt="MyGP"
-            className="w-[205px] object-contain"
+          <video
+            src={logo}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full object-contain"
           />
         </div>
 

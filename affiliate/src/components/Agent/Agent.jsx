@@ -6,95 +6,98 @@ import { useLanguage } from "../../Context/LanguageProvider";
 const Agent = () => {
   const { isBangla } = useLanguage();
 
-  const t = useMemo(() => {
-    return {
-      title: isBangla ? "BABU88 এজেন্ট হন!" : "Become a BABU88 Agent!",
+  const PRIMARY = "#2f79c9";
+  const SECONDARY = "#f07a2a";
+
+  const t = useMemo(
+    () => ({
+      title: isBangla ? "আজই এজেন্ট হন!" : "Become an Agent Today!",
       p1: isBangla
-        ? "BABU88 বাংলাদেশের এজেন্টদের জন্য তাদের আয় বৃদ্ধির এক অনন্যসুযোগ প্রদান করে যাচ্ছে কখনও হয়নি!"
-        : "BABU88 offers Bangladeshi agents a unique opportunity to increase their income like never before!",
+        ? "আমাদের প্ল্যাটফর্ম এজেন্টদের জন্য দ্রুত আয় এবং সহজ ম্যানেজমেন্টের সুযোগ তৈরি করে।"
+        : "Our platform creates fast earning opportunities and easy management for agents.",
       p2: isBangla
-        ? "BABU88 এজেন্টদের সাথে যোগ দিন — আজই আপনার আয় বৃদ্ধি করুন!"
-        : "Join BABU88 agents — increase your income today!",
+        ? "আপনি সহজেই আপনার ইউজার নেটওয়ার্ক তৈরি করে কমিশন আয় শুরু করতে পারবেন।"
+        : "You can easily build your user network and start earning commission.",
       list: isBangla
         ? [
-            "৬০% পর্যন্ত কমিশন - যা বাজারের সর্বোচ্চ",
-            "সাপ্তাহিক বোনাস এবং মাসিক প্রোমো",
-            "BABU LEGEND এজেন্ট লয়্যালিটি প্রোগ্রামের মাধ্যমে নতুন পুরস্কার এবং রিচার্জ উপহার",
-            "অসংখ্য গেম সহ বিশ্বস্ত বেটিং প্ল্যাটফর্ম",
+            "উচ্চ কমিশন সুবিধা",
+            "দ্রুত পেমেন্ট সাপোর্ট",
+            "সহজ এজেন্ট ড্যাশবোর্ড",
+            "নিরাপদ এবং বিশ্বস্ত প্ল্যাটফর্ম",
           ]
         : [
-            "Up to 60% commission — the highest in the market",
-            "Weekly bonuses and monthly promos",
-            "New rewards & recharge gifts via BABU LEGEND agent loyalty program",
-            "Trusted betting platform with lots of games",
+            "High commission benefits",
+            "Fast payment support",
+            "Easy agent dashboard",
+            "Safe and trusted platform",
           ],
       p3: isBangla
-        ? "BABU88 দিয়ে আরও বেশি উপার্জন শুরু করুন — দ্রুত, সহজ এবং ফলপ্রসূ!"
-        : "Start earning more with BABU88 — fast, easy, and rewarding!",
-      strip: isBangla ? "পর্যন্ত কমিশন অর্জন করুন" : "Earn Commission Up To",
-      btn: isBangla ? "এখনই যোগদান করুন!" : "Join Now!",
-    };
-  }, [isBangla]);
+        ? "এখনই যোগ দিন এবং আপনার অনলাইন ইনকাম শুরু করুন।"
+        : "Join now and start your online income journey.",
+      strip: isBangla ? "কমিশন অর্জন করুন" : "Earn Commission",
+      btn: isBangla ? "এখনই যোগদান করুন" : "Join Now",
+      percentText: "60%",
+    }),
+    [isBangla],
+  );
 
   return (
-    <section className="w-full bg-[#2b2b2b] text-white py-10 sm:py-14">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        {/* Title */}
-        <h2 className="text-center text-2xl sm:text-3xl font-extrabold mb-8 sm:mb-10">
+    <section className="w-full bg-[#07111f] text-white">
+      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
+        <h2
+          className="mb-10 text-center text-3xl font-extrabold md:text-4xl"
+          style={{ color: SECONDARY }}
+        >
           {t.title}
         </h2>
 
-        {/* Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-stretch">
-          {/* LEFT SIDE */}
+        <div className="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-2 lg:gap-10">
           <div className="space-y-5">
-            <p className="text-sm sm:text-base leading-relaxed text-white/95">
-              {t.p1}
-            </p>
+            <p className="text-base leading-relaxed text-slate-300">{t.p1}</p>
+            <p className="text-base leading-relaxed text-slate-300">{t.p2}</p>
 
-            <p className="text-sm sm:text-base leading-relaxed text-white/95">
-              {t.p2}
-            </p>
-
-            {/* checklist */}
             <ul className="space-y-3 pt-2">
               {t.list.map((item, idx) => (
                 <li key={idx} className="flex items-start gap-3">
-                  <span className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-sm bg-green-500">
+                  <span
+                    className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded"
+                    style={{ backgroundColor: PRIMARY }}
+                  >
                     <Check size={16} className="text-white" />
                   </span>
-                  <span className="text-sm sm:text-base leading-relaxed">
-                    {item}
-                  </span>
+
+                  <span className="leading-relaxed text-slate-100">{item}</span>
                 </li>
               ))}
             </ul>
 
-            <p className="text-sm sm:text-base leading-relaxed pt-2 text-white/95">
+            <p className="pt-2 text-base leading-relaxed text-slate-300">
               {t.p3}
             </p>
           </div>
 
-          {/* RIGHT SIDE (yellow card) */}
-          <div className="bg-[#f5b400] rounded-lg shadow-[0_8px_20px_rgba(0,0,0,0.45)] border border-black/10 p-6 sm:p-8 flex items-center justify-center">
+          <div
+            className="flex items-center justify-center rounded-xl border p-6 shadow-2xl shadow-black/30 sm:p-8"
+            style={{
+              background: `linear-gradient(135deg, ${SECONDARY}, ${PRIMARY})`,
+              borderColor: "rgba(255,255,255,0.14)",
+            }}
+          >
             <div className="w-full max-w-md text-center">
-              {/* 60% */}
-              <div className="text-[56px] sm:text-[72px] font-extrabold text-black leading-none">
-                60%
+              <div className="text-7xl font-extrabold leading-none text-white md:text-8xl">
+                {t.percentText}
               </div>
 
-              {/* blue highlight strip */}
-              <div className="mt-3 inline-block px-4 sm:px-6 py-2">
-                <span className="text-white font-extrabold text-lg sm:text-2xl tracking-wide">
+              <div className="mt-4">
+                <span className="inline-block rounded-full bg-white/15 px-6 py-2 text-xl font-extrabold tracking-wide text-white backdrop-blur">
                   {t.strip}
                 </span>
               </div>
 
-              {/* Button */}
-              <div className="mt-6">
+              <div className="mt-7">
                 <Link
                   to="/register"
-                  className="inline-block bg-black text-white font-bold px-6 sm:px-8 py-3 rounded-md hover:bg-[#1f1f1f] transition"
+                  className="inline-block rounded-md bg-[#07111f] px-8 py-3 font-bold text-white transition hover:scale-[1.03] hover:opacity-90"
                 >
                   {t.btn}
                 </Link>

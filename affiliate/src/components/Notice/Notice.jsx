@@ -4,19 +4,28 @@ import { useLanguage } from "../../Context/LanguageProvider";
 const Notice = () => {
   const { isBangla } = useLanguage();
 
-  const noticeText = useMemo(() => {
-    return isBangla
-      ? "আজই ৬০% পর্যন্ত কমিশন পান! আজই BABU88 এজেন্ট হন! আজই ৬০% পর্যন্ত কমিশন পান! আজই BABU88 এজেন্ট হন!"
-      : "Get up to 60% commission today! Become a BABU88 agent today! Get up to 60% commission today! Become a BABU88 agent today!";
-  }, [isBangla]);
+  const PRIMARY = "#2f79c9";
+  const SECONDARY = "#f07a2a";
+
+  const noticeText = useMemo(
+    () =>
+      isBangla
+        ? "আজই আমাদের প্ল্যাটফর্মে যোগ দিন এবং নিরাপদ, দ্রুত ও বিশ্বস্ত সার্ভিস উপভোগ করুন।"
+        : "Join our platform today and enjoy safe, fast, and trusted service.",
+    [isBangla],
+  );
 
   return (
-    <div className="w-full bg-[#2b2b2b]">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
-        {/* yellow pill */}
-        <div className="bg-[#f5b400] rounded-md sm:rounded-md px-3 sm:px-6 py-2 sm:py-3 overflow-hidden">
+    <div className="w-full bg-[#07111f] pt-2 md:pt-6">
+      <div className="mx-auto max-w-7xl px-3 py-3 sm:px-6 sm:py-4">
+        <div
+          className="overflow-hidden rounded-md px-6 py-3 shadow-lg shadow-black/20"
+          style={{
+            background: `linear-gradient(90deg, ${PRIMARY}, ${SECONDARY})`,
+          }}
+        >
           <div className="notice-viewport">
-            <div className="notice-single text-black font-bold text-sm sm:text-base md:text-lg whitespace-nowrap">
+            <div className="notice-single whitespace-nowrap text-sm font-bold text-white sm:text-base md:text-lg">
               {noticeText}
             </div>
           </div>
@@ -24,27 +33,29 @@ const Notice = () => {
       </div>
 
       <style>{`
-        .notice-viewport{
+        .notice-viewport {
           position: relative;
           overflow: hidden;
           width: 100%;
         }
 
-        /* start from right outside, exit left outside, immediately restart */
-        .notice-single{
+        .notice-single {
           display: inline-block;
           will-change: transform;
-          animation: noticeOne 16s linear infinite;
+          animation: noticeMove 16s linear infinite;
         }
 
-        @keyframes noticeOne{
-          0%   { transform: translateX(100%); }
-          100% { transform: translateX(-100%); }
+        @keyframes noticeMove {
+          0% {
+            transform: translateX(100%);
+          }
+          100% {
+            transform: translateX(-100%);
+          }
         }
 
-        /* accessibility */
-        @media (prefers-reduced-motion: reduce){
-          .notice-single{
+        @media (prefers-reduced-motion: reduce) {
+          .notice-single {
             animation: none;
             transform: translateX(0);
           }
