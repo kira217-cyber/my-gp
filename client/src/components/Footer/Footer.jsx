@@ -102,7 +102,7 @@ const Footer = () => {
             {getText(footerData.paymentTitle)}
           </h2>
 
-          <div className="grid grid-cols-4 items-center gap-4 rounded-[8px] border border-[#2f79c9]/15 bg-[#f86e3c] p-4">
+          <div className="grid grid-cols-4 items-center gap-4 rounded-[8px] border border-[#2f79c9]/15 bg-[#2f79c9] p-4">
             {footerData.paymentImages.map((img) => (
               <img
                 key={img}
@@ -160,7 +160,7 @@ const Footer = () => {
               {getText(footerData.licenseTitle)}
             </h2>
 
-            <div className="rounded-[8px] border border-[#2f79c9]/15 bg-[#f86e3c] p-4">
+            <div className="flex justify-center rounded-[8px] border border-[#2f79c9]/15 bg-[#2f79c9] p-4">
               <img
                 src={fileUrl(footerData.licenseImage)}
                 className="h-10 object-contain"
@@ -174,7 +174,7 @@ const Footer = () => {
               {getText(footerData.appDownloadTitle)}
             </h2>
 
-            <div className="rounded-[8px] border border-[#2f79c9]/15 bg-[#f86e3c] p-4">
+            <div className="flex justify-center rounded-[8px] border border-[#2f79c9]/15 bg-[#2f79c9] p-4">
               <a
                 href={footerData.appDownloadLink}
                 target="_blank"

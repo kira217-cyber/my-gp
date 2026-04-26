@@ -7,7 +7,7 @@ import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import { userLogin } from "../../features/auth/authAPI";
 import { setCredentials } from "../../features/auth/authSlice";
-import logo from "../../assets/logo.mp4";
+import logo from "../../assets/logo.png";
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -166,16 +166,9 @@ const Login = () => {
   return (
     <div className="min-h-full bg-[#efefef] px-3 pt-28 pb-8">
       <div className="mx-auto w-full max-w-[360px]">
-           <div className="flex justify-center">
-                  <video
-                    src={logo}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="w-full object-contain"
-                  />
-                </div>
+        <div className="flex justify-center">
+          <img className="h-20" src={logo} alt="" />
+        </div>
 
         <div className="mt-3 grid grid-cols-2 rounded-[4px] bg-[#2c84ea] p-[3px]">
           <button

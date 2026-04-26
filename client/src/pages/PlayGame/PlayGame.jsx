@@ -9,11 +9,15 @@ import {
   selectUser,
 } from "../../features/auth/authSelectors";
 import { useLanguage } from "../../Context/LanguageProvider";
+import logo from "../../assets/logo.png";
+import Loading from "../../components/Loading/Loading";
 
 const PlayGame = () => {
   const navigate = useNavigate();
   const { gameId } = useParams();
   const { isBangla } = useLanguage();
+
+  const logoSrc = logo;
 
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const reduxUser = useSelector(selectUser);
@@ -32,8 +36,7 @@ const PlayGame = () => {
     return realUser?.isActive !== false;
   }, [realUser]);
 
-  const API_BASE =
-    import.meta.env.VITE_API_URL;
+  const API_BASE = import.meta.env.VITE_API_URL;
 
   const playMutation = useMutation({
     mutationFn: async () => {
@@ -98,33 +101,15 @@ const PlayGame = () => {
 
   return (
     <div className="fixed inset-0 z-[9999] bg-black">
-      {isLoading ? (
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center text-white">
-          <div className="mb-6 flex flex-col items-center justify-center">
-            <div className="mb-4 flex h-20 w-40 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-sm text-white/70">
-              {t("লোড হচ্ছে...", "Loading...")}
-            </div>
+      <Loading
+        open={isLoading}
+        text={t(
+          "অনুগ্রহ করে অপেক্ষা করুন",
+          "Please wait while your game is being prepared",
+        )}
+      />
 
-            <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-yellow-400/25 border-t-yellow-400" />
-          </div>
-
-          <p className="mt-2 text-sm text-white/65">
-            {t(
-              "অনুগ্রহ করে অপেক্ষা করুন",
-              "Please wait while your game is being prepared",
-            )}
-          </p>
-
-          <button
-            type="button"
-            onClick={() => playMutation.mutate()}
-            disabled={playMutation.isPending}
-            className="mt-6 cursor-pointer rounded-lg border border-white/15 bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/15 disabled:opacity-60"
-          >
-            {t("রিফ্রেশ", "Refresh")}
-          </button>
-        </div>
-      ) : (
+      {!isLoading && (
         <iframe
           src={gameUrl}
           title="Game"
@@ -132,6 +117,17 @@ const PlayGame = () => {
           allow="fullscreen"
           allowFullScreen
         />
+      )}
+
+      {isLoading && (
+        <button
+          type="button"
+          onClick={() => playMutation.mutate()}
+          disabled={playMutation.isPending}
+          className="fixed bottom-8 left-1/2 z-[1000000] -translate-x-1/2 cursor-pointer rounded-lg border border-white/15 bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/15 disabled:opacity-60"
+        >
+          {t("রিফ্রেশ", "Refresh")}
+        </button>
       )}
     </div>
   );
