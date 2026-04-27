@@ -4,7 +4,6 @@ import { useNavigate } from "react-router";
 import { api } from "../../api/axios";
 import { useLanguage } from "../../Context/LanguageProvider";
 
-
 const Providers = ({ categoryId, category }) => {
   const navigate = useNavigate();
   const { isBangla } = useLanguage();
@@ -58,7 +57,6 @@ const Providers = ({ categoryId, category }) => {
   if (loading) {
     return (
       <div className="px-2 py-3">
-
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
           {[...Array(8)].map((_, index) => (
             <div
@@ -89,6 +87,46 @@ const Providers = ({ categoryId, category }) => {
 
   return (
     <div className="px-4 py-3">
+      <style>
+        {`
+        @keyframes providerGlassShine {
+          0% { transform: translateX(-260%) skewX(-22deg); opacity: 0; }
+          12% { opacity: 1; }
+          50% { opacity: 1; }
+          82% { transform: translateX(360%) skewX(-22deg); opacity: 1; }
+          100% { transform: translateX(360%) skewX(-22deg); opacity: 0; }
+        }
+
+        .provider-glass-shine::after {
+          content: "";
+          position: absolute;
+          top: -35%;
+          left: -85%;
+          width: 55%;
+          height: 170%;
+          pointer-events: none;
+          z-index: 2;
+          background: linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(255,255,255,0.08) 18%,
+            rgba(255,255,255,0.55) 38%,
+            rgba(255,255,255,0.95) 50%,
+            rgba(255,255,255,0.55) 62%,
+            rgba(255,255,255,0.08) 82%,
+            transparent 100%
+          );
+          filter: blur(0.4px);
+          mix-blend-mode: screen;
+          animation: providerGlassShine 3s cubic-bezier(0.25, 0.8, 0.25, 1) infinite;
+        }
+
+        .provider-glass-shine img {
+          position: relative;
+          z-index: 1;
+        }
+      `}
+      </style>
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
         {providers.map((provider) => {
           const image =
@@ -105,12 +143,12 @@ const Providers = ({ categoryId, category }) => {
               onClick={() => goToGames(provider._id)}
               className="cursor-pointer overflow-hidden"
             >
-              <div className="flex h-[120px] items-center justify-center bg-[#eef5fc]">
+              <div className="provider-glass-shine relative  flex h-[120px] items-center justify-center overflow-hidden bg-[#eef5fc]">
                 {image ? (
                   <img
                     src={image}
                     alt={provider?.providerId || "Provider"}
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-cover "
                   />
                 ) : (
                   <FaImage className="text-3xl text-[#2f79c9]/60" />

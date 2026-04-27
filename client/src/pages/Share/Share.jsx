@@ -95,7 +95,7 @@ const Share = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f8fc] text-[#1f2937] mb-32">
+    <div className="min-h-screen bg-[#f5f8fc] text-[#1f2937] mb-48">
       {/* <div className="sticky top-0 z-30 flex h-[66px] items-center justify-center bg-[#2f79c9] px-4 shadow-md">
         <button
           type="button"

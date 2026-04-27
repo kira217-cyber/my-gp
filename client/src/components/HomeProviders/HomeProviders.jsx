@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { FaImage } from "react-icons/fa";
 import { useLanguage } from "../../Context/LanguageProvider";
 import { api } from "../../api/axios";
+import hot from '../../assets/hot.gif'
 
 const INITIAL_VISIBLE = 12;
 
@@ -63,12 +64,66 @@ const HomeProviders = () => {
   };
 
   return (
-    <div className="w-full px-2 py-2">
-      <div className="overflow-hidden rounded-[6px] bg-white">
+    <div className="w-full">
+      <style>
+        {`
+    @keyframes providerGlassShine {
+      0% {
+        transform: translateX(-260%) skewX(-22deg);
+        opacity: 0;
+      }
+      12% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 1;
+      }
+      82% {
+        transform: translateX(360%) skewX(-22deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateX(360%) skewX(-22deg);
+        opacity: 0;
+      }
+    }
+
+    .provider-glass-shine::after {
+      content: "";
+      position: absolute;
+      top: -35%;
+      left: -85%;
+      width: 55%;
+      height: 170%;
+      pointer-events: none;
+      z-index: 2;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.08) 18%,
+        rgba(255, 255, 255, 0.55) 38%,
+        rgba(255, 255, 255, 0.95) 50%,
+        rgba(255, 255, 255, 0.55) 62%,
+        rgba(255, 255, 255, 0.08) 82%,
+        transparent 100%
+      );
+      filter: blur(0.4px);
+      mix-blend-mode: screen;
+      animation: providerGlassShine 3s cubic-bezier(0.25, 0.8, 0.25, 1) infinite;
+    }
+
+    .provider-glass-shine img {
+      position: relative;
+      z-index: 1;
+    }
+  `}
+      </style>
+
+      <div className="overflow-hidden bg-[#1D5389]">
         {/* Header */}
-        <div className="flex items-stretch gap-[6px] ">
+        <div className="flex items-stretch bg-[#1f5f98]">
           {/* Left */}
-          <div className="relative flex h-[44px] flex-[1.25] items-center bg-[#f56b1f] pl-3 pr-6">
+          <div className="relative flex h-[44px] flex-[1.25] items-center bg-gradient-to-r from-[#2f79c9] to-[#5aa2e6] pl-3 pr-6">
             <div
               className="absolute right-0 top-0 h-full w-5 bg-white"
               style={{
@@ -76,21 +131,21 @@ const HomeProviders = () => {
               }}
             />
 
-            <div className="mr-2 flex h-[32px] w-[32px] items-center justify-center rounded-sm bg-white/20">
+            <div className="mr-2 flex h-[30px] w-[30px] items-center justify-center rounded-sm">
               <img
-                src="https://beit365.bet/assets/images/home-page-menu/Casino.svg"
+                src={hot}
                 alt="providers"
-                className="h-[32px] w-[32px] object-contain brightness-0 invert"
+                className="h-[30px] w-[30px] object-contain brightness-0 invert"
               />
             </div>
 
-            <h2 className="truncate text-[22px] font-extrabold text-white">
+            <h2 className="truncate text-[20px] font-extrabold text-white drop-shadow">
               {text.title}
             </h2>
           </div>
 
           {/* Right */}
-          <div className="relative flex h-[44px] min-w-[118px] items-center justify-center bg-[#f56b1f] px-4">
+          <div className="relative flex h-[44px] min-w-[108px] items-center justify-center bg-gradient-to-r from-[#2f79c9] to-[#5aa2e6] px-3">
             <div
               className="absolute left-0 top-0 h-full w-5 bg-white"
               style={{
@@ -98,19 +153,19 @@ const HomeProviders = () => {
               }}
             />
 
-            <span className="text-[18px] font-extrabold text-white">
+            <span className="text-[16px] font-extrabold text-white drop-shadow">
               {text.matches}
             </span>
           </div>
         </div>
 
         {/* Provider Cards */}
-        <div className="mt-1 grid grid-cols-4 gap-2 bg-white px-1 pb-2 pt-1">
+        <div className="grid grid-cols-4 gap-2 bg-[#1D5389] px-2 py-2 pb-2 pt-2 sm:px-4">
           {loading
             ? Array.from({ length: 12 }).map((_, index) => (
                 <div
                   key={index}
-                  className="h-[122px] animate-pulse rounded-[6px] bg-slate-200"
+                  className="h-[122px] animate-pulse rounded-[8px] bg-[#3f8fe0]"
                 />
               ))
             : visibleProviders.map((provider) => {
@@ -126,9 +181,9 @@ const HomeProviders = () => {
                     key={provider._id}
                     type="button"
                     onClick={() => handleProviderClick(provider)}
-                    className="cursor-pointer overflow-hidden rounded-[6px] bg-white transition hover:-translate-y-[1px] hover:shadow-md"
+                    className="cursor-pointer overflow-hidden rounded-[8px] bg-[#2f79c9] transition hover:-translate-y-[1px] hover:shadow-lg"
                   >
-                    <div className="flex h-[122px] items-center justify-center overflow-hidden rounded-[6px] bg-[#eef5fc]">
+                    <div className="provider-glass-shine relative flex h-[122px] items-center justify-center overflow-hidden rounded-[8px] bg-[#eef5fc]">
                       {image ? (
                         <img
                           src={image}
@@ -145,7 +200,7 @@ const HomeProviders = () => {
         </div>
 
         {!loading && providers.length === 0 && (
-          <div className="px-3 py-6 text-center text-sm font-semibold text-[#1f5f98]">
+          <div className="bg-[#1f5f98] px-3 py-6 text-center text-sm font-semibold text-white">
             {isBangla
               ? "কোনো হোম প্রোভাইডার পাওয়া যায়নি।"
               : "No home providers found."}
@@ -153,11 +208,11 @@ const HomeProviders = () => {
         )}
 
         {!loading && hasMoreProviders && (
-          <div className="px-2 pb-2 flex justify-center mt-2">
+          <div className="flex justify-center bg-[#1D5389] px-2 pb-3 pt-1">
             <button
               type="button"
               onClick={handleShowMore}
-              className="w-24 cursor-pointer rounded-full bg-[#1f5f98] py-1 text-sm text-white transition hover:bg-[#184d7d]"
+              className="w-28 cursor-pointer rounded-full bg-[#2f79c9] py-1.5 text-sm font-bold text-white shadow transition hover:bg-[#184d7d]"
             >
               {text.showMore}
             </button>

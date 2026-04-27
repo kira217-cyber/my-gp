@@ -5,12 +5,19 @@ const Tab = () => {
   const { language } = useLanguage();
 
   const tabs = [
+    // {
+    //   name: {
+    //     en: "Auto Deposit",
+    //     bn: "অটো ডিপোজিট",
+    //   },
+    //   path: "/auto-deposit",
+    // },
     {
       name: {
         en: "Auto Deposit",
         bn: "অটো ডিপোজিট",
       },
-      path: "/auto-deposit",
+      path: "/auto-personal-deposit",
     },
     {
       name: {

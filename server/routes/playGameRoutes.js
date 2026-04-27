@@ -2,16 +2,15 @@ import express from "express";
 import axios from "axios";
 import jwt from "jsonwebtoken";
 import qs from "qs";
+
 import User from "../models/User.js";
 import Game from "../models/Games.js";
-import GameProvider from "../models/GameProviders.js";
+import Sports from "../models/Sports.js";
 
 const router = express.Router();
 
-/**
- * auth middleware
- * expects: Authorization: Bearer <token>
- */
+const ORACLE_BY_IDS_API = "https://api.oraclegames.live/api/games/by-ids";
+
 const requireAuth = (req, res, next) => {
   try {
     const header = req.headers.authorization || "";
@@ -52,14 +51,12 @@ const requireAuth = (req, res, next) => {
 
 const isObjectIdLike = (val) => /^[0-9a-fA-F]{24}$/.test(String(val || ""));
 
-/**
- * Oracle single game details
- */
-const fetchOracleGameDetails = async ({ oracleGameId, apiKey }) => {
-  const res = await axios.get(
-    `https://api.oraclegames.live/api/games/${encodeURIComponent(
-      String(oracleGameId),
-    )}`,
+const fetchOracleGameDetailsByIds = async ({ oracleGameId, apiKey }) => {
+  const res = await axios.post(
+    ORACLE_BY_IDS_API,
+    {
+      ids: [String(oracleGameId)],
+    },
     {
       headers: {
         "x-api-key": apiKey,
@@ -69,24 +66,24 @@ const fetchOracleGameDetails = async ({ oracleGameId, apiKey }) => {
     },
   );
 
-  const responseRoot = res.data || {};
-  const data = Array.isArray(responseRoot?.data)
-    ? responseRoot.data[0] || {}
-    : responseRoot?.data || {};
+  const data = res?.data?.data?.[0] || {};
 
   return {
-    // ✅ 0 holeo "0" hisebe thakbe
     game_code: String(data?.game_code ?? "").trim(),
 
-    game_type:
-      String(data?.provider?.gameType ?? "")
-        .trim()
-        .toUpperCase() ||
-      String(data?.game_type ?? "")
-        .trim()
-        .toUpperCase(),
+    provider_code: String(
+      data?.provider?.provider_code ||
+        data?.provider?.providerCode ||
+        data?.provider_code ||
+        data?.providerCode ||
+        "",
+    )
+      .trim()
+      .toUpperCase(),
 
-    provider_game_type: String(data?.provider?.gameType ?? "")
+    game_type: String(
+      data?.game_type || data?.provider?.gameType || data?.gameType || "",
+    )
       .trim()
       .toUpperCase(),
 
@@ -94,14 +91,6 @@ const fetchOracleGameDetails = async ({ oracleGameId, apiKey }) => {
   };
 };
 
-/**
- * POST /api/play-game/playgame
- * body: { gameID }
- *
- * gameID can be:
- * - Game._id
- * - Game.gameId
- */
 router.post("/playgame", requireAuth, async (req, res) => {
   try {
     const { gameID } = req.body || {};
@@ -131,8 +120,8 @@ router.post("/playgame", requireAuth, async (req, res) => {
       });
     }
 
-    // ✅ balance 0 holeo game launch hobe
     let balance = Number(user.balance ?? 0);
+
     if (!Number.isFinite(balance) || balance < 0) {
       balance = 0;
     }
@@ -147,60 +136,59 @@ router.post("/playgame", requireAuth, async (req, res) => {
     }
 
     let gameDoc = null;
+    let sportsDoc = null;
+    let sourceType = "";
 
     if (isObjectIdLike(gameID)) {
       gameDoc = await Game.findById(gameID);
+
+      if (!gameDoc) {
+        sportsDoc = await Sports.findById(gameID);
+      }
     }
 
-    if (!gameDoc) {
+    if (!gameDoc && !sportsDoc) {
       gameDoc = await Game.findOne({ gameId: String(gameID).trim() });
+
+      if (!gameDoc) {
+        sportsDoc = await Sports.findOne({ gameId: String(gameID).trim() });
+      }
     }
 
-    if (!gameDoc) {
+    if (gameDoc) sourceType = "game";
+    if (sportsDoc) sourceType = "sports";
+
+    if (!gameDoc && !sportsDoc) {
       return res.status(404).json({
         success: false,
         message:
-          "Game not found in DB (gameID must be Game._id or Game.gameId)",
+          "Game not found in DB. gameID must be Game._id, Game.gameId, Sports._id or Sports.gameId",
       });
     }
 
-    if (gameDoc.status !== "active") {
-      return res.status(403).json({
-        success: false,
-        message: "This game is inactive",
-      });
+    let oracleGameId = "";
+
+    if (sourceType === "game") {
+      if (gameDoc.status !== "active") {
+        return res.status(403).json({
+          success: false,
+          message: "This game is inactive",
+        });
+      }
+
+      oracleGameId = String(gameDoc.gameId ?? "").trim();
     }
 
-    const providerDoc = await GameProvider.findById(
-      gameDoc.providerDbId,
-    ).select("providerId status");
+    if (sourceType === "sports") {
+      if (sportsDoc.isActive !== true) {
+        return res.status(403).json({
+          success: false,
+          message: "This sports game is inactive",
+        });
+      }
 
-    if (!providerDoc) {
-      return res.status(404).json({
-        success: false,
-        message: "Provider not found for this game",
-      });
+      oracleGameId = String(sportsDoc.gameId ?? "").trim();
     }
-
-    if (providerDoc.status !== "active") {
-      return res.status(403).json({
-        success: false,
-        message: "Provider is inactive",
-      });
-    }
-
-    const provider_code = String(providerDoc.providerId ?? "")
-      .trim()
-      .toUpperCase();
-
-    if (!provider_code) {
-      return res.status(400).json({
-        success: false,
-        message: "Provider code missing",
-      });
-    }
-
-    const oracleGameId = String(gameDoc.gameId ?? "").trim();
 
     if (!oracleGameId) {
       return res.status(400).json({
@@ -209,28 +197,39 @@ router.post("/playgame", requireAuth, async (req, res) => {
       });
     }
 
-    const oracleGameDetails = await fetchOracleGameDetails({
+    const oracleGameDetails = await fetchOracleGameDetailsByIds({
       oracleGameId,
       apiKey: ORACLE_API_KEY,
     });
 
     const game_code = String(oracleGameDetails.game_code ?? "").trim();
+
+    const provider_code = String(oracleGameDetails.provider_code ?? "")
+      .trim()
+      .toUpperCase();
+
     const game_type = String(oracleGameDetails.game_type ?? "")
       .trim()
       .toUpperCase();
 
-    // ✅ "0" allowed, only empty string block korbo
     if (game_code === "") {
       return res.status(400).json({
         success: false,
-        message: "game_code not found from Oracle API",
+        message: "game_code not found from Oracle by-ids API",
+      });
+    }
+
+    if (!provider_code) {
+      return res.status(400).json({
+        success: false,
+        message: "provider_code not found from Oracle by-ids API",
       });
     }
 
     if (!game_type) {
       return res.status(400).json({
         success: false,
-        message: "game_type not found from Oracle API",
+        message: "game_type not found from Oracle by-ids API",
       });
     }
 
@@ -239,9 +238,8 @@ router.post("/playgame", requireAuth, async (req, res) => {
       money: Math.max(0, Math.floor(Number(balance) || 0)),
       currency: String(user.currency ?? "BDT").trim() || "BDT",
 
-      // ✅ 0 -> "0"
+      // ✅ by-ids API theke asbe
       game_code: String(game_code ?? "").trim(),
-
       provider_code: String(provider_code ?? "").trim(),
       game_type: String(game_type ?? "").trim(),
     };
@@ -329,7 +327,9 @@ router.post("/playgame", requireAuth, async (req, res) => {
       success: true,
       gameUrl,
       used: {
-        game_db_id: String(gameDoc._id),
+        sourceType,
+        game_db_id: gameDoc ? String(gameDoc._id) : "",
+        sports_db_id: sportsDoc ? String(sportsDoc._id) : "",
         oracle_game_id: oracleGameId,
         game_code,
         provider_code,

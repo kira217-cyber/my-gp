@@ -355,10 +355,50 @@ const Games = () => {
 
   return (
     <>
+      <style>
+        {`
+        @keyframes providerGlassShine {
+          0% { transform: translateX(-260%) skewX(-22deg); opacity: 0; }
+          12% { opacity: 1; }
+          50% { opacity: 1; }
+          82% { transform: translateX(360%) skewX(-22deg); opacity: 1; }
+          100% { transform: translateX(360%) skewX(-22deg); opacity: 0; }
+        }
+
+        .provider-glass-shine::after {
+          content: "";
+          position: absolute;
+          top: -35%;
+          left: -85%;
+          width: 55%;
+          height: 170%;
+          pointer-events: none;
+          z-index: 2;
+          background: linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(255,255,255,0.08) 18%,
+            rgba(255,255,255,0.55) 38%,
+            rgba(255,255,255,0.95) 50%,
+            rgba(255,255,255,0.55) 62%,
+            rgba(255,255,255,0.08) 82%,
+            transparent 100%
+          );
+          filter: blur(0.4px);
+          mix-blend-mode: screen;
+          animation: providerGlassShine 3s cubic-bezier(0.25, 0.8, 0.25, 1) infinite;
+        }
+
+        .provider-glass-shine img {
+          position: relative;
+          z-index: 1;
+        }
+      `}
+      </style>
       <h2 className="py-2 text-white text-center font-bold text-2xl bg-[#2469A7]  mb-2">
         ---- {categoryTitle} ----
       </h2>
-      <div className="px-3 pb-4 mb-32">
+      <div className="px-2 pb-4 mb-48">
         {/* Provider Tabs */}
         {/* Provider Tabs */}
         <div className="relative border border-[#8cb9e8] bg-[#2f79c9] px-2 sm:px-10 py-2 shadow-sm rounded-md">
@@ -484,7 +524,6 @@ const Games = () => {
         </div>
 
         {/* Games */}
-        {/* Games */}
         {finalFilteredGames.length === 0 ? (
           <div className="rounded-2xl border border-[#2f79c9]/20 bg-white p-5 text-center shadow-sm mt-2">
             <p className="text-sm font-semibold text-[#1f5f98]">
@@ -493,8 +532,8 @@ const Games = () => {
           </div>
         ) : (
           <>
-            <div className="mt-2 overflow-hidden rounded-[6px] bg-white">
-              <div className="mt-1 grid grid-cols-4 gap-2 bg-white px-1 pb-2 pt-1">
+            <div className="mt-2 overflow-hidden rounded-[6px]">
+              <div className="mt-1 grid grid-cols-4 gap-2 bg-[#1D5389] pb-2 pt-1">
                 {paginatedGames.map((game) => (
                   <button
                     key={game._id}
@@ -502,12 +541,12 @@ const Games = () => {
                     onClick={() => handleGameClick(game)}
                     className="cursor-pointer overflow-hidden rounded-[6px] bg-white transition hover:-translate-y-[1px] hover:shadow-md"
                   >
-                    <div className="overflow-hidden rounded-t-[6px]">
+                    <div className="provider-glass-shine relative overflow-hidden rounded-t-[6px]">
                       {game.displayImage ? (
                         <img
                           src={game.displayImage}
                           alt={game.displayName}
-                          className="h-[92px] w-full object-cover"
+                          className="h-[100px] sm:h-[110px] w-full object-cover"
                         />
                       ) : (
                         <div className="flex h-[92px] w-full items-center justify-center bg-[#eef5fc]">
@@ -521,7 +560,7 @@ const Games = () => {
                         <img
                           src={game.providerIcon}
                           alt="provider"
-                          className="h-[20px] w-auto object-contain"
+                          className="h-[18px] w-auto object-contain"
                         />
                       ) : (
                         <span className="truncate text-[10px] font-bold text-white">

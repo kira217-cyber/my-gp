@@ -13,10 +13,10 @@ const Exposure = ({ balance: initialBalance = 0, exposure = 0 }) => {
   const [loading, setLoading] = useState(false);
 
   const t = {
-    balance: isBangla ? "ব্যালেন্স" : "Balance",
+    mainBalance: isBangla ? "মেইন ব্যালেন্স" : "Main Balance",
+    expoBalance: isBangla ? "এক্সপো ব্যালেন্স" : "Expo Balance",
     deposit: isBangla ? "ডিপোজিট" : "Deposit",
     withdraw: isBangla ? "উইথড্র" : "Withdraw",
-    exposure: isBangla ? "এক্সপোজার" : "EXPOSURE",
     currency: "TK",
   };
 
@@ -28,7 +28,6 @@ const Exposure = ({ balance: initialBalance = 0, exposure = 0 }) => {
     });
   };
 
-  // 🔥 fetch balance from API
   const fetchBalance = async () => {
     try {
       setLoading(true);
@@ -44,99 +43,98 @@ const Exposure = ({ balance: initialBalance = 0, exposure = 0 }) => {
     }
   };
 
-  // 🔥 initial load
   useEffect(() => {
     fetchBalance();
   }, []);
 
-  const handleReload = () => {
-    fetchBalance();
-  };
+  const amountText = hideBalance
+    ? "••••••"
+    : `${formatAmount(balance)} ${t.currency}`;
+
+  const expoText = hideBalance
+    ? "••••••"
+    : `${formatAmount(exposure)} ${t.currency}`;
 
   return (
-    <div className="w-full p-3">
-      <div className="rounded-[20px] border border-[#f07a2a] bg-[#f6f6f6] p-4 shadow-sm">
-        {/* Top */}
-        <div className="flex items-start justify-between gap-3">
-          {/* Left balance */}
-          <div className="flex items-center gap-3">
-            <div className="flex h-[58px] w-[58px] items-center justify-center rounded-full bg-[#f07a2a] text-white shadow-sm">
-              <span className="text-[34px] font-black leading-none">৳</span>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-[18px] font-extrabold leading-none text-[#ef7126]">
-                  {t.balance}
-                </h3>
-
-                <button
-                  type="button"
-                  onClick={() => setHideBalance((prev) => !prev)}
-                  className="cursor-pointer text-[#1f5f98]"
-                >
-                  {hideBalance ? (
-                    <EyeOff className="h-4 w-4" strokeWidth={2.4} />
-                  ) : (
-                    <Eye className="h-4 w-4" strokeWidth={2.4} />
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleReload}
-                  className={`cursor-pointer text-[#1f5f98] transition ${
-                    loading ? "animate-spin" : ""
-                  }`}
-                >
-                  <RotateCw className="h-4 w-4" strokeWidth={2.4} />
-                </button>
+    <div className="w-full px-2 py-2">
+      <div className="rounded-[16px] border border-white/70 bg-[#3789d7] px-6 py-8 shadow-md">
+        <div className="space-y-8">
+          {/* Main Balance Row */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-2">
+              <div className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full bg-[#062f76] text-white shadow-sm">
+                <span className="text-[24px] font-black leading-none">৳</span>
               </div>
 
-              <p className="mt-1 text-[20px] font-extrabold leading-none text-[#ef7126] sm:text-[22px]">
-                {hideBalance
-                  ? "••••••"
-                  : `${formatAmount(balance)} ${t.currency}`}
-              </p>
-            </div>
-          </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <h3 className="text-[17px] font-black leading-none text-white drop-shadow-sm">
+                    {t.mainBalance}
+                  </h3>
 
-          {/* Right buttons */}
-          <div className="flex w-[145px] flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setHideBalance((prev) => !prev)}
+                    className="cursor-pointer text-white/90"
+                  >
+                    {hideBalance ? (
+                      <EyeOff className="h-3.5 w-3.5" strokeWidth={2.5} />
+                    ) : (
+                      <Eye className="h-3.5 w-3.5" strokeWidth={2.5} />
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={fetchBalance}
+                    className={`cursor-pointer text-white/90 transition ${
+                      loading ? "animate-spin" : ""
+                    }`}
+                  >
+                    <RotateCw className="h-3.5 w-3.5" strokeWidth={2.5} />
+                  </button>
+                </div>
+
+                <p className="mt-1 text-[20px] font-black leading-none text-white drop-shadow-sm">
+                  {amountText}
+                </p>
+              </div>
+            </div>
+
             <button
               type="button"
-              onClick={() => navigate("/deposit")}
-              className="h-[42px] rounded-[10px] bg-[#2f79c9] text-[16px] font-extrabold text-white shadow-sm transition hover:bg-[#1f5f98] cursor-pointer"
+              onClick={() => navigate("/auto-personal-deposit")}
+              className="h-[42px] min-w-[100px] shrink-0 cursor-pointer rounded-[10px] border border-white/40 bg-[#072f77] px-6 text-[20px] font-black text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] transition hover:bg-[#052764]"
             >
               {t.deposit}
             </button>
+          </div>
+
+          {/* Exposure Balance Row */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-2">
+              <div className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full bg-[#062f76] text-white shadow-sm">
+                <span className="text-[24px] font-black leading-none">৳</span>
+              </div>
+
+              <div className="min-w-0">
+                <h3 className="text-[17px] font-black leading-none text-white drop-shadow-sm">
+                  {t.expoBalance}
+                </h3>
+
+                <p className="mt-1 text-[20px] font-black leading-none text-white drop-shadow-sm">
+                  {expoText}
+                </p>
+              </div>
+            </div>
 
             <button
               type="button"
               onClick={() => navigate("/withdraw")}
-              className="h-[42px] rounded-[10px] bg-[#2f79c9] text-[16px] font-extrabold text-white shadow-sm transition hover:bg-[#1f5f98] cursor-pointer"
+              className="h-[42px] min-w-[100px] shrink-0 cursor-pointer rounded-[10px] border border-white/40 bg-[#ff1010] px-3 text-[20px] font-black text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] transition hover:bg-[#dc0b0b]"
             >
               {t.withdraw}
             </button>
-          </div>
-        </div>
-
-        {/* Bottom exposure */}
-        <div className="mt-4 rounded-[10px] bg-[#eee8d7] px-3 py-2">
-          <div className="flex items-center justify-between gap-3">
-            <div className="rounded-[10px] bg-[#2f79c9] px-3 py-1.5 text-[22px] font-extrabold leading-none text-white">
-              {t.exposure}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <div className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#f07a2a] text-white shadow-sm">
-                <span className="text-[28px] font-black leading-none">৳</span>
-              </div>
-
-              <p className="text-[24px] font-extrabold leading-none text-[#ef7126]">
-                {formatAmount(exposure)}
-              </p>
-            </div>
           </div>
         </div>
       </div>

@@ -28,6 +28,8 @@ import Dispute from "../pages/Dispute/Dispute";
 import PL from "../pages/PL/PL";
 import Inbox from "../pages/Inbox/Inbox";
 import Reward from "../pages/Rewards/Rewards";
+import AutoPersonalDeposit from "../pages/AutoPersonalDeposit/AutoPersonalDeposit";
+import AutoPersonalDepositHistory from "../pages/AutoPersonalDepositHistory/AutoPersonalDepositHistory";
 
 export const routes = createBrowserRouter([
   {
@@ -76,6 +78,14 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute>
             <Deposit />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/auto-personal-deposit",
+        element: (
+          <PrivateRoute>
+            <AutoPersonalDeposit />
           </PrivateRoute>
         ),
       },
@@ -149,7 +159,7 @@ export const routes = createBrowserRouter([
           </PrivateRoute>
         ),
       },
-       {
+      {
         path: "inbox",
         element: (
           <PrivateRoute>
@@ -198,6 +208,10 @@ export const routes = createBrowserRouter([
           {
             path: "auto-deposit-history",
             element: <AutoDepositHistory />,
+          },
+          {
+            path: "auto-personal-deposit-history",
+            element: <AutoPersonalDepositHistory />,
           },
           {
             path: "bet-history",

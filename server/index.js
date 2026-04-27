@@ -32,7 +32,7 @@ import affSiteIdentityRoutes from "./routes/affSiteIdentityRoutes.js";
 import socialLinkRoutes from "./routes/socialLinkRoutes.js";
 import affSocialLinkRoutes from "./routes/affSocialLinkRoutes.js";
 import affNoticeRoutes from "./routes/affNoticeRoutes.js";
-
+import autoPersonalDepositRoutes from "./routes/autoPersonalDepositRoutes.js";
 
 
 dotenv.config();
@@ -77,6 +77,10 @@ app.use("/api/aff-site-identity", affSiteIdentityRoutes);
 app.use("/api/social-link", socialLinkRoutes);
 app.use("/api/aff-social-link", affSocialLinkRoutes);
 app.use("/api/aff-notice", affNoticeRoutes);
+app.use("/api/auto-personal-deposit", autoPersonalDepositRoutes);
+
+
+
 
 // route
 app.get("/", (req, res) => {

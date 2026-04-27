@@ -22,7 +22,11 @@ import {
   FaCogs,
   FaGift,
 } from "react-icons/fa";
-import { FaDiagramProject, FaCodePullRequest, FaTextSlash } from "react-icons/fa6";
+import {
+  FaDiagramProject,
+  FaCodePullRequest,
+  FaTextSlash,
+} from "react-icons/fa6";
 import {
   PiBridgeBold,
   PiHandWithdrawBold,
@@ -204,15 +208,27 @@ const Sidebar = () => {
         icon: <FaCodePullRequest />,
         text: "Deposit Request",
       },
+      // {
+      //   key: "auto-deposit-settings",
+      //   to: "/auto-deposit-settings",
+      //   icon: <FaCogs />,
+      //   text: "Auto Deposit Settings",
+      // },
+      // {
+      //   key: "auto-deposit-history",
+      //   to: "/auto-deposit-history",
+      //   icon: <FaHistory />,
+      //   text: "Auto Deposit History",
+      // },
       {
-        key: "auto-deposit-settings",
-        to: "/auto-deposit-settings",
+        key: "auto-personal-deposit-settings",
+        to: "/auto-personal-deposit-settings",
         icon: <FaCogs />,
         text: "Auto Deposit Settings",
       },
       {
-        key: "auto-deposit-history",
-        to: "/auto-deposit-history",
+        key: "auto-personal-deposit-history",
+        to: "/auto-personal-deposit-history",
         icon: <FaHistory />,
         text: "Auto Deposit History",
       },
@@ -270,7 +286,6 @@ const Sidebar = () => {
         icon: <FaImage />,
         text: "Add Social Link",
       },
-
     ],
     [],
   );
@@ -283,7 +298,7 @@ const Sidebar = () => {
         icon: <FaCog />,
         text: "Aff Site Identity Controller",
       },
-     {
+      {
         key: "add-aff-notice",
         to: "/add-aff-notice",
         icon: <FaTextSlash />,
@@ -295,7 +310,7 @@ const Sidebar = () => {
         icon: <FaPaintBrush />,
         text: "Affiliate Slider Controller",
       },
-       {
+      {
         key: "add-aff-social-link",
         to: "/add-aff-social-link",
         icon: <FaImage />,

@@ -48,7 +48,7 @@ const Slider = () => {
   }
 
   return (
-    <div className="w-full py-1 px-1">
+    <div className="w-full px-1 mt-2">
       <div className="max-w-7xl mx-auto">
         <div className="relative bg-black/20 overflow-hidden">
           <Swiper

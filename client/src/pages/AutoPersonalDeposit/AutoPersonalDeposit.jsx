@@ -7,6 +7,7 @@ import {
   FaGift,
   FaCheckCircle,
   FaInfoCircle,
+  FaMobileAlt,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
@@ -27,6 +28,7 @@ const Tag = ({ text = "+0" }) => (
 const money = (n) => {
   const num = Number(n || 0);
   if (Number.isNaN(num)) return "৳ 0.00";
+
   return `৳ ${num.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -45,9 +47,7 @@ const getBonusPreviewText = (bonus) => {
   const bonusType = String(bonus?.bonusType || "fixed").toLowerCase();
   const bonusValue = Number(bonus?.bonusValue || 0);
 
-  if (bonusType === "percent") {
-    return `+${bonusValue}%`;
-  }
+  if (bonusType === "percent") return `+${bonusValue}%`;
 
   return `+${bonusValue}`;
 };
@@ -88,6 +88,29 @@ const calcAutoBonus = (amountNum, selectedBonus) => {
   };
 };
 
+const MethodLogo = ({ item }) => {
+  const name =
+    item?.methodName?.en || item?.methodName?.bn || item?.methodId || "Pay";
+
+  if (item?.image) {
+    return (
+      <img
+        src={item.image}
+        alt={name}
+        className="h-9 w-full object-contain"
+      />
+    );
+  }
+
+  return (
+    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#eaf3fd]">
+      <span className="text-[11px] font-black uppercase text-[#2f79c9]">
+        {String(item?.methodId || "P").slice(0, 2)}
+      </span>
+    </div>
+  );
+};
+
 const DepositDetailsModal = ({ open, onClose, onConfirm, details, t }) => {
   if (!open) return null;
 
@@ -95,7 +118,7 @@ const DepositDetailsModal = ({ open, onClose, onConfirm, details, t }) => {
     <div className="flex items-center justify-between gap-3">
       <div className="text-[14px] font-semibold text-slate-500">{k}</div>
       <div
-        className={`text-right text-[14px] font-extrabold break-all ${valueClass}`}
+        className={`break-all text-right text-[14px] font-extrabold ${valueClass}`}
       >
         {v}
       </div>
@@ -124,6 +147,7 @@ const DepositDetailsModal = ({ open, onClose, onConfirm, details, t }) => {
         <div className="mt-4 h-px bg-slate-200" />
 
         <div className="mt-5 space-y-3">
+          <Row k={t.depositMethod} v={details.methodName} />
           <Row k={t.depositAmount} v={money(details.depositAmount)} />
           <Row k={t.selectedBonus} v={details.bonusTitle} />
           <Row
@@ -153,16 +177,18 @@ const DepositDetailsModal = ({ open, onClose, onConfirm, details, t }) => {
   );
 };
 
-const AutoDeposit = () => {
+const AutoPersonalDeposit = () => {
   const promoBoxRef = useRef(null);
   const { isBangla } = useLanguage();
 
   const t = {
-    autoDeposit: isBangla ? "অটো ডিপোজিট" : "Auto Deposit",
+    autoDeposit: isBangla ? "পার্সোনাল ডিপোজিট" : "Personal Deposit",
     autoDepositDisabled: isBangla
-      ? "এই মুহূর্তে অটো ডিপোজিট বন্ধ আছে। পরে আবার চেষ্টা করুন।"
-      : "Auto deposit is currently disabled. Please try again later.",
+      ? "এই মুহূর্তে পার্সোনাল ডিপোজিট বন্ধ আছে। পরে আবার চেষ্টা করুন।"
+      : "Personal deposit is currently disabled. Please try again later.",
     depositAmount: isBangla ? "ডিপোজিট পরিমাণ" : "Deposit Amount",
+    depositMethod: isBangla ? "পেমেন্ট মেথড" : "Payment Method",
+    selectMethod: isBangla ? "পেমেন্ট মেথড নির্বাচন করুন" : "Select Method",
     promotion: isBangla ? "প্রমোশন" : "Promotion",
     noBonusSelected: isBangla
       ? "কোনো বোনাস নির্বাচন করা হয়নি"
@@ -188,12 +214,6 @@ const AutoDeposit = () => {
     confirm: isBangla ? "নিশ্চিত করুন" : "Confirm",
     depositDetails: isBangla ? "ডিপোজিট বিস্তারিত" : "Deposit Details",
     invoiceNumber: isBangla ? "ইনভয়েস" : "Invoice",
-    pleaseLoginAgain: isBangla
-      ? "অনুগ্রহ করে আবার লগইন করুন"
-      : "User not found. Please login again.",
-    autoDepositDisabledToast: isBangla
-      ? "অটো ডিপোজিট বন্ধ আছে"
-      : "Auto deposit is disabled",
     paymentLinkFailed: isBangla
       ? "পেমেন্ট লিংক তৈরি করা যায়নি"
       : "Payment link create failed",
@@ -204,10 +224,17 @@ const AutoDeposit = () => {
     loginRequiredNote: isBangla
       ? "ডিপোজিট করতে লগইন থাকতে হবে"
       : "You must be logged in to deposit",
+    autoDepositDisabledToast: isBangla
+      ? "পার্সোনাল ডিপোজিট বন্ধ আছে"
+      : "Personal deposit is disabled",
     selectedBonusInfo: isBangla ? "বোনাস সক্রিয়" : "Bonus Active",
     selectedBonusInfoText: isBangla
       ? "এই ডিপোজিটে নির্বাচিত বোনাস, মোট ক্রেডিট এবং টার্গেট টার্নওভার উপরে দেখানো হয়েছে।"
       : "The selected bonus, total credited amount and target turnover are shown above for this deposit.",
+    methodRequired: isBangla
+      ? "অনুগ্রহ করে পেমেন্ট মেথড নির্বাচন করুন"
+      : "Please select a payment method",
+    supportNumber: isBangla ? "সাপোর্ট নম্বর" : "Support Number",
   };
 
   const user = useSelector(selectUser);
@@ -233,9 +260,12 @@ const AutoDeposit = () => {
   const [enabled, setEnabled] = useState(false);
   const [minAmount, setMinAmount] = useState(5);
   const [maxAmount, setMaxAmount] = useState(0);
+  const [methods, setMethods] = useState([]);
   const [bonuses, setBonuses] = useState([]);
+  const [supportNumber, setSupportNumber] = useState("");
 
   const [amount, setAmount] = useState("1000");
+  const [method, setMethod] = useState("");
   const [promo, setPromo] = useState("none");
   const [promoOpen, setPromoOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -247,17 +277,35 @@ const AutoDeposit = () => {
       try {
         setLoadingStatus(true);
 
-        const { data } = await api.get("/api/auto-deposit/status");
+        const { data } = await api.get("/api/auto-personal-deposit/status");
 
         setEnabled(!!data?.data?.enabled);
         setMinAmount(Number(data?.data?.minAmount || 5));
         setMaxAmount(Number(data?.data?.maxAmount || 0));
+        setSupportNumber(data?.data?.supportNumber || "");
+
+        const serverMethods = Array.isArray(data?.data?.methods)
+          ? data.data.methods
+          : [];
+
+        const formattedMethods = serverMethods.map((m) => ({
+          _id: String(m?._id || m?.methodId || ""),
+          methodId: String(m?.methodId || "").toLowerCase(),
+          methodName: {
+            bn: m?.methodName?.bn || "",
+            en: m?.methodName?.en || "",
+          },
+          image: m?.image || "",
+          order: Number(m?.order || 0),
+        }));
+
+        setMethods(formattedMethods);
 
         const serverBonuses = Array.isArray(data?.data?.bonuses)
           ? data.data.bonuses
           : [];
 
-        const formatted = serverBonuses.map((b) => ({
+        const formattedBonuses = serverBonuses.map((b) => ({
           _id: String(b?._id || ""),
           title: {
             bn: b?.title?.bn || "",
@@ -268,12 +316,18 @@ const AutoDeposit = () => {
           turnoverMultiplier: Number(b?.turnoverMultiplier || 1),
         }));
 
-        setBonuses(formatted);
+        setBonuses(formattedBonuses);
+
+        if (formattedMethods.length > 0) {
+          setMethod((prev) => prev || formattedMethods[0].methodId);
+        }
       } catch (e) {
         setEnabled(false);
         setMinAmount(5);
         setMaxAmount(0);
+        setMethods([]);
         setBonuses([]);
+        setSupportNumber("");
       } finally {
         setLoadingStatus(false);
       }
@@ -306,8 +360,19 @@ const AutoDeposit = () => {
   }, [promotions, promo]);
 
   useEffect(() => {
+    const methodExists = methods.some(
+      (m) => String(m.methodId) === String(method),
+    );
+
+    if (!methodExists) {
+      setMethod(methods[0]?.methodId || "");
+    }
+  }, [methods, method]);
+
+  useEffect(() => {
     const handleClickOutside = (event) => {
       if (!promoBoxRef.current) return;
+
       if (!promoBoxRef.current.contains(event.target)) {
         setPromoOpen(false);
       }
@@ -321,6 +386,20 @@ const AutoDeposit = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [promoOpen]);
+
+  const selectedMethod = useMemo(() => {
+    return methods.find((m) => String(m.methodId) === String(method)) || null;
+  }, [method, methods]);
+
+  const selectedMethodLabel = selectedMethod
+    ? isBangla
+      ? selectedMethod?.methodName?.bn ||
+        selectedMethod?.methodName?.en ||
+        selectedMethod?.methodId
+      : selectedMethod?.methodName?.en ||
+        selectedMethod?.methodName?.bn ||
+        selectedMethod?.methodId
+    : t.selectMethod;
 
   const selectedBonus = useMemo(() => {
     if (promo === "none") return null;
@@ -358,7 +437,10 @@ const AutoDeposit = () => {
       : selectedBonus?.title?.en || selectedBonus?.title?.bn
     : t.noBonus;
 
+  const hasValidAuthForDeposit = isAuthenticated && !!phone && !!userMongoId;
+
   const modalDetails = {
+    methodName: selectedMethodLabel,
     depositAmount: amountNum,
     bonusTitle: selectedBonusLabel,
     bonusAmount,
@@ -368,10 +450,12 @@ const AutoDeposit = () => {
     invoiceNumber: pendingInvoice,
   };
 
-  const hasValidAuthForDeposit = isAuthenticated && !!phone && !!userMongoId;
-
   const canDeposit =
-    enabled && hasValidAuthForDeposit && amountValid && !processing;
+    enabled &&
+    hasValidAuthForDeposit &&
+    !!selectedMethod &&
+    amountValid &&
+    !processing;
 
   const handleOpenDeposit = () => {
     if (!enabled) {
@@ -384,12 +468,17 @@ const AutoDeposit = () => {
       return;
     }
 
+    if (!selectedMethod) {
+      toast.error(t.methodRequired);
+      return;
+    }
+
     if (!amountValid) {
       toast.error(amountErrorText || t.enterAmount);
       return;
     }
 
-    const invoice = `AUTO-${userMongoId}-${Date.now()}`;
+    const invoice = `APD-${userMongoId}-${Date.now()}`;
     setPendingInvoice(invoice);
     setDetailsOpen(true);
   };
@@ -403,18 +492,25 @@ const AutoDeposit = () => {
         return;
       }
 
-      const invoiceNumber =
-        pendingInvoice || `AUTO-${userMongoId}-${Date.now()}`;
+      if (!selectedMethod?.methodId) {
+        toast.error(t.methodRequired);
+        return;
+      }
 
-      const { data } = await api.post("/api/auto-deposit/create", {
+      const invoiceNumber =
+        pendingInvoice || `APD-${userMongoId}-${Date.now()}`;
+
+      const { data } = await api.post("/api/auto-personal-deposit/create", {
         amount: amountNum,
         userIdentity: userMongoId,
         invoiceNumber,
+        method: selectedMethod.methodId,
         selectedBonusId: selectedBonus?._id || "",
         checkoutItems: {
           type: "deposit",
-          method: "auto",
-          gateway: "oraclepay",
+          method: "auto-personal",
+          gateway: "oraclepay-external",
+          paymentMethod: selectedMethod.methodId,
           userId: userId || "",
           phone: phone || "",
           username: userId || "",
@@ -472,6 +568,12 @@ const AutoDeposit = () => {
               <div className="mt-5 text-[14px] text-slate-500">
                 {t.autoDepositDisabled}
               </div>
+
+              {supportNumber ? (
+                <div className="mt-4 rounded-xl border border-[#2f79c9]/15 bg-[#2f79c9]/5 p-4 text-[13px] font-bold text-[#1f5f98]">
+                  {t.supportNumber}: {supportNumber}
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
@@ -490,8 +592,15 @@ const AutoDeposit = () => {
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#2f79c9] to-[#63a8ee] text-white shadow-lg">
                 <FaWallet className="text-xl" />
               </div>
-              <div className="text-[20px] font-extrabold text-slate-900">
-                {t.autoDeposit}
+              <div>
+                <div className="text-[20px] font-extrabold text-slate-900">
+                  {t.autoDeposit}
+                </div>
+                {supportNumber ? (
+                  <div className="mt-0.5 text-[12px] font-semibold text-slate-500">
+                    {t.supportNumber}: {supportNumber}
+                  </div>
+                ) : null}
               </div>
             </div>
 
@@ -510,6 +619,54 @@ const AutoDeposit = () => {
                 </div>
               </div>
             )}
+
+            <div className="mt-6">
+              <div className="flex items-center justify-between gap-3">
+                <label className="text-[14px] font-semibold text-slate-900">
+                  {t.depositMethod} <span className="text-red-500">*</span>
+                </label>
+                <FaMobileAlt className="text-[#2f79c9]" />
+              </div>
+
+              {methods.length === 0 ? (
+                <div className="mt-3 max-w-[520px] rounded-xl border border-red-200 bg-red-50 p-4 text-[13px] font-bold text-red-600">
+                  {isBangla
+                    ? "কোনো পেমেন্ট মেথড পাওয়া যায়নি।"
+                    : "No payment method found."}
+                </div>
+              ) : (
+                <div className="mt-3 grid max-w-[720px] grid-cols-2 gap-3 sm:grid-cols-4">
+                  {methods.map((item) => {
+                    const active = String(method) === String(item.methodId);
+                    const name = isBangla
+                      ? item?.methodName?.bn ||
+                        item?.methodName?.en ||
+                        item?.methodId
+                      : item?.methodName?.en ||
+                        item?.methodName?.bn ||
+                        item?.methodId;
+
+                    return (
+                      <button
+                        key={item.methodId}
+                        type="button"
+                        onClick={() => setMethod(item.methodId)}
+                        className={`flex min-h-[74px] cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border p-3 text-center transition ${
+                          active
+                            ? "border-[#2f79c9] bg-[#2f79c9]/10 text-[#2f79c9] shadow-sm"
+                            : "border-slate-200 bg-white text-slate-700 hover:border-[#2f79c9]/50"
+                        }`}
+                      >
+                        <MethodLogo item={item} />
+                        {/* <span className="text-[13px] font-black capitalize">
+                          {name}
+                        </span> */}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
             <div className="mt-6">
               <div className="flex items-center justify-between gap-3">
@@ -558,7 +715,7 @@ const AutoDeposit = () => {
                       key={a.v}
                       type="button"
                       onClick={() => setAmount(String(a.v))}
-                      className={`relative h-[44px] cursor-pointer rounded-xl font-extrabold text-[15px] transition ${
+                      className={`relative h-[44px] cursor-pointer rounded-xl text-[15px] font-extrabold transition ${
                         active
                           ? "bg-gradient-to-r from-[#2f79c9] to-[#63a8ee] text-white"
                           : "bg-slate-100 text-slate-700 hover:bg-slate-200"
@@ -609,7 +766,7 @@ const AutoDeposit = () => {
                 </button>
 
                 {promoOpen && (
-                  <div className="absolute z-[9999] mt-2 w-full rounded-xl border border-slate-200 bg-white shadow-2xl overflow-hidden">
+                  <div className="absolute z-[9999] mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
                     {promotions.map((p) => (
                       <button
                         key={p._id}
@@ -646,13 +803,20 @@ const AutoDeposit = () => {
             </div>
 
             <div className="mt-6">
-              <div className="rounded-xl border border-[#2f79c9]/20 bg-[#2f79c9]/5 p-4 max-w-[520px]">
+              <div className="max-w-[520px] rounded-xl border border-[#2f79c9]/20 bg-[#2f79c9]/5 p-4">
                 <div className="flex items-center gap-2 text-[14px] font-bold text-slate-900">
                   <FaGift className="text-[#2f79c9]" />
                   {t.bonusSummary}
                 </div>
 
                 <div className="mt-3 space-y-2 text-[13px]">
+                  <div className="flex items-center justify-between text-slate-500">
+                    <span>{t.depositMethod}</span>
+                    <span className="font-extrabold text-slate-900">
+                      {selectedMethodLabel}
+                    </span>
+                  </div>
+
                   <div className="flex items-center justify-between text-slate-500">
                     <span>{t.selectedBonus}</span>
                     <span className="font-extrabold text-slate-900">
@@ -705,7 +869,7 @@ const AutoDeposit = () => {
                 type="button"
                 onClick={handleOpenDeposit}
                 disabled={!canDeposit}
-                className={`h-[46px] w-full rounded-xl font-extrabold text-[14px] transition ${
+                className={`h-[46px] w-full rounded-xl text-[14px] font-extrabold transition ${
                   canDeposit
                     ? "cursor-pointer bg-gradient-to-r from-[#2f79c9] to-[#63a8ee] text-white shadow-lg hover:opacity-95"
                     : "cursor-not-allowed bg-slate-200 text-slate-400"
@@ -733,4 +897,4 @@ const AutoDeposit = () => {
   );
 };
 
-export default AutoDeposit;
+export default AutoPersonalDeposit;

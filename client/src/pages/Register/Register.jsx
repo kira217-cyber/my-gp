@@ -110,7 +110,7 @@ const Register = () => {
   const text = {
     login: isBangla ? "লগইন" : "Login",
     register: isBangla ? "নিবন্ধন" : "Register",
-    phonePlaceholder: isBangla ? "মোবাইল নম্বর" : "Mobile Number",
+    phonePlaceholder: isBangla ? " " : " ",
     passwordPlaceholder: isBangla ? "পিন কোড" : "Pin Code",
     confirmPasswordPlaceholder: isBangla
       ? "পিন কোড নিশ্চিত করুন"
@@ -169,7 +169,7 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-full bg-[#efefef] px-3 pt-22 pb-8">
+    <div className="min-h-full bg-white px-3 pt-22 pb-8">
       <div className="mx-auto w-full max-w-[360px]">
         <div className="flex justify-center">
           <img className="h-20" src={logo} alt="" />
@@ -194,11 +194,11 @@ const Register = () => {
 
         <div className="mt-5">
           <div className="relative" ref={dropdownRef}>
-            <div className="flex items-center gap-0">
+            <div className="flex items-center">
               <button
                 type="button"
                 onClick={() => setDropdownOpen((prev) => !prev)}
-                className="flex h-[32px] items-center gap-1 rounded-l-[3px] border border-[#c9c9c9] bg-white px-2 cursor-pointer"
+                className="flex h-[38px] items-center gap-1 rounded-l-[3px] border-b-2 border-[#c7d8eb] bg-white px-2 cursor-pointer"
               >
                 <img
                   src={selected.flag}
@@ -208,13 +208,21 @@ const Register = () => {
                 <ChevronDown className="h-3.5 w-3.5 text-[#1c5d98]" />
               </button>
 
-              <div className="flex h-[32px] items-center rounded-r-[3px] border border-l-0 border-[#c9c9c9] bg-white px-2 text-[15px] font-semibold text-[#1d5d99]">
+              <div className="flex h-[38px] items-center border-b-2 border-[#c7d8eb] bg-white px-2 text-[15px] font-semibold text-[#1d5d99]">
                 {selected.code}
               </div>
+
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                placeholder={text.phonePlaceholder}
+                className="h-[38px] min-w-0 flex-1 rounded-r-[3px] border-b-2 border-[#c7d8eb] bg-transparent px-2 text-[18px] text-[#1d5d99] outline-none placeholder:text-[#1d5d99] placeholder:font-semibold"
+              />
             </div>
 
             {dropdownOpen && (
-              <div className="absolute left-0 top-[38px] z-30 w-[260px] rounded-md border border-[#d8d8d8] bg-white shadow-lg">
+              <div className="absolute left-0 top-[44px] z-30 w-[260px] rounded-md border border-[#d8d8d8] bg-white shadow-lg">
                 <div className="border-b border-[#ececec] p-2">
                   <div className="flex items-center gap-2 rounded-md border border-[#d7dce2] px-2">
                     <Search className="h-4 w-4 text-[#6a7a8d]" />
@@ -259,14 +267,6 @@ const Register = () => {
               </div>
             )}
           </div>
-
-          <input
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
-            placeholder={text.phonePlaceholder}
-            className="mt-2 h-[38px] w-full border-b-2 border-[#c7d8eb] bg-transparent px-0 text-[18px] text-[#1d5d99] outline-none placeholder:text-[#1d5d99] placeholder:font-semibold"
-          />
         </div>
 
         <div className="mt-6">

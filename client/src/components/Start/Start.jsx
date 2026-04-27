@@ -22,7 +22,7 @@ const Start = () => {
   };
 
   return (
-    <div className="min-h-full bg-[#f5f5f5] flex flex-col items-center justify-between px-6 pt-8 pb-8">
+    <div className="bg-white flex flex-col items-center justify-between px-6 pt-8 pb-8 min-h-screen">
       <div className="w-full flex flex-col items-center">
         {/* Top Logo */}
         <img
@@ -35,11 +35,11 @@ const Start = () => {
         <img
           src="https://i.ibb.co.com/60zWNQmV/image-removebg-preview-4.png"
           alt="Start Illustration"
-          className="w-[400px] max-w-full object-contain mt-12"
+          className="w-[400px] max-w-full object-contain mt-8"
         />
 
         {/* Language Switch */}
-        <div className="mt-6 w-full max-w-[300px] rounded-full bg-[#e9e9e9] p-1 flex items-center shadow-sm">
+        <div className="mt-4 w-full max-w-[300px] rounded-full bg-[#e9e9e9] p-1 flex items-center shadow-sm">
           <button
             type="button"
             onClick={() => changeLanguage("English")}

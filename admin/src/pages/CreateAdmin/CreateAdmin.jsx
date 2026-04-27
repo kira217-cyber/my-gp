@@ -56,13 +56,22 @@ const CreateAdmin = () => {
         key: "deposit-request-details",
         label: "Deposit Request Details ( /deposit-request/:id )",
       },
+      // {
+      //   key: "auto-deposit-settings",
+      //   label: "Auto Deposit Settings ( /auto-deposit-settings )",
+      // },
+      // {
+      //   key: "auto-deposit-history",
+      //   label: "Auto Deposit History ( /auto-deposit-history )",
+      // },
+
       {
-        key: "auto-deposit-settings",
-        label: "Auto Deposit Settings ( /auto-deposit-settings )",
+        key: "auto-personal-deposit-history",
+        label: "Auto Deposit History ( /auto-personal-deposit-history )",
       },
       {
-        key: "auto-deposit-history",
-        label: "Auto Deposit History ( /auto-deposit-history )",
+        key: "auto-personal-deposit-settings",
+        label: "Auto Deposit Settings ( /auto-personal-deposit-settings )",
       },
 
       { key: "add-withdraw", label: "Add Withdraw ( /add-withdraw )" },

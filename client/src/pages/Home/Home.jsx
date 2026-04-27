@@ -5,7 +5,7 @@ import Categories from "../../components/Categories/Categories";
 
 const Home = () => {
   return (
-    <div className="mb-32">
+    <div className="mb-48">
       <Exposure />
       <Categories />
     </div>

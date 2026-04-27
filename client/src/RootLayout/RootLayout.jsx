@@ -5,7 +5,7 @@ import Sidebar from "../components/Sidebar/Sidebar";
 import BottomNavbar from "../components/BottomNavbar/BottomNavbar";
 import SiteIdentity from "../components/SiteIdentity/SiteIdentity";
 import SocialLink from "../components/SocialLink/SocialLink";
-
+import bg from "../assets/bg.webp";
 const RootLayout = () => {
   const [open, setOpen] = useState(false);
   const location = useLocation();
@@ -29,6 +29,7 @@ const RootLayout = () => {
     "/pl",
     "/inbox",
     "/rewards",
+    "/history/auto-personal-deposit-history",
   ];
   const hideNavbar = hideNavbarRoutes.includes(location.pathname);
 
@@ -38,18 +39,17 @@ const RootLayout = () => {
       <div
         className="hidden lg:block fixed inset-0 bg-cover bg-center z-0"
         style={{
-          backgroundImage:
-            "url('https://beit365.bet/assets/images/baaji365-desktop-bg.webp')",
+          backgroundImage: `url(${bg})`,
         }}
       />
 
       {/* Mobile App Container */}
-      <div className="relative z-10 w-full max-w-[480px] h-screen bg-white shadow-2xl overflow-hidden">
+      <div className="relative z-10 w-full max-w-[480px] h-screen bg-[#1D5389] shadow-2xl overflow-hidden">
         {/* Navbar */}
         {!hideNavbar && <Navber setOpen={setOpen} />}
         <Sidebar open={open} setOpen={setOpen} />
 
-        <div className="h-[calc(100%-64px)] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="h-[calc(100%-0px)] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <Outlet />
           <SiteIdentity />
           <SocialLink />

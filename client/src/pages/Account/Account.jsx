@@ -131,7 +131,7 @@ const Account = () => {
 
   const fundsItems = useMemo(
     () => [
-      { title: t.deposit, icon: Wallet, to: "/auto-deposit" },
+      { title: t.deposit, icon: Wallet, to: "/auto-personal-deposit" },
       { title: t.withdraw, icon: Landmark, to: "/withdraw" },
       { title: t.wallet, icon: Wallet, to: "/wallet" },
       { title: t.dispute, icon: AlertCircle, to: "/dispute" },
@@ -272,7 +272,7 @@ const Account = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#f5f8fc] text-[#1f2937]">
+    <div className="min-h-screen bg-[#1D5389] text-[#1f2937]">
       {/* Header */}
       <div className="relative overflow-hidden rounded-b-[28px] bg-[#2f79c9] px-4 pb-7 pt-5 text-white shadow-lg">
         <button
@@ -310,13 +310,13 @@ const Account = () => {
         <div className="rounded-[22px] border border-[#f07a2a] bg-white p-4 shadow-sm">
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              <div className="flex h-[58px] w-[58px] shrink-0 items-center justify-center rounded-full bg-[#f07a2a] text-white shadow-sm">
+              <div className="flex h-[58px] w-[58px] shrink-0 items-center justify-center rounded-full bg-[#2f79c9] text-white shadow-sm">
                 <span className="text-[34px] font-black leading-none">৳</span>
               </div>
 
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-[18px] font-extrabold leading-none text-[#f07a2a]">
+                  <h3 className="text-[18px] font-extrabold leading-none text-[#2f79c9]">
                     {t.balance}
                   </h3>
 
@@ -344,7 +344,7 @@ const Account = () => {
                   </button>
                 </div>
 
-                <p className="mt-1 truncate text-[21px] font-black leading-none text-[#f07a2a] sm:text-[24px]">
+                <p className="mt-1 truncate text-[21px] font-black leading-none text-[#2f79c9] sm:text-[24px]">
                   {loadingBalance
                     ? t.loading
                     : hideBalance
@@ -357,7 +357,7 @@ const Account = () => {
             <div className="flex w-[125px] shrink-0 flex-col gap-2">
               <button
                 type="button"
-                onClick={() => navigate("/deposit")}
+                onClick={() => navigate("/auto-personal-deposit")}
                 className="h-[40px] cursor-pointer rounded-[10px] bg-[#2f79c9] text-[15px] font-extrabold text-white shadow-sm transition hover:bg-[#1f5f98]"
               >
                 {t.deposit}
@@ -366,7 +366,7 @@ const Account = () => {
               <button
                 type="button"
                 onClick={() => navigate("/withdraw")}
-                className="h-[40px] cursor-pointer rounded-[10px] bg-[#2f79c9] text-[15px] font-extrabold text-white shadow-sm transition hover:bg-[#1f5f98]"
+                className="h-[40px] cursor-pointer rounded-[10px] bg-red-500 text-[15px] font-extrabold text-white shadow-sm transition hover:bg-red-700"
               >
                 {t.withdraw}
               </button>

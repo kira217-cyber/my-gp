@@ -43,6 +43,8 @@ import AffSiteIdentityController from "../pages/AffSiteIdentityController/AffSit
 import AddSocialLink from "../pages/AddSocialLink/AddSocialLink";
 import AddAffSocialLink from "../pages/AddAffSocialLink/AddAffSocialLink";
 import AddAffNotice from "../pages/AddAffNotice/AddAffNotice";
+import AutoPersonalDepositSettings from "../pages/AutoPersonalDepositSettings/AutoPersonalDepositSettings";
+import AutoPersonalDepositHistory from "../pages/AutoPersonalDepositHistory/AutoPersonalDepositHistory";
 
 export const routes = createBrowserRouter([
   {
@@ -190,19 +192,35 @@ export const routes = createBrowserRouter([
           </PrivateRoute>
         ),
       },
+      // {
+      //   path: "/auto-deposit-settings",
+      //   element: (
+      //     <PrivateRoute permKey="auto-deposit-settings">
+      //       <AutoDepositSettings />
+      //     </PrivateRoute>
+      //   ),
+      // },
+      // {
+      //   path: "/auto-deposit-history",
+      //   element: (
+      //     <PrivateRoute permKey="auto-deposit-history">
+      //       <AutoDepositHistory />
+      //     </PrivateRoute>
+      //   ),
+      // },
       {
-        path: "/auto-deposit-settings",
+        path: "/auto-personal-deposit-history",
         element: (
-          <PrivateRoute permKey="auto-deposit-settings">
-            <AutoDepositSettings />
+          <PrivateRoute permKey="auto-personal-deposit-history">
+            <AutoPersonalDepositHistory />
           </PrivateRoute>
         ),
       },
-      {
-        path: "/auto-deposit-history",
+       {
+        path: "/auto-personal-deposit-settings",
         element: (
-          <PrivateRoute permKey="auto-deposit-history">
-            <AutoDepositHistory />
+          <PrivateRoute permKey="auto-personal-deposit-settings">
+            <AutoPersonalDepositSettings />
           </PrivateRoute>
         ),
       },

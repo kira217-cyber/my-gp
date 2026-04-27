@@ -17,7 +17,7 @@ const navItems = [
   },
   {
     name: "Auto Deposit History",
-    path: "/history/auto-deposit-history",
+    path: "/history/auto-personal-deposit-history",
     icon: MdHdrAuto,
   },
   {

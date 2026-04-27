@@ -6,6 +6,8 @@ import HotsGame from "../HotsGame/HotsGame";
 import Slider from "../Slider/Slider";
 import { api } from "../../api/axios";
 import Providers from "../../pages/Providers/Providers";
+import hot from '../../assets/hot.gif'
+import sports from '../../assets/sports.png'
 
 const Categories = () => {
   const { isBangla } = useLanguage();
@@ -32,13 +34,13 @@ const Categories = () => {
       {
         key: "hot",
         label: isBangla ? "জনপ্রিয় গেম" : "Hot Games",
-        icon: "https://melbets.live/fire-flame.gif",
+        icon: hot,
         type: "default",
       },
       {
         key: "sports",
         label: isBangla ? "স্পোর্টস" : "Sports",
-        icon: "https://beit365.bet/assets/images/home-page-menu/Sports.svg",
+        icon: sports,
         type: "default",
       },
     ];

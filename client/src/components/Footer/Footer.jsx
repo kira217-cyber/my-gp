@@ -4,38 +4,11 @@ import { useLanguage } from "../../Context/LanguageProvider";
 const API_URL = "https://api.1onebet.com";
 
 const footerData = {
-  paymentTitle: {
-    bn: "পেমেন্ট পদ্ধতি",
-    en: "Payment Methods",
-  },
-  responsibleTitle: {
-    bn: "দায়িত্বশীল গেমিং",
-    en: "Responsible Gaming",
-  },
-  communityTitle: {
-    bn: "কমিউনিটি ওয়েবসাইট",
-    en: "Community Websites",
-  },
-  licenseTitle: {
-    bn: "গেমিং লাইসেন্স",
-    en: "Gaming License",
-  },
-  appDownloadTitle: {
-    bn: "অ্যাপ ডাউনলোড",
-    en: "APP Download",
-  },
-  providerTitle: {
-    bn: "গেম প্রোভাইডার",
-    en: "Game Providers",
-  },
-  bottomHeading: {
-    bn: "সেরা মানের প্ল্যাটফর্ম",
-    en: "The Best Quality Platform",
-  },
-  bottomCopyright: {
-    bn: "©২০২৫ অনলাইন গেমিং প্ল্যাটফর্ম",
-    en: "©2025 Online Gaming Platform.",
-  },
+  paymentTitle: { bn: "পেমেন্ট পদ্ধতি", en: "Payment Methods" },
+  licenseTitle: { bn: "গেমিং লাইসেন্স", en: "Gaming License" },
+  appDownloadTitle: { bn: "অ্যাপ ডাউনলোড", en: "APP Download" },
+  providerTitle: { bn: "গেম প্রোভাইডার", en: "Game Providers" },
+
   appDownloadLink: "https://oracleapkstore.com/",
 
   paymentImages: [
@@ -48,14 +21,6 @@ const footerData = {
     "/uploads/footer/1776613112528-387965004.png",
     "/uploads/footer/1776613112528-316034325.png",
   ],
-
-  responsibleImages: [
-    "/uploads/footer/1776613112528-190840007.png",
-    "/uploads/footer/1776613112528-597596165.png",
-    "/uploads/footer/1776613112528-697155249.png",
-  ],
-
-  communityImages: ["/uploads/footer/1776613112528-359721001.png"],
 
   licenseImage: "/uploads/footer/1776613112529-211116653.png",
   appDownloadImage: "/uploads/footer/1776613112529-274831077.png",
@@ -78,13 +43,16 @@ const footerData = {
     "https://images.185949949.com/TCG_PROD_IMAGES/RNG_LIST_VENDOR/RT-COLOR.png",
     "https://images.185949949.com/TCG_PROD_IMAGES/RNG_LIST_VENDOR/NE-COLOR.png",
     "https://images.185949949.com/TCG_PROD_IMAGES/RNG_LIST_VENDOR/AE-COLOR.png",
+    "https://i.ibb.co.com/20z9Snpd/www.png",
+    "https://i.ibb.co.com/N2Y2RPsN/Logo-Flat-1.webp",
+    "https://i.ibb.co.com/3yd27xzp/Ezugi-Review-Logo-300x118-jpg-removebg-preview.png"
   ],
 };
 
 const Footer = () => {
   const { isBangla } = useLanguage();
 
-  const getText = (obj) => (isBangla ? obj?.bn || "" : obj?.en || "");
+  const getText = (obj) => (isBangla ? obj?.bn : obj?.en);
 
   const fileUrl = (path) => {
     if (!path) return "";
@@ -94,15 +62,15 @@ const Footer = () => {
 
   return (
     <>
-      {" "}
-      <footer className="bg-white px-2 py-2 text-sm text-[#1f2937]">
+      {/* Main Footer */}
+      <footer className="bg-[#1D5389] px-2 py-3 text-sm text-white">
         {/* Payment */}
         <div>
-          <h2 className="mb-3 text-xl font-black text-[#2f79c9]">
+          <h2 className="mb-3 text-lg font-black text-white">
             {getText(footerData.paymentTitle)}
           </h2>
 
-          <div className="grid grid-cols-4 items-center gap-4 rounded-[8px] border border-[#2f79c9]/15 bg-[#2f79c9] p-4">
+          <div className="grid grid-cols-4 gap-3 rounded-[10px] border border-white/20 bg-[#2f79c9] p-3">
             {footerData.paymentImages.map((img) => (
               <img
                 key={img}
@@ -114,53 +82,16 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Responsible + Community */}
-        {/* <div className="mt-6 grid grid-cols-2 gap-5">
-        <div>
-          <h2 className="mb-3 text-lg font-black text-[#2f79c9]">
-            {getText(footerData.responsibleTitle)}
-          </h2>
-
-          <div className="flex flex-wrap gap-3 rounded-[18px] border border-[#2f79c9]/15 bg-[#f86e3c] p-4">
-            {footerData.responsibleImages.map((img) => (
-              <img
-                key={img}
-                src={fileUrl(img)}
-                className="h-8 object-contain"
-                alt=""
-              />
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <h2 className="mb-3 text-lg font-black text-[#2f79c9]">
-            {getText(footerData.communityTitle)}
-          </h2>
-
-          <div className="flex flex-wrap gap-3 rounded-[18px] border border-[#2f79c9]/15 bg-[#f86e3c] p-4">
-            {footerData.communityImages.map((img) => (
-              <img
-                key={img}
-                src={fileUrl(img)}
-                className="h-8 object-contain"
-                alt=""
-              />
-            ))}
-          </div>
-        </div>
-      </div> */}
-
-        <div className="my-6 border-t border-[#2f79c9]/15" />
+        <div className="my-5 border-t border-white/20" />
 
         {/* License + App */}
-        <div className="grid grid-cols-2 gap-5">
+        <div className="grid grid-cols-2 gap-4">
           <div>
-            <h2 className="mb-3 text-lg font-black text-[#2f79c9]">
+            <h2 className="mb-2 text-sm font-extrabold text-white">
               {getText(footerData.licenseTitle)}
             </h2>
 
-            <div className="flex justify-center rounded-[8px] border border-[#2f79c9]/15 bg-[#2f79c9] p-4">
+            <div className="flex justify-center rounded-[10px] border border-white/20 bg-[#2f79c9] p-3">
               <img
                 src={fileUrl(footerData.licenseImage)}
                 className="h-10 object-contain"
@@ -170,11 +101,11 @@ const Footer = () => {
           </div>
 
           <div>
-            <h2 className="mb-3 text-lg font-black text-[#2f79c9]">
+            <h2 className="mb-2 text-sm font-extrabold text-white">
               {getText(footerData.appDownloadTitle)}
             </h2>
 
-            <div className="flex justify-center rounded-[8px] border border-[#2f79c9]/15 bg-[#2f79c9] p-4">
+            <div className="flex justify-center rounded-[10px] border border-white/20 bg-[#2f79c9] p-3">
               <a
                 href={footerData.appDownloadLink}
                 target="_blank"
@@ -189,23 +120,23 @@ const Footer = () => {
             </div>
           </div>
         </div>
-
-        <div className="my-6 border-t border-[#2f79c9]/15" />
-
-        {/* <div className="my-6 border-t border-[#2f79c9]/15" /> */}
       </footer>
-      {/* Provider Images Instead Of Text */}
-      <div>
-        <h2 className="mb-3 ml-2 text-xl font-black text-[#2f79c9]">
+
+      {/* Providers */}
+      <div className="bg-[#1D5389] pb-3">
+        <h2 className="mb-2 px-2 text-lg font-black text-white">
           {getText(footerData.providerTitle)}
         </h2>
 
-        <div className="grid grid-cols-3 gap-1 p-2 border bg-[#2f79c9] border-[#2f79c9]/15  sm:grid-cols-4">
+        <div className="grid grid-cols-3 gap-1 px-2 sm:grid-cols-4">
           {footerData.providerImages.map((img) => (
-            <div key={img} className="flex h-14 items-center justify-center">
+            <div
+              key={img}
+              className="flex h-14 items-center justify-center rounded-md bg-[#2f79c9]"
+            >
               <img
                 src={fileUrl(img)}
-                className="max-h-14 object-contain"
+                className="max-h-12 object-contain"
                 alt=""
               />
             </div>

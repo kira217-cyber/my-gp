@@ -408,7 +408,7 @@ const Deposit = () => {
   return (
     <>
       <Tab />
-      <div className="mb-20 w-full bg-white text-slate-900">
+      <div className="mb-48 w-full bg-white text-slate-900">
         <div className="grid grid-cols-1 gap-4">
           <div className="border border-[#2f79c9]/20 bg-white p-5 shadow-lg sm:p-6">
             <div className="flex items-center gap-3">
