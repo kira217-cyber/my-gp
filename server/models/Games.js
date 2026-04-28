@@ -34,6 +34,42 @@ const GameSchema = new mongoose.Schema(
       index: true,
     },
 
+    isJili: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
+    isPg: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
+    isPoker: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
+    isCrash: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
+    isLiveCasino: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
+    isFish: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
     status: {
       type: String,
       enum: ["active", "inactive"],

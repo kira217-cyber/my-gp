@@ -11,6 +11,8 @@ const router = express.Router();
 
 const buildFileUrl = (req, filePath = "") => {
   if (!filePath) return "";
+  if (/^https?:\/\//i.test(filePath)) return filePath;
+
   const normalized = filePath.replace(/\\/g, "/");
   return `${req.protocol}://${req.get("host")}/${normalized}`;
 };
@@ -33,6 +35,26 @@ const deleteLocalFile = (filePath = "") => {
   if (fs.existsSync(fullPath)) {
     fs.unlinkSync(fullPath);
   }
+};
+
+const toBool = (value) => String(value) === "true";
+
+const applyBooleanFlags = (target, source = {}) => {
+  const booleanFields = [
+    "isHot",
+    "isJili",
+    "isPg",
+    "isPoker",
+    "isCrash",
+    "isLiveCasino",
+    "isFish",
+  ];
+
+  booleanFields.forEach((field) => {
+    if (typeof source[field] !== "undefined") {
+      target[field] = toBool(source[field]);
+    }
+  });
 };
 
 // CREATE GAME
@@ -91,14 +113,24 @@ router.post("/", async (req, res) => {
       });
     }
 
-    const game = await Game.create({
+    const payload = {
       categoryId,
       providerDbId,
       gameId: String(gameId).trim(),
       image: "",
       isHot: false,
+      isJili: false,
+      isPg: false,
+      isPoker: false,
+      isCrash: false,
+      isLiveCasino: false,
+      isFish: false,
       status: status === "inactive" ? "inactive" : "active",
-    });
+    };
+
+    applyBooleanFlags(payload, req.body);
+
+    const game = await Game.create(payload);
 
     const populated = await Game.findById(game._id)
       .populate("categoryId", "categoryName categoryTitle status")
@@ -124,7 +156,18 @@ router.post("/", async (req, res) => {
 // GET GAMES
 router.get("/", async (req, res) => {
   try {
-    const { providerDbId, categoryId, status, isHot } = req.query;
+    const {
+      providerDbId,
+      categoryId,
+      status,
+      isHot,
+      isJili,
+      isPg,
+      isPoker,
+      isCrash,
+      isLiveCasino,
+      isFish,
+    } = req.query;
 
     const filter = {};
 
@@ -154,9 +197,21 @@ router.get("/", async (req, res) => {
       filter.status = status;
     }
 
-    if (isHot === "true" || isHot === "false") {
-      filter.isHot = isHot === "true";
-    }
+    const booleanQueryFields = {
+      isHot,
+      isJili,
+      isPg,
+      isPoker,
+      isCrash,
+      isLiveCasino,
+      isFish,
+    };
+
+    Object.entries(booleanQueryFields).forEach(([key, value]) => {
+      if (value === "true" || value === "false") {
+        filter[key] = value === "true";
+      }
+    });
 
     const games = await Game.find(filter)
       .populate("categoryId", "categoryName categoryTitle status")
@@ -224,7 +279,7 @@ router.put("/:id", upload.single("image"), async (req, res) => {
       });
     }
 
-    const { status, removeOldImage, isHot } = req.body || {};
+    const { status, removeOldImage } = req.body || {};
     const oldImagePath = game.image;
 
     if (req.file) {
@@ -237,9 +292,7 @@ router.put("/:id", upload.single("image"), async (req, res) => {
       game.status = status;
     }
 
-    if (typeof isHot !== "undefined") {
-      game.isHot = String(isHot) === "true";
-    }
+    applyBooleanFlags(game, req.body);
 
     await game.save();
 

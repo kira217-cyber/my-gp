@@ -3,7 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import adminRoutes from "./routes/adminRoutes.js";
-import userRoutes from "./routes/userRoutes.js";
+import userRoutes, { protectUser } from "./routes/userRoutes.js";
 import affiliateRoutes from "./routes/affiliateRoutes.js";
 import depositMethodRoutes from "./routes/depositMethodRoutes.js";
 import depositFieldRoutes from "./routes/depositFieldRoutes.js";
@@ -33,7 +33,8 @@ import socialLinkRoutes from "./routes/socialLinkRoutes.js";
 import affSocialLinkRoutes from "./routes/affSocialLinkRoutes.js";
 import affNoticeRoutes from "./routes/affNoticeRoutes.js";
 import autoPersonalDepositRoutes from "./routes/autoPersonalDepositRoutes.js";
-
+import adminReferRedeemRoutes from "./routes/adminReferRedeemRoutes.js";
+import userReferRedeemRoutes from "./routes/userReferRedeemRoutes.js";
 
 dotenv.config();
 
@@ -78,6 +79,8 @@ app.use("/api/social-link", socialLinkRoutes);
 app.use("/api/aff-social-link", affSocialLinkRoutes);
 app.use("/api/aff-notice", affNoticeRoutes);
 app.use("/api/auto-personal-deposit", autoPersonalDepositRoutes);
+app.use("/api/admin/refer-redeem", adminReferRedeemRoutes);
+app.use("/api/user/refer-redeem", protectUser, userReferRedeemRoutes);
 
 
 

@@ -45,6 +45,7 @@ import AddAffSocialLink from "../pages/AddAffSocialLink/AddAffSocialLink";
 import AddAffNotice from "../pages/AddAffNotice/AddAffNotice";
 import AutoPersonalDepositSettings from "../pages/AutoPersonalDepositSettings/AutoPersonalDepositSettings";
 import AutoPersonalDepositHistory from "../pages/AutoPersonalDepositHistory/AutoPersonalDepositHistory";
+import UserReferRedeem from "../pages/UserReferRedeem/UserReferRedeem";
 
 export const routes = createBrowserRouter([
   {
@@ -109,6 +110,14 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute permKey="bulk-adjustment">
             <BulkAdjustment />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/user-refer-redeem",
+        element: (
+          <PrivateRoute permKey="user-refer-redeem">
+            <UserReferRedeem />
           </PrivateRoute>
         ),
       },
@@ -216,7 +225,7 @@ export const routes = createBrowserRouter([
           </PrivateRoute>
         ),
       },
-       {
+      {
         path: "/auto-personal-deposit-settings",
         element: (
           <PrivateRoute permKey="auto-personal-deposit-settings">

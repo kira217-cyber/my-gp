@@ -12,6 +12,9 @@ import {
   FaSearch,
   FaSyncAlt,
   FaFire,
+  FaFish,
+  FaDice,
+  FaBolt,
 } from "react-icons/fa";
 
 const ORACLE_BASE = "https://api.oraclegames.live/api";
@@ -21,6 +24,71 @@ const GAMES_PER_PAGE = 50;
 
 const inputClass =
   "w-full rounded-2xl border border-blue-300/20 bg-black/45 px-4 py-3 text-white placeholder-blue-100/40 outline-none transition-all focus:border-[#63a8ee] focus:ring-2 focus:ring-[#2f79c9]/30";
+
+const FLAG_FIELDS = [
+  {
+    key: "isHot",
+    label: "Hot",
+    icon: <FaFire />,
+    activeClass: "bg-red-500 text-white",
+    textClass: "text-red-200",
+    accent: "accent-red-500",
+  },
+  {
+    key: "isJili",
+    label: "JILI",
+    icon: <FaGamepad />,
+    activeClass: "bg-emerald-500 text-white",
+    textClass: "text-emerald-200",
+    accent: "accent-emerald-500",
+  },
+  {
+    key: "isPg",
+    label: "PG",
+    icon: <FaDice />,
+    activeClass: "bg-purple-500 text-white",
+    textClass: "text-purple-200",
+    accent: "accent-purple-500",
+  },
+  {
+    key: "isPoker",
+    label: "Poker",
+    icon: <FaDice />,
+    activeClass: "bg-yellow-500 text-black",
+    textClass: "text-yellow-200",
+    accent: "accent-yellow-500",
+  },
+  {
+    key: "isCrash",
+    label: "Crash",
+    icon: <FaBolt />,
+    activeClass: "bg-orange-500 text-white",
+    textClass: "text-orange-200",
+    accent: "accent-orange-500",
+  },
+  {
+    key: "isLiveCasino",
+    label: "Live Casino",
+    icon: <FaGamepad />,
+    activeClass: "bg-pink-500 text-white",
+    textClass: "text-pink-200",
+    accent: "accent-pink-500",
+  },
+  {
+    key: "isFish",
+    label: "Fish",
+    icon: <FaFish />,
+    activeClass: "bg-cyan-500 text-white",
+    textClass: "text-cyan-200",
+    accent: "accent-cyan-500",
+  },
+];
+
+const getDefaultFlags = () =>
+  FLAG_FIELDS.reduce((acc, item) => {
+    acc[item.key] = false;
+    return acc;
+  }, {});
 
 const AddGames = () => {
   const [categories, setCategories] = useState([]);
@@ -47,8 +115,9 @@ const AddGames = () => {
   const [editForm, setEditForm] = useState({
     image: null,
     status: "active",
-    isHot: false,
+    ...getDefaultFlags(),
   });
+
   const [editPreview, setEditPreview] = useState("");
   const [removeOldImage, setRemoveOldImage] = useState(false);
 
@@ -276,6 +345,10 @@ const AddGames = () => {
     paginatedGames.length > 0 &&
     selectedCountThisPage === paginatedGames.length;
 
+  const getActiveFlags = (gameDoc) => {
+    return FLAG_FIELDS.filter((item) => Boolean(gameDoc?.[item.key]));
+  };
+
   const handleSelectGame = async (game) => {
     const oracleGameId = game?._id;
 
@@ -409,10 +482,15 @@ const AddGames = () => {
   const openEditModal = (gameDoc) => {
     setEditingGame(gameDoc);
 
+    const flags = FLAG_FIELDS.reduce((acc, item) => {
+      acc[item.key] = Boolean(gameDoc?.[item.key]);
+      return acc;
+    }, {});
+
     setEditForm({
       image: null,
       status: gameDoc?.status || "active",
-      isHot: Boolean(gameDoc?.isHot),
+      ...flags,
     });
 
     setRemoveOldImage(false);
@@ -427,7 +505,7 @@ const AddGames = () => {
     setEditForm({
       image: null,
       status: "active",
-      isHot: false,
+      ...getDefaultFlags(),
     });
 
     setEditPreview("");
@@ -442,8 +520,11 @@ const AddGames = () => {
     try {
       const fd = new FormData();
       fd.append("status", editForm.status);
-      fd.append("isHot", String(Boolean(editForm.isHot)));
       fd.append("removeOldImage", removeOldImage ? "true" : "false");
+
+      FLAG_FIELDS.forEach((item) => {
+        fd.append(item.key, String(Boolean(editForm[item.key])));
+      });
 
       if (editForm.image instanceof File) {
         fd.append("image", editForm.image);
@@ -730,6 +811,8 @@ const AddGames = () => {
                   const selectedDoc = getSelectedGame(game._id);
                   const displayName = getGameDisplayName(game);
 
+                  const activeFlags = getActiveFlags(selectedDoc);
+
                   const imageToShow =
                     selected && selectedDoc?.imageUrl
                       ? selectedDoc.imageUrl
@@ -763,9 +846,16 @@ const AddGames = () => {
                           </div>
                         )}
 
-                        {selectedDoc?.isHot && (
-                          <div className="absolute left-3 top-3 rounded-full bg-red-500 px-3 py-1 text-xs font-black text-white">
-                            HOT
+                        {activeFlags.length > 0 && (
+                          <div className="absolute left-3 top-3 flex max-w-[70%] flex-wrap gap-1.5">
+                            {activeFlags.slice(0, 3).map((flag) => (
+                              <span
+                                key={flag.key}
+                                className={`rounded-full px-3 py-1 text-xs font-black shadow-lg ${flag.activeClass}`}
+                              >
+                                {flag.label}
+                              </span>
+                            ))}
                           </div>
                         )}
                       </div>
@@ -787,8 +877,22 @@ const AddGames = () => {
                           {selected && (
                             <>
                               <div>Status: {selectedDoc?.status}</div>
-                              <div>
-                                Hot: {selectedDoc?.isHot ? "Yes" : "No"}
+
+                              <div className="flex flex-wrap gap-1.5 pt-1">
+                                {activeFlags.length > 0 ? (
+                                  activeFlags.map((flag) => (
+                                    <span
+                                      key={flag.key}
+                                      className="rounded-full border border-blue-300/20 bg-black/40 px-2.5 py-1 text-[11px] font-bold text-blue-100"
+                                    >
+                                      {flag.label}
+                                    </span>
+                                  ))
+                                ) : (
+                                  <span className="text-blue-100/50">
+                                    No flags selected
+                                  </span>
+                                )}
                               </div>
                             </>
                           )}
@@ -844,7 +948,7 @@ const AddGames = () => {
 
       {editModalOpen && editingGame && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-blue-300/20 bg-gradient-to-br from-black via-[#2f79c9]/25 to-black p-6 shadow-2xl">
+          <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-blue-300/20 bg-gradient-to-br from-black via-[#2f79c9]/25 to-black p-6 shadow-2xl">
             <h3 className="mb-5 text-2xl font-black text-white">Edit Game</h3>
 
             <form onSubmit={handleUpdateGame} className="space-y-5">
@@ -922,24 +1026,39 @@ const AddGames = () => {
                 </select>
               </div>
 
-              <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-blue-300/20 bg-black/35 px-4 py-3">
-                <input
-                  type="checkbox"
-                  checked={Boolean(editForm.isHot)}
-                  onChange={(e) =>
-                    setEditForm((prev) => ({
-                      ...prev,
-                      isHot: e.target.checked,
-                    }))
-                  }
-                  className="h-5 w-5 cursor-pointer accent-red-500"
-                />
+              <div>
+                <label className="mb-3 block text-sm font-bold text-blue-100">
+                  Game Flags
+                </label>
 
-                <span className="inline-flex items-center gap-2 font-bold text-red-200">
-                  <FaFire />
-                  Mark as Hot
-                </span>
-              </label>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {FLAG_FIELDS.map((flag) => (
+                    <label
+                      key={flag.key}
+                      className="flex cursor-pointer items-center gap-3 rounded-2xl border border-blue-300/20 bg-black/35 px-4 py-3 transition-all hover:bg-white/10"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={Boolean(editForm[flag.key])}
+                        onChange={(e) =>
+                          setEditForm((prev) => ({
+                            ...prev,
+                            [flag.key]: e.target.checked,
+                          }))
+                        }
+                        className={`h-5 w-5 cursor-pointer ${flag.accent}`}
+                      />
+
+                      <span
+                        className={`inline-flex items-center gap-2 font-bold ${flag.textClass}`}
+                      >
+                        {flag.icon}
+                        Mark as {flag.label}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
 
               <div className="flex flex-wrap gap-3">
                 <button

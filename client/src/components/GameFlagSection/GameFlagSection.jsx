@@ -1,21 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router";
-import { Flame } from "lucide-react";
 import { FaImage } from "react-icons/fa";
 import { useLanguage } from "../../Context/LanguageProvider";
-import Sports from "../Sports/Sports";
 import { api } from "../../api/axios";
 import { toast } from "react-toastify";
-import HomeProviders from "../HomeProviders/HomeProviders";
-import Footer from "../Footer/Footer";
-import hot from "../../assets/hot.gif";
-import JiliGames from "../JiliGames/JiliGames";
-import PgGames from "../PgGames/PgGames";
-import PokerGames from "../PokerGames/PokerGames";
-import CrashGames from "../CrashGames/CrashGames";
-import LiveCasinoGames from "../LiveCasinoGames/LiveCasinoGames";
-import FishGames from "../FishGames/FishGames";
 
 const ORACLE_BY_IDS_API = "https://api.oraclegames.live/api/games/by-ids";
 const ORACLE_KEY = import.meta.env.VITE_ORACLE_TOKEN;
@@ -31,21 +20,29 @@ const getFileUrl = (filePath = "") => {
   return `${baseUrl}${cleanPath}`;
 };
 
-const HotsGame = () => {
+const GameFlagSection = ({
+  flag = "isHot",
+  titleBn = "জনপ্রিয় খেলা",
+  titleEn = "Popular Games",
+  emptyBn = "কোনো গেম পাওয়া যায়নি।",
+  emptyEn = "No games found.",
+  icon,
+  initialVisible = 12,
+}) => {
   const navigate = useNavigate();
   const { isBangla } = useLanguage();
 
   const [dbGames, setDbGames] = useState([]);
   const [oracleGameMap, setOracleGameMap] = useState({});
   const [loading, setLoading] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(12);
+  const [visibleCount, setVisibleCount] = useState(initialVisible);
 
   useEffect(() => {
-    const fetchHotGames = async () => {
+    const fetchGames = async () => {
       try {
         setLoading(true);
 
-        const res = await api.get("/api/games?isHot=true&status=active");
+        const res = await api.get(`/api/games?${flag}=true&status=active`);
         const gamesFromDb = res?.data?.data || [];
         setDbGames(gamesFromDb);
 
@@ -64,6 +61,7 @@ const HotsGame = () => {
         }
 
         const chunks = [];
+
         for (let i = 0; i < uniqueIds.length; i += ORACLE_CHUNK_SIZE) {
           chunks.push(uniqueIds.slice(i, i + ORACLE_CHUNK_SIZE));
         }
@@ -86,6 +84,7 @@ const HotsGame = () => {
 
         for (const response of results) {
           const list = response?.data?.data || [];
+
           for (const game of list) {
             fullMap[String(game._id)] = game;
           }
@@ -93,7 +92,7 @@ const HotsGame = () => {
 
         setOracleGameMap(fullMap);
       } catch (error) {
-        console.error("Failed to fetch hot games:", error);
+        console.error(`Failed to fetch ${flag} games:`, error);
         setDbGames([]);
         setOracleGameMap({});
       } finally {
@@ -101,8 +100,8 @@ const HotsGame = () => {
       }
     };
 
-    fetchHotGames();
-  }, []);
+    fetchGames();
+  }, [flag]);
 
   const games = useMemo(() => {
     return dbGames.map((dbGame) => {
@@ -138,15 +137,12 @@ const HotsGame = () => {
   const hasMoreGames = games.length > visibleCount;
 
   const text = {
-    title: isBangla ? "জনপ্রিয় গরম খেলা" : "Popular Hot Games",
+    title: isBangla ? titleBn : titleEn,
     total: isBangla
       ? `মোট-${String(games.length).padStart(2, "0")}`
       : `Total-${String(games.length).padStart(2, "0")}`,
     seeAll: isBangla ? "আরও দেখান" : "Show More",
-  };
-
-  const handleShowMore = () => {
-    setVisibleCount((prev) => prev + 12);
+    empty: isBangla ? emptyBn : emptyEn,
   };
 
   const handleGameClick = (game) => {
@@ -164,49 +160,47 @@ const HotsGame = () => {
     <>
       <style>
         {`
-        @keyframes providerGlassShine {
-          0% { transform: translateX(-260%) skewX(-22deg); opacity: 0; }
-          12% { opacity: 1; }
-          50% { opacity: 1; }
-          82% { transform: translateX(360%) skewX(-22deg); opacity: 1; }
-          100% { transform: translateX(360%) skewX(-22deg); opacity: 0; }
-        }
+          @keyframes providerGlassShine {
+            0% { transform: translateX(-260%) skewX(-22deg); opacity: 0; }
+            12% { opacity: 1; }
+            50% { opacity: 1; }
+            82% { transform: translateX(360%) skewX(-22deg); opacity: 1; }
+            100% { transform: translateX(360%) skewX(-22deg); opacity: 0; }
+          }
 
-        .provider-glass-shine::after {
-          content: "";
-          position: absolute;
-          top: -35%;
-          left: -85%;
-          width: 55%;
-          height: 170%;
-          pointer-events: none;
-          z-index: 2;
-          background: linear-gradient(
-            90deg,
-            transparent 0%,
-            rgba(255,255,255,0.08) 18%,
-            rgba(255,255,255,0.55) 38%,
-            rgba(255,255,255,0.95) 50%,
-            rgba(255,255,255,0.55) 62%,
-            rgba(255,255,255,0.08) 82%,
-            transparent 100%
-          );
-          filter: blur(0.4px);
-          mix-blend-mode: screen;
-          animation: providerGlassShine 3s cubic-bezier(0.25, 0.8, 0.25, 1) infinite;
-        }
+          .provider-glass-shine::after {
+            content: "";
+            position: absolute;
+            top: -35%;
+            left: -85%;
+            width: 55%;
+            height: 170%;
+            pointer-events: none;
+            z-index: 2;
+            background: linear-gradient(
+              90deg,
+              transparent 0%,
+              rgba(255,255,255,0.08) 18%,
+              rgba(255,255,255,0.55) 38%,
+              rgba(255,255,255,0.95) 50%,
+              rgba(255,255,255,0.55) 62%,
+              rgba(255,255,255,0.08) 82%,
+              transparent 100%
+            );
+            filter: blur(0.4px);
+            mix-blend-mode: screen;
+            animation: providerGlassShine 3s cubic-bezier(0.25, 0.8, 0.25, 1) infinite;
+          }
 
-        .provider-glass-shine img {
-          position: relative;
-          z-index: 1;
-        }
-      `}
+          .provider-glass-shine img {
+            position: relative;
+            z-index: 1;
+          }
+        `}
       </style>
-      <Sports />
 
-      <div className="w-full mt-1">
-        <div className="overflow-hidden  bg-[#1f5f98]">
-          {/* Header */}
+      <div className="mt-1 w-full">
+        <div className="overflow-hidden bg-[#1f5f98]">
           <div className="flex items-stretch bg-[#1f5f98]">
             <div className="relative flex h-[44px] flex-1 items-center bg-gradient-to-r from-[#2f79c9] to-[#5aa2e6] pl-3 pr-6">
               <div
@@ -217,11 +211,13 @@ const HotsGame = () => {
               />
 
               <div className="mr-2 flex h-[28px] w-[28px] items-center justify-center text-white">
-                <img
-                  src={hot}
-                  alt="providers"
-                  className="h-[30px] w-[30px] object-contain brightness-0 invert"
-                />
+                {icon ? (
+                  <img
+                    src={icon}
+                    alt="section-icon"
+                    className="h-[30px] w-[30px] object-contain brightness-0 invert"
+                  />
+                ) : null}
               </div>
 
               <h2 className="truncate text-[20px] font-extrabold text-white drop-shadow">
@@ -243,8 +239,7 @@ const HotsGame = () => {
             </div>
           </div>
 
-          {/* Games */}
-          <div className="grid grid-cols-4 gap-2 bg-[#1D5389] px-2 sm:px-4 pb-2 pt-2  py-2">
+          <div className="grid grid-cols-4 gap-2 bg-[#1D5389] px-2 py-2 pb-2 pt-2 sm:px-4">
             {loading
               ? Array.from({ length: 12 }).map((_, index) => (
                   <div
@@ -264,7 +259,7 @@ const HotsGame = () => {
                         <img
                           src={game.image}
                           alt={game.name}
-                          className="h-[100px] sm:h-[110px] w-full object-cover"
+                          className="h-[100px] w-full object-cover sm:h-[110px]"
                         />
                       ) : (
                         <div className="flex h-[100px] w-full items-center justify-center bg-[#eef5fc]">
@@ -292,7 +287,7 @@ const HotsGame = () => {
 
           {!loading && games.length === 0 && (
             <div className="bg-[#1f5f98] px-3 py-6 text-center text-sm font-semibold text-white">
-              {isBangla ? "কোনো হট গেম পাওয়া যায়নি।" : "No hot games found."}
+              {text.empty}
             </div>
           )}
 
@@ -300,7 +295,7 @@ const HotsGame = () => {
             <div className="flex justify-center bg-[#1D5389] px-2 pb-3 pt-1">
               <button
                 type="button"
-                onClick={handleShowMore}
+                onClick={() => setVisibleCount((prev) => prev + 12)}
                 className="w-28 cursor-pointer rounded-full bg-[#2f79c9] py-1.5 text-sm font-bold text-white shadow transition hover:bg-[#184d7d]"
               >
                 {text.seeAll}
@@ -309,17 +304,8 @@ const HotsGame = () => {
           )}
         </div>
       </div>
-
-      <HomeProviders />
-      <JiliGames />
-      <PgGames />
-      <PokerGames />
-      <CrashGames />
-      <LiveCasinoGames />
-      <FishGames />
-      <Footer />
     </>
   );
 };
 
-export default HotsGame;
+export default GameFlagSection;

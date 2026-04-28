@@ -104,9 +104,7 @@ router.post("/register", async (req, res) => {
 
     const countryCode = normalizeCountryCode(rawCountryCode);
     const phone = normalizePhone(rawPhone);
-    const refCode = String(rawRefCode || "")
-      .trim()
-      .toUpperCase();
+    const refCode = String(rawRefCode || "").trim().toUpperCase();
 
     if (!countryCode || !phone || !password || !confirmPassword) {
       return res.status(400).json({
@@ -145,6 +143,7 @@ router.post("/register", async (req, res) => {
     }
 
     const exists = await User.findOne({ countryCode, phone }).select("_id");
+
     if (exists) {
       return res.status(409).json({
         success: false,
@@ -157,7 +156,6 @@ router.post("/register", async (req, res) => {
     if (refCode) {
       referredByUser = await User.findOne({
         referralCode: refCode,
-        role: "aff-user",
       }).select(
         "_id referralCode role referCommission createdUsers referralCount commissionBalance referCommissionBalance",
       );

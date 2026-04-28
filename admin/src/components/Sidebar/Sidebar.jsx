@@ -21,6 +21,7 @@ import {
   FaHistory,
   FaCogs,
   FaGift,
+  FaCoins,
 } from "react-icons/fa";
 import {
   FaDiagramProject,
@@ -178,6 +179,12 @@ const Sidebar = () => {
         icon: <PiBridgeBold />,
         text: "Bulk Adjustment",
       },
+      {
+  key: "user-refer-redeem",
+  to: "/user-refer-redeem",
+  icon: <FaCoins />,
+  text: "User Refer & Redeem",
+},
     ],
     [],
   );
