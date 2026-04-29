@@ -160,7 +160,7 @@ const HomeProviders = () => {
         </div>
 
         {/* Provider Cards */}
-        <div className="grid grid-cols-4 gap-2 bg-[#1D5389] px-2 py-2 pb-2 pt-2 sm:px-4">
+        <div className="grid grid-cols-4 gap-2 bg-gradient-to-br from-black via-[#2f79c9]/70 to-black px-2 py-2 pb-2 pt-2 sm:px-4">
           {loading
             ? Array.from({ length: 12 }).map((_, index) => (
                 <div

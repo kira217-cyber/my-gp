@@ -2,7 +2,6 @@ import express from "express";
 import axios from "axios";
 import jwt from "jsonwebtoken";
 import qs from "qs";
-
 import User from "../models/User.js";
 import Game from "../models/Games.js";
 import Sports from "../models/Sports.js";
@@ -260,23 +259,23 @@ router.post("/playgame", requireAuth, async (req, res) => {
      */
 
     // live
-    const LAUNCH_URL = "https://crazybet99.com/getgameurl/v2";
+    // const LAUNCH_URL = "https://crazybet99.com/getgameurl/v2";
 
-    const response = await axios.post(LAUNCH_URL, qs.stringify(payload), {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+    // const response = await axios.post(LAUNCH_URL, qs.stringify(payload), {
+    //   headers: {
+    //     "Content-Type": "application/x-www-form-urlencoded",
 
-        // live korar somoi original dstgame key boshabe
-        "x-dstgame-key": "402060036e22229f5c0a1bfd33a1ef00",
+    //     // live korar somoi original dstgame key boshabe
+    //     "x-dstgame-key": "402060036e22229f5c0a1bfd33a1ef00",
 
-        // test korte chaile direct key boshao
-        // "x-dstgame-key": "412afc3901061cd4389224fd1643a709",
-      },
-      timeout: 30000,
-    });
+    //     // test korte chaile direct key boshao
+    //     // "x-dstgame-key": "412afc3901061cd4389224fd1643a709",
+    //   },
+    //   timeout: 30000,
+    // });
 
     // live er jonno
-    const responseData = response.data;
+    // const responseData = response.data;
 
     /**
      * =========================
@@ -287,18 +286,18 @@ router.post("/playgame", requireAuth, async (req, res) => {
      */
 
     // test er jonno
-    // const LAUNCH_URL = "https://api.oraclegames.live/api/admin/games/launch";
+    const LAUNCH_URL = "https://api.oraclegames.live/api/admin/games/launch";
 
     // test er jonno JSON launch:
-    // const response = await fetch(LAUNCH_URL, {
-    //   method: "POST",
-    //   headers: {
-    //     "x-dstgame-key": process.env.DSTGAME_KEY || ORACLE_API_KEY,
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify(payload),
-    // });
-    // const responseData = await response.json();
+    const response = await fetch(LAUNCH_URL, {
+      method: "POST",
+      headers: {
+        "x-dstgame-key": process.env.DSTGAME_KEY || ORACLE_API_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+    const responseData = await response.json();
 
     let gameUrl = "";
 

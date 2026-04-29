@@ -6,8 +6,8 @@ const PgGames = () => {
   return (
     <GameFlagSection
       flag="isPg"
-      titleBn="PG গেম"
-      titleEn="PG Games"
+      titleBn="লবি গেম"
+      titleEn="Lobby Games"
       emptyBn="কোনো PG গেম পাওয়া যায়নি।"
       emptyEn="No PG games found."
       icon={hot}

@@ -35,6 +35,8 @@ import affNoticeRoutes from "./routes/affNoticeRoutes.js";
 import autoPersonalDepositRoutes from "./routes/autoPersonalDepositRoutes.js";
 import adminReferRedeemRoutes from "./routes/adminReferRedeemRoutes.js";
 import userReferRedeemRoutes from "./routes/userReferRedeemRoutes.js";
+import superAffiliateRoutes from "./routes/superAffiliateRoutes.js";
+
 
 dotenv.config();
 
@@ -81,9 +83,7 @@ app.use("/api/aff-notice", affNoticeRoutes);
 app.use("/api/auto-personal-deposit", autoPersonalDepositRoutes);
 app.use("/api/admin/refer-redeem", adminReferRedeemRoutes);
 app.use("/api/user/refer-redeem", protectUser, userReferRedeemRoutes);
-
-
-
+app.use("/api/super-affiliate", superAffiliateRoutes);
 
 // route
 app.get("/", (req, res) => {

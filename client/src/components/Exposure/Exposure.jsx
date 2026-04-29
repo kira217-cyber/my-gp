@@ -4,24 +4,29 @@ import { useNavigate } from "react-router";
 import { useLanguage } from "../../Context/LanguageProvider";
 import { api } from "../../api/axios";
 
-const Exposure = ({ balance: initialBalance = 0, exposure = 0 }) => {
+const PRIMARY = "#2f79c9";
+const SECONDARY = "#f07a2a";
+
+const Exposure = ({ balance: initialBalance = 0 }) => {
   const navigate = useNavigate();
   const { isBangla } = useLanguage();
 
   const [hideBalance, setHideBalance] = useState(false);
   const [balance, setBalance] = useState(initialBalance);
+  const [exposure, setExposure] = useState(0);
   const [loading, setLoading] = useState(false);
 
   const t = {
     mainBalance: isBangla ? "মেইন ব্যালেন্স" : "Main Balance",
     expoBalance: isBangla ? "এক্সপো ব্যালেন্স" : "Expo Balance",
-    deposit: isBangla ? "ডিপোজিট" : "Deposit",
-    withdraw: isBangla ? "উইথড্র" : "Withdraw",
+    deposit: isBangla ? "জমা" : "Deposit",
+    withdraw: isBangla ? "উত্তলন" : "Withdraw",
     currency: "TK",
   };
 
   const formatAmount = (value) => {
     const num = Number(value || 0);
+
     return num.toLocaleString("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -31,13 +36,18 @@ const Exposure = ({ balance: initialBalance = 0, exposure = 0 }) => {
   const fetchBalance = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/api/users/me/balance");
 
-      if (res?.data?.success) {
-        setBalance(res.data.data.balance || 0);
+      const balanceRes = await api.get("/api/users/me/balance");
+      if (balanceRes?.data?.success) {
+        setBalance(Number(balanceRes.data?.data?.balance || 0));
+      }
+
+      const exposureRes = await api.get("/api/history/me/exposure");
+      if (exposureRes?.data?.success) {
+        setExposure(Number(exposureRes.data?.data?.exposure || 0));
       }
     } catch (err) {
-      console.error("Balance fetch error:", err);
+      console.error("Balance/exposure fetch error:", err);
     } finally {
       setLoading(false);
     }
@@ -57,12 +67,19 @@ const Exposure = ({ balance: initialBalance = 0, exposure = 0 }) => {
 
   return (
     <div className="w-full px-2 py-2">
-      <div className="rounded-[16px] border border-white/70 bg-[#3789d7] px-6 py-8 shadow-md">
+      <div
+        className="rounded-[16px] border border-white/70 px-6 py-8 shadow-md bg-gradient-to-br from-black via-[#2f79c9]/70 to-black"
+        // style={{
+        //   background: `linear-gradient(135deg, ${PRIMARY} 0%, ${PRIMARY} 48%, ${SECONDARY} 100%)`,
+        // }}
+      >
         <div className="space-y-8">
-          {/* Main Balance Row */}
           <div className="flex items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-2">
-              <div className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full bg-[#062f76] text-white shadow-sm">
+              <div
+                className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full text-white shadow-sm"
+                style={{ backgroundColor: PRIMARY }}
+              >
                 <span className="text-[24px] font-black leading-none">৳</span>
               </div>
 
@@ -104,16 +121,19 @@ const Exposure = ({ balance: initialBalance = 0, exposure = 0 }) => {
             <button
               type="button"
               onClick={() => navigate("/auto-personal-deposit")}
-              className="h-[42px] min-w-[100px] shrink-0 cursor-pointer rounded-[10px] border border-white/40 bg-[#072f77] px-6 text-[20px] font-black text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] transition hover:bg-[#052764]"
+              className="h-[42px] min-w-[100px] shrink-0 cursor-pointer rounded-[10px] border border-white/40 px-6 text-[20px] font-black text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] transition hover:brightness-95"
+              style={{ backgroundColor: PRIMARY }}
             >
               {t.deposit}
             </button>
           </div>
 
-          {/* Exposure Balance Row */}
           <div className="flex items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-2">
-              <div className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full bg-[#062f76] text-white shadow-sm">
+              <div
+                className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full text-white shadow-sm"
+                style={{ backgroundColor: PRIMARY }}
+              >
                 <span className="text-[24px] font-black leading-none">৳</span>
               </div>
 
@@ -131,7 +151,8 @@ const Exposure = ({ balance: initialBalance = 0, exposure = 0 }) => {
             <button
               type="button"
               onClick={() => navigate("/withdraw")}
-              className="h-[42px] min-w-[100px] shrink-0 cursor-pointer rounded-[10px] border border-white/40 bg-[#ff1010] px-3 text-[20px] font-black text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] transition hover:bg-[#dc0b0b]"
+              className="h-[42px] min-w-[100px] shrink-0 cursor-pointer rounded-[10px] border border-white/40 px-3 text-[20px] font-black text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] transition hover:brightness-95"
+              style={{ backgroundColor: SECONDARY }}
             >
               {t.withdraw}
             </button>

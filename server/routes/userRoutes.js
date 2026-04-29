@@ -1,7 +1,9 @@
 import express from "express";
+import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import GameHistory from "../models/GameHistory.js";
 import { protectAdmin } from "./adminRoutes.js";
 
 const router = express.Router();
@@ -353,6 +355,71 @@ router.get("/me/balance", protectUser, async (req, res) => {
     });
   }
 });
+
+
+/* =========================
+   GET /api/users/me/exposure
+========================= */
+router.get("/me/exposure", protectUser, async (req, res) => {
+  try {
+    const userMongoId = req.user?.id || req.user?._id;
+
+    if (!userMongoId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    const objectUserId = new mongoose.Types.ObjectId(String(userMongoId));
+    const userIdString = req.user?.userId || "";
+
+    const result = await GameHistory.aggregate([
+      {
+        $match: {
+          $or: [
+            { user: objectUserId },
+            { userId: userIdString },
+          ],
+          bet_type: "SETTLE",
+        },
+      },
+      {
+        $project: {
+          lossAmount: {
+            $cond: [
+              { $gt: ["$amount", "$win_amount"] },
+              { $subtract: ["$amount", "$win_amount"] },
+              0,
+            ],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalLossAmount: { $sum: "$lossAmount" },
+        },
+      },
+    ]);
+
+    const totalLossAmount = Number(result?.[0]?.totalLossAmount || 0);
+
+    return res.json({
+      success: true,
+      data: {
+        exposure: Number(totalLossAmount.toFixed(2)),
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to load exposure balance",
+      error: error.message,
+    });
+  }
+});
+
 
 // ✅ GET /api/users/me
 router.get("/me", protectUser, async (req, res) => {

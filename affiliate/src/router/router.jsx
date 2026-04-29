@@ -6,6 +6,7 @@ import Login from "../pages/Login/Login";
 import Register from "../pages/Register/Register";
 import Withdraw from "../pages/Withdraw/Withdraw";
 import PrivateRoute from "../PrivateRoute/PrivateRoute";
+import SuperPrivateRoute from "../PrivateRoute/SuperPrivateRoute";
 import DashboardLayout from "../DashboardLayout/DashboardLayout";
 import Dashboard from "../pages/Dashboard/Dashboard";
 import MyUsers from "../pages/MyUsers/MyUsers";
@@ -13,6 +14,14 @@ import CommissionStatus from "../pages/CommissionStatus/CommissionStatus";
 import WithdrawHistory from "../pages/WithdrawHistory/WithdrawHistory";
 import WithdrawHistoryDetails from "../pages/WithdrawHistoryDetails/WithdrawHistoryDetails";
 import Profile from "../pages/Profile/Profile";
+import SuperDashboardLayout from "../SuperDashboardLayout/SuperDashboardLayout";
+import SuperDashboard from "../pages/SuperDashboard/SuperDashboard";
+import SuperMyUsers from "../pages/SuperMyUsers/SuperMyUsers";
+import SuperCommissionStatus from "../pages/SuperCommissionStatus/SuperCommissionStatus";
+import SuperWithdraw from "../pages/SuperWithdraw/SuperWithdraw";
+import SuperWithdrawHistory from "../pages/SuperWithdrawHistory/SuperWithdrawHistory";
+import SuperWithdrawHistoryDetails from "../pages/SuperWithdrawHistoryDetails/SuperWithdrawHistoryDetails";
+import SuperProfile from "../pages/SuperProfile/SuperProfile";
 
 export const routes = createBrowserRouter([
   {
@@ -69,6 +78,44 @@ export const routes = createBrowserRouter([
       {
         path: "commission-status",
         element: <CommissionStatus />,
+      },
+    ],
+  },
+  {
+    path: "/super-dashboard",
+    element: (
+      <SuperPrivateRoute>
+        <SuperDashboardLayout />
+      </SuperPrivateRoute>
+    ),
+    children: [
+      {
+        index: true,
+        element: <SuperDashboard />,
+      },
+      {
+        path: "withdraw",
+        element: <SuperWithdraw />,
+      },
+      {
+        path: "profile",
+        element: <SuperProfile />,
+      },
+      {
+        path: "withdraw-history",
+        element: <SuperWithdrawHistory />,
+      },
+      {
+        path: "withdraw-history/:id",
+        element: <SuperWithdrawHistoryDetails />,
+      },
+      {
+        path: "my-users",
+        element: <SuperMyUsers />,
+      },
+      {
+        path: "commission-status",
+        element: <SuperCommissionStatus />,
       },
     ],
   },

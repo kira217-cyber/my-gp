@@ -50,7 +50,7 @@ const Sports = () => {
 
   return (
     <div className="w-full">
-      <div className="overflow-hidden bg-[#1D5389]">
+      <div className="overflow-hidden bg-gradient-to-br from-black via-[#2f79c9]/70 to-black">
         {/* Header */}
         <div className="flex items-stretch">
           {/* Left */}
@@ -90,7 +90,7 @@ const Sports = () => {
         </div>
 
         {/* Cards */}
-        <div className="mt-1 grid grid-cols-4 gap-2 bg-[#1D5389] px-2 pb-1 pt-1">
+        <div className="mt-1 grid grid-cols-4 gap-2 bg-gradient-to-br from-black via-[#2f79c9]/70 to-black px-2 pb-1 pt-1">
           {loading
             ? Array.from({ length: 4 }).map((_, index) => (
                 <div

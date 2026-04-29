@@ -153,8 +153,6 @@ router.get("/referred-users", async (req, res) => {
  * }
  */
 router.post("/redeem", async (req, res) => {
-  const session = await mongoose.startSession();
-
   try {
     const userMongoId = getUserIdFromReq(req);
 
@@ -174,14 +172,9 @@ router.post("/redeem", async (req, res) => {
       });
     }
 
-    session.startTransaction();
-
-    const setting = await ReferRedeemSetting.findOne()
-      .sort({ createdAt: 1 })
-      .session(session);
+    const setting = await ReferRedeemSetting.findOne().sort({ createdAt: 1 });
 
     if (!setting || !setting.isActive) {
-      await session.abortTransaction();
       return res.status(400).json({
         success: false,
         message: "Redeem system is currently inactive",
@@ -189,7 +182,6 @@ router.post("/redeem", async (req, res) => {
     }
 
     if (redeemAmount < Number(setting.minimumRedeemAmount || 0)) {
-      await session.abortTransaction();
       return res.status(400).json({
         success: false,
         message: `Minimum redeem amount is ${setting.minimumRedeemAmount}`,
@@ -200,25 +192,11 @@ router.post("/redeem", async (req, res) => {
       Number(setting.maximumRedeemAmount || 0) > 0 &&
       redeemAmount > Number(setting.maximumRedeemAmount || 0)
     ) {
-      await session.abortTransaction();
       return res.status(400).json({
         success: false,
         message: `Maximum redeem amount is ${setting.maximumRedeemAmount}`,
       });
     }
-
-    const user = await User.findById(userMongoId).session(session);
-
-    if (!user) {
-      await session.abortTransaction();
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    const pointsBefore = Number(user.referCommissionBalance || 0);
-    const balanceBefore = Number(user.balance || 0);
 
     const pointsNeeded = calcNeededPoints({
       amount: redeemAmount,
@@ -227,58 +205,73 @@ router.post("/redeem", async (req, res) => {
     });
 
     if (pointsNeeded <= 0) {
-      await session.abortTransaction();
       return res.status(400).json({
         success: false,
         message: "Invalid redeem calculation",
       });
     }
 
-    if (pointsBefore < pointsNeeded) {
-      await session.abortTransaction();
+    const user = await User.findOneAndUpdate(
+      {
+        _id: userMongoId,
+        referCommissionBalance: { $gte: pointsNeeded },
+      },
+      {
+        $inc: {
+          referCommissionBalance: -pointsNeeded,
+          balance: redeemAmount,
+        },
+      },
+      {
+        new: false,
+      },
+    );
+
+    if (!user) {
+      const existingUser = await User.findById(userMongoId).select(
+        "userId balance referCommissionBalance",
+      );
+
+      if (!existingUser) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
       return res.status(400).json({
         success: false,
         message: "Insufficient refer points",
         data: {
-          availablePoints: pointsBefore,
+          availablePoints: Number(existingUser.referCommissionBalance || 0),
           requiredPoints: pointsNeeded,
         },
       });
     }
 
+    const pointsBefore = Number(user.referCommissionBalance || 0);
+    const balanceBefore = Number(user.balance || 0);
     const pointsAfter = pointsBefore - pointsNeeded;
     const balanceAfter = balanceBefore + redeemAmount;
 
-    user.referCommissionBalance = pointsAfter;
-    user.balance = balanceAfter;
-
-    await user.save({ session });
-
-    const history = await ReferRedeemHistory.create(
-      [
-        {
-          user: user._id,
-          userId: user.userId,
-          pointsUsed: pointsNeeded,
-          redeemAmount,
-          rateSnapshot: {
-            redeemPoint: setting.redeemPoint,
-            redeemMoney: setting.redeemMoney,
-            minimumRedeemAmount: setting.minimumRedeemAmount,
-            maximumRedeemAmount: setting.maximumRedeemAmount,
-          },
-          balanceBefore,
-          balanceAfter,
-          pointsBefore,
-          pointsAfter,
-          status: "SUCCESS",
-          note: "Refer points redeemed to main balance",
-        },
-      ],
-      { session },
-    );
-
-    await session.commitTransaction();
+    const history = await ReferRedeemHistory.create({
+      user: user._id,
+      userId: user.userId,
+      pointsUsed: pointsNeeded,
+      redeemAmount,
+      rateSnapshot: {
+        redeemPoint: setting.redeemPoint,
+        redeemMoney: setting.redeemMoney,
+        minimumRedeemAmount: setting.minimumRedeemAmount,
+        maximumRedeemAmount: setting.maximumRedeemAmount,
+      },
+      balanceBefore,
+      balanceAfter,
+      pointsBefore,
+      pointsAfter,
+      status: "SUCCESS",
+      note: "Refer points redeemed to main balance",
+    });
 
     return res.json({
       success: true,
@@ -287,8 +280,8 @@ router.post("/redeem", async (req, res) => {
         user: {
           id: user._id,
           userId: user.userId,
-          balance: user.balance,
-          referCommissionBalance: user.referCommissionBalance,
+          balance: balanceAfter,
+          referCommissionBalance: pointsAfter,
         },
         redeem: {
           redeemAmount,
@@ -298,12 +291,10 @@ router.post("/redeem", async (req, res) => {
           balanceBefore,
           balanceAfter,
         },
-        history: history[0],
+        history,
       },
     });
   } catch (error) {
-    await session.abortTransaction();
-
     console.error("USER REFER REDEEM ERROR:", error);
 
     return res.status(500).json({
@@ -311,8 +302,6 @@ router.post("/redeem", async (req, res) => {
       message: "Server error",
       error: error.message,
     });
-  } finally {
-    session.endSession();
   }
 });
 

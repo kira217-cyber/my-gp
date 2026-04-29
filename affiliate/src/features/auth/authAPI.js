@@ -5,11 +5,8 @@ export const affiliateRegister = async (payload) => {
   return data;
 };
 
-export const affiliateLogin = async ({ phone, password }) => {
-  const { data } = await api.post("/api/affiliate/login", {
-    phone,
-    password,
-  });
+export const affiliateLogin = async (payload) => {
+  const { data } = await api.post("/api/affiliate/login", payload);
   return data;
 };
 

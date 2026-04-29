@@ -106,8 +106,17 @@ const Login = () => {
   const { mutate, isPending } = useMutation({
     mutationFn: affiliateLogin,
     onSuccess: (data) => {
-      dispatch(setCredentials({ user: data.user, token: data.token }));
+      const user = data?.user;
+      const token = data?.token;
+
+      dispatch(setCredentials({ user, token }));
       toast.success(data?.message || "Login successful");
+
+      if (user?.role === "super-aff-user") {
+        navigate("/super-dashboard", { replace: true });
+        return;
+      }
+
       navigate("/dashboard", { replace: true });
     },
     onError: (error) => {
@@ -133,9 +142,9 @@ const Login = () => {
     }
 
     mutate({
-      phone,
-      password,
       countryCode: selected.code,
+      phone: phone.trim(),
+      password,
       verificationCode,
     });
   };
@@ -175,13 +184,13 @@ const Login = () => {
             </button>
           </div>
 
-          <div className="mt-6">
+          <div className="mt-4">
             <div className="relative" ref={dropdownRef}>
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => setDropdownOpen((prev) => !prev)}
-                  className="flex h-12 min-w-[92px] items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-3 transition hover:bg-white/[0.09]"
+                  className="flex h-12 min-w-[92px] cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-3 transition hover:bg-white/[0.09]"
                 >
                   <img
                     src={selected.flag}
@@ -229,7 +238,7 @@ const Login = () => {
                           setDropdownOpen(false);
                           setSearch("");
                         }}
-                        className="flex w-full items-center justify-between px-3 py-2.5 text-left transition hover:bg-white/10"
+                        className="flex w-full cursor-pointer items-center justify-between px-3 py-2.5 text-left transition hover:bg-white/10"
                       >
                         <div className="flex items-center gap-2">
                           <img
@@ -268,7 +277,7 @@ const Login = () => {
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
-              className="flex h-9 cursor-pointer w-9 items-center justify-center rounded-lg text-slate-300 transition hover:bg-white/10 hover:text-white"
+              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-slate-300 transition hover:bg-white/10 hover:text-white"
             >
               {showPassword ? (
                 <EyeOff className="h-5 w-5" />

@@ -33,7 +33,7 @@ const Categories = () => {
     const defaultCategories = [
       {
         key: "hot",
-        label: isBangla ? "জনপ্রিয় গেম" : "Hot Games",
+        label: isBangla ? "জনপ্রিয়" : "Hot",
         icon: hot,
         type: "default",
       },
@@ -94,7 +94,7 @@ const Categories = () => {
   return (
     <div className="w-full">
       {/* Category Bar */}
-      <div className="relative border border-[#8cb9e8] bg-[#2f79c9] px-2 sm:px-10 py-2 shadow-sm">
+      <div className="relative border border-[#8cb9e8] bg-gradient-to-br from-black via-[#2f79c9]/70 to-black px-2 sm:px-10 py-2 shadow-sm">
         {/* Left arrow */}
         <button
           type="button"
@@ -140,10 +140,10 @@ const Categories = () => {
                   <img
                     src={item.icon}
                     alt={item.label}
-                    className="mb-1 h-[26px] w-[26px] object-contain"
+                    className="mb-1 h-[32px] w-[32px] object-contain"
                   />
                 ) : (
-                  <div className="mb-1 h-[26px] w-[26px] rounded-full bg-white/20" />
+                  <div className="mb-1 h-[32px] w-[32px] rounded-full bg-white/20" />
                 )}
 
                 <span

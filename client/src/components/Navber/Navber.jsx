@@ -45,7 +45,7 @@ const Navber = ({ setOpen }) => {
   }, []);
 
   return (
-    <div className="relative z-30 flex h-[64px] w-full items-center justify-between bg-[#2f79c9] px-3">
+    <div className="relative z-30 flex h-[50px] w-full items-center justify-between bg-[#2f79c9] px-3">
       <div className="flex items-center gap-2">
         <button
           type="button"

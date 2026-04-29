@@ -33,14 +33,30 @@ const authSlice = createSlice({
     },
 
     setCredentials: (state, action) => {
-      const { user, token } = action.payload;
+      const { user, token } = action.payload || {};
 
-      state.user = user;
-      state.token = token;
+      state.user = user || null;
+      state.token = token || null;
       state.loading = false;
 
-      localStorage.setItem("aff_user", JSON.stringify(user));
-      localStorage.setItem("aff_token", token);
+      if (user && token) {
+        localStorage.setItem("aff_user", JSON.stringify(user));
+        localStorage.setItem("aff_token", token);
+      } else {
+        localStorage.removeItem("aff_user");
+        localStorage.removeItem("aff_token");
+      }
+    },
+
+    updateAuthUser: (state, action) => {
+      state.user = {
+        ...(state.user || {}),
+        ...(action.payload || {}),
+      };
+
+      if (state.user) {
+        localStorage.setItem("aff_user", JSON.stringify(state.user));
+      }
     },
 
     logout: (state) => {
@@ -54,5 +70,7 @@ const authSlice = createSlice({
   },
 });
 
-export const { rehydrateAuth, setCredentials, logout } = authSlice.actions;
+export const { rehydrateAuth, setCredentials, updateAuthUser, logout } =
+  authSlice.actions;
+
 export default authSlice.reducer;

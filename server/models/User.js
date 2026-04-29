@@ -39,7 +39,7 @@ const userSchema = new Schema(
 
     role: {
       type: String,
-      enum: ["user", "aff-user"],
+      enum: ["user", "aff-user", "super-aff-user"],
       default: "user",
       index: true,
     },
@@ -63,6 +63,7 @@ const userSchema = new Schema(
       type: String,
       default: null,
       trim: true,
+      uppercase: true,
     },
 
     createdUsers: [

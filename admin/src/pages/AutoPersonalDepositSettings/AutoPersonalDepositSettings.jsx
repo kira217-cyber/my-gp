@@ -20,6 +20,7 @@ import {
   FaTimesCircle,
   FaPhoneAlt,
   FaCloudUploadAlt,
+  FaCopy,
 } from "react-icons/fa";
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
 
@@ -90,6 +91,8 @@ const inputClass =
 
 const labelClass =
   "text-[12px] font-extrabold uppercase tracking-wide text-blue-100/70";
+
+const WebhookUrl = `${import.meta.env.VITE_API_URL}/api/auto-personal-deposit/webhook`;
 
 const AutoPersonalDepositSettings = () => {
   const fileRefs = useRef({});
@@ -465,6 +468,15 @@ const AutoPersonalDepositSettings = () => {
     [bonuses],
   );
 
+  const copyWebhookUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(WebhookUrl);
+      toast.success("Webhook URL copied");
+    } catch (err) {
+      toast.error("Copy failed");
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-4 lg:p-6">
@@ -504,17 +516,40 @@ const AutoPersonalDepositSettings = () => {
                 </div>
               </div>
 
-              <div
-                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-black ${
-                  active
-                    ? "border-emerald-300/30 bg-emerald-400/15 text-emerald-200"
-                    : "border-red-300/30 bg-red-400/15 text-red-200"
-                }`}
-              >
-                {active ? <FaToggleOn /> : <FaToggleOff />}
-                {active
-                  ? "AUTO PERSONAL DEPOSIT ACTIVE"
-                  : "AUTO PERSONAL DEPOSIT INACTIVE"}
+              <div className="flex flex-col items-start gap-3 lg:items-end">
+                <div className="flex w-full max-w-xl items-center gap-2 rounded-2xl border border-blue-200/15 bg-black/35 p-2 lg:w-auto">
+                  <div className="min-w-0 flex-1 px-2">
+                    <div className="text-[10px] font-black uppercase tracking-wide text-blue-100/55">
+                      Webhook URL
+                    </div>
+
+                    <div className="mt-1 truncate font-mono text-xs font-bold text-blue-50">
+                      {WebhookUrl}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={copyWebhookUrl}
+                    className="inline-flex h-10 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#2f79c9] px-3 text-xs font-black text-white transition hover:bg-[#3b88db]"
+                  >
+                    <FaCopy />
+                    Copy
+                  </button>
+                </div>
+
+                <div
+                  className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-black ${
+                    active
+                      ? "border-emerald-300/30 bg-emerald-400/15 text-emerald-200"
+                      : "border-red-300/30 bg-red-400/15 text-red-200"
+                  }`}
+                >
+                  {active ? <FaToggleOn /> : <FaToggleOff />}
+                  {active
+                    ? "AUTO PERSONAL DEPOSIT ACTIVE"
+                    : "AUTO PERSONAL DEPOSIT INACTIVE"}
+                </div>
               </div>
             </div>
           </div>

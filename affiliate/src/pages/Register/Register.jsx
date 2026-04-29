@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Eye, EyeOff, ChevronDown, Search, RefreshCw } from "lucide-react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { affiliateRegister } from "../../features/auth/authAPI";
@@ -10,11 +10,19 @@ const generateVerificationCode = () =>
 
 const Register = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+
+  const [referralCode, setReferralCode] = useState(() =>
+    String(searchParams.get("ref") || searchParams.get("refCode") || "")
+      .trim()
+      .toUpperCase(),
+  );
+
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
@@ -41,6 +49,18 @@ const Register = () => {
     cca2: "BD",
     flag: "https://flagcdn.com/w40/bd.png",
   });
+
+  useEffect(() => {
+    const refFromUrl = String(
+      searchParams.get("ref") || searchParams.get("refCode") || "",
+    )
+      .trim()
+      .toUpperCase();
+
+    if (refFromUrl) {
+      setReferralCode(refFromUrl);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const loadCountries = async () => {
@@ -140,14 +160,15 @@ const Register = () => {
     }
 
     mutate({
-      firstName,
-      lastName,
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
       countryCode: selected.code,
-      phone,
-      email,
+      phone: phone.trim(),
+      email: email.trim(),
       password,
       confirmPassword,
       verificationCode,
+      referralCode: referralCode.trim().toUpperCase(),
     });
   };
 
@@ -186,7 +207,7 @@ const Register = () => {
             </button>
           </div>
 
-          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <input
               type="text"
               value={firstName}
@@ -210,7 +231,7 @@ const Register = () => {
                 <button
                   type="button"
                   onClick={() => setDropdownOpen((prev) => !prev)}
-                  className="flex h-12 min-w-[92px] items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-3 transition hover:bg-white/[0.09]"
+                  className="flex h-12 min-w-[92px] cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-3 transition hover:bg-white/[0.09]"
                 >
                   <img
                     src={selected.flag}
@@ -258,7 +279,7 @@ const Register = () => {
                           setDropdownOpen(false);
                           setSearch("");
                         }}
-                        className="flex w-full items-center justify-between px-3 py-2.5 text-left transition hover:bg-white/10"
+                        className="flex w-full cursor-pointer items-center justify-between px-3 py-2.5 text-left transition hover:bg-white/10"
                       >
                         <div className="flex items-center gap-2">
                           <img
@@ -293,6 +314,24 @@ const Register = () => {
             className={`${inputClass} mt-4`}
           />
 
+          <input
+            type="text"
+            value={referralCode}
+            onChange={(e) =>
+              setReferralCode(e.target.value.replace(/\s/g, "").toUpperCase())
+            }
+            placeholder="Referral Code Optional"
+            className={`${inputClass} mt-4 uppercase ${
+              referralCode ? "border-[#f07a2a]/50" : ""
+            }`}
+          />
+
+          {/* {referralCode ? (
+            <p className="mt-2 text-xs font-semibold text-[#f07a2a]">
+              Referral code applied: {referralCode}
+            </p>
+          ) : null} */}
+
           <div className="mt-4 flex items-center rounded-xl border border-white/10 bg-white/[0.06] pr-2 transition focus-within:border-[#2f79c9] focus-within:bg-white/[0.09] focus-within:ring-2 focus-within:ring-[#2f79c9]/20">
             <input
               type={showPassword ? "text" : "password"}
@@ -304,7 +343,7 @@ const Register = () => {
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
-              className="flex h-9 cursor-pointer w-9 items-center justify-center rounded-lg text-slate-300 transition hover:bg-white/10 hover:text-white"
+              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-slate-300 transition hover:bg-white/10 hover:text-white"
             >
               {showPassword ? (
                 <EyeOff className="h-5 w-5" />
@@ -325,7 +364,7 @@ const Register = () => {
             <button
               type="button"
               onClick={() => setShowConfirmPassword((prev) => !prev)}
-              className="flex h-9 cursor-pointer w-9 items-center justify-center rounded-lg text-slate-300 transition hover:bg-white/10 hover:text-white"
+              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-slate-300 transition hover:bg-white/10 hover:text-white"
             >
               {showConfirmPassword ? (
                 <EyeOff className="h-5 w-5" />
@@ -359,7 +398,7 @@ const Register = () => {
                 setGeneratedCode(generateVerificationCode());
                 setVerificationCode("");
               }}
-              className="flex h-9 cursor-pointer w-9 items-center justify-center rounded-lg text-white transition hover:bg-white/10"
+              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-white transition hover:bg-white/10"
             >
               <RefreshCw className="h-5 w-5" />
             </button>
@@ -369,7 +408,7 @@ const Register = () => {
             type="button"
             onClick={handleRegister}
             disabled={isPending}
-            className="mt-7 h-13 cursor-pointer w-full rounded-full text-[17px] font-extrabold text-white shadow-lg transition hover:scale-[1.01] hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-70"
+            className="mt-7 h-13 w-full cursor-pointer rounded-full text-[17px] font-extrabold text-white shadow-lg transition hover:scale-[1.01] hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-70"
             style={{
               background: `linear-gradient(135deg, ${PRIMARY}, ${SECONDARY})`,
             }}

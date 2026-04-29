@@ -78,7 +78,6 @@ const protectAffiliate = async (req, res, next) => {
   }
 };
 
-
 const ALPHA_NUMERIC = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
 
 const generateRandomCode = (length = 6) => {
@@ -132,14 +131,22 @@ router.post("/register", async (req, res) => {
       password,
       confirmPassword,
       verificationCode,
+      referralCode: rawReferralCode,
+      refCode: rawRefCode,
     } = req.body || {};
 
     const countryCode = normalizeCountryCode(rawCountryCode);
     const phone = normalizePhone(rawPhone);
-    const normalizedEmail = String(email || "").trim().toLowerCase();
+    const normalizedEmail = String(email || "")
+      .trim()
+      .toLowerCase();
     const safeFirstName = String(firstName || "").trim();
     const safeLastName = String(lastName || "").trim();
     const safeVerificationCode = String(verificationCode || "").trim();
+
+    const usedReferralCode = String(rawReferralCode || rawRefCode || "")
+      .trim()
+      .toUpperCase();
 
     if (
       !safeFirstName ||
@@ -222,27 +229,67 @@ router.post("/register", async (req, res) => {
       });
     }
 
+    let referrer = null;
+    let newRole = "super-aff-user";
+
+    if (usedReferralCode) {
+      referrer = await User.findOne({
+        referralCode: usedReferralCode,
+        role: "super-aff-user",
+        isActive: true,
+      });
+
+      if (!referrer) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid super affiliate referral code",
+        });
+      }
+
+      newRole = "aff-user";
+    }
+
     const userId = await generateUniqueUserId();
-    const referralCode = await generateUniqueReferralCode();
+    const ownReferralCode = await generateUniqueReferralCode();
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const affiliate = await User.create({
       userId,
-      referralCode,
+      referralCode: ownReferralCode,
       firstName: safeFirstName,
       lastName: safeLastName,
       countryCode,
       phone,
       email: normalizedEmail,
       password: hashedPassword,
-      role: "aff-user",
+      role: newRole,
       isActive: false,
+      referredBy: referrer?._id || null,
     });
+
+    if (referrer) {
+      const commissionAmount = Number(referrer.referCommission || 0);
+
+      await User.updateOne(
+        { _id: referrer._id },
+        {
+          $inc: {
+            referralCount: 1,
+            referCommissionBalance: commissionAmount,
+          },
+          $addToSet: {
+            createdUsers: affiliate._id,
+          },
+        },
+      );
+    }
 
     return res.status(201).json({
       success: true,
       message:
-        "Affiliate registration successful. Please wait for admin approval before login.",
+        newRole === "super-aff-user"
+          ? "Super affiliate registration successful. Please wait for admin approval before login."
+          : "Affiliate registration successful. Please wait for admin approval before login.",
       user: {
         id: affiliate._id,
         userId: affiliate.userId,
@@ -254,6 +301,7 @@ router.post("/register", async (req, res) => {
         email: affiliate.email,
         role: affiliate.role,
         isActive: affiliate.isActive,
+        referredBy: affiliate.referredBy,
       },
     });
   } catch (error) {
@@ -277,13 +325,26 @@ router.post("/register", async (req, res) => {
 ========================= */
 router.post("/login", async (req, res) => {
   try {
-    const { phone: rawPhone, password } = req.body || {};
+    const {
+      countryCode: rawCountryCode,
+      phone: rawPhone,
+      password,
+    } = req.body || {};
+
+    const countryCode = normalizeCountryCode(rawCountryCode);
     const phone = normalizePhone(rawPhone);
 
     if (!phone || !password) {
       return res.status(400).json({
         success: false,
         message: "Phone and password are required",
+      });
+    }
+
+    if (countryCode && !validateCountryCode(countryCode)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid country code",
       });
     }
 
@@ -294,10 +355,16 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    const user = await User.findOne({
+    const query = {
       phone,
-      role: "aff-user",
-    });
+      role: { $in: ["aff-user", "super-aff-user"] },
+    };
+
+    if (countryCode) {
+      query.countryCode = countryCode;
+    }
+
+    const user = await User.findOne(query);
 
     if (!user) {
       return res.status(401).json({
@@ -338,6 +405,17 @@ router.post("/login", async (req, res) => {
         role: user.role,
         isActive: user.isActive,
         referralCode: user.referralCode,
+        referredBy: user.referredBy,
+        referralCount: user.referralCount,
+        commissionBalance: user.commissionBalance,
+        gameLossCommission: user.gameLossCommission,
+        depositCommission: user.depositCommission,
+        referCommission: user.referCommission,
+        gameWinCommission: user.gameWinCommission,
+        gameLossCommissionBalance: user.gameLossCommissionBalance,
+        depositCommissionBalance: user.depositCommissionBalance,
+        referCommissionBalance: user.referCommissionBalance,
+        gameWinCommissionBalance: user.gameWinCommissionBalance,
       },
     });
   } catch (error) {
@@ -381,7 +459,6 @@ router.get("/me/balance", protectAffiliate, async (req, res) => {
   }
 });
 
-
 router.get("/my-users", protectAffiliate, async (req, res) => {
   try {
     const affiliate = req.user;
@@ -390,7 +467,9 @@ router.get("/my-users", protectAffiliate, async (req, res) => {
       referredBy: affiliate._id,
       role: "user",
     })
-      .select("_id userId email countryCode phone balance currency isActive createdAt")
+      .select(
+        "_id userId email countryCode phone balance currency isActive createdAt",
+      )
       .sort({ createdAt: -1 })
       .lean();
 
@@ -436,7 +515,9 @@ router.put("/profile", protectAffiliate, async (req, res) => {
 
     const safeFirstName = String(firstName || "").trim();
     const safeLastName = String(lastName || "").trim();
-    const normalizedEmail = String(email || "").trim().toLowerCase();
+    const normalizedEmail = String(email || "")
+      .trim()
+      .toLowerCase();
     const normalizedCountryCode = normalizeCountryCode(countryCode || "");
     const normalizedPhone = normalizePhone(phone || "");
     const normalizedCurrency = String(currency || "BDT")
@@ -559,44 +640,48 @@ router.put("/profile", protectAffiliate, async (req, res) => {
   }
 });
 
-router.patch("/my-users/:id/toggle-status", protectAffiliate, async (req, res) => {
-  try {
-    const affiliate = req.user;
-    const { isActive } = req.body || {};
+router.patch(
+  "/my-users/:id/toggle-status",
+  protectAffiliate,
+  async (req, res) => {
+    try {
+      const affiliate = req.user;
+      const { isActive } = req.body || {};
 
-    const targetUser = await User.findOne({
-      _id: req.params.id,
-      referredBy: affiliate._id,
-      role: "user",
-    });
+      const targetUser = await User.findOne({
+        _id: req.params.id,
+        referredBy: affiliate._id,
+        role: "user",
+      });
 
-    if (!targetUser) {
-      return res.status(404).json({
+      if (!targetUser) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found under your referrals",
+        });
+      }
+
+      targetUser.isActive = !!isActive;
+      await targetUser.save();
+
+      return res.status(200).json({
+        success: true,
+        message: `User ${targetUser.isActive ? "activated" : "deactivated"} successfully`,
+        user: {
+          _id: targetUser._id,
+          userId: targetUser.userId,
+          isActive: targetUser.isActive,
+        },
+      });
+    } catch (error) {
+      return res.status(500).json({
         success: false,
-        message: "User not found under your referrals",
+        message: "Failed to update user status",
+        error: error.message,
       });
     }
-
-    targetUser.isActive = !!isActive;
-    await targetUser.save();
-
-    return res.status(200).json({
-      success: true,
-      message: `User ${targetUser.isActive ? "activated" : "deactivated"} successfully`,
-      user: {
-        _id: targetUser._id,
-        userId: targetUser.userId,
-        isActive: targetUser.isActive,
-      },
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "Failed to update user status",
-      error: error.message,
-    });
-  }
-});
+  },
+);
 
 router.get("/commission-status", protectAffiliate, async (req, res) => {
   try {
@@ -616,9 +701,7 @@ router.get("/commission-status", protectAffiliate, async (req, res) => {
         gameWinCommissionBalance: Number(
           affiliate.gameWinCommissionBalance || 0,
         ),
-        referCommissionBalance: Number(
-          affiliate.referCommissionBalance || 0,
-        ),
+        referCommissionBalance: Number(affiliate.referCommissionBalance || 0),
         depositCommissionBalance: Number(
           affiliate.depositCommissionBalance || 0,
         ),

@@ -200,7 +200,7 @@ const GameFlagSection = ({
       </style>
 
       <div className="mt-1 w-full">
-        <div className="overflow-hidden bg-[#1f5f98]">
+        <div className="overflow-hidden bg-gradient-to-br from-black via-[#2f79c9]/70 to-black">
           <div className="flex items-stretch bg-[#1f5f98]">
             <div className="relative flex h-[44px] flex-1 items-center bg-gradient-to-r from-[#2f79c9] to-[#5aa2e6] pl-3 pr-6">
               <div
@@ -239,7 +239,7 @@ const GameFlagSection = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-2 bg-[#1D5389] px-2 py-2 pb-2 pt-2 sm:px-4">
+          <div className="grid grid-cols-4 gap-2 bg-gradient-to-br from-black via-[#2f79c9]/70 to-black px-2 py-2 pb-2 pt-2 sm:px-4">
             {loading
               ? Array.from({ length: 12 }).map((_, index) => (
                   <div
@@ -292,7 +292,7 @@ const GameFlagSection = ({
           )}
 
           {!loading && hasMoreGames && (
-            <div className="flex justify-center bg-[#1D5389] px-2 pb-3 pt-1">
+            <div className="flex justify-center px-2 pb-3 pt-1">
               <button
                 type="button"
                 onClick={() => setVisibleCount((prev) => prev + 12)}

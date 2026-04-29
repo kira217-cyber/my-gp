@@ -75,6 +75,7 @@ const CreateAdmin = () => {
       },
 
       { key: "add-withdraw", label: "Add Withdraw ( /add-withdraw )" },
+      { key: "user-refer-redeem", label: "User Refer Redeem ( /user-refer-redeem )" },
       {
         key: "withdraw-request",
         label: "Withdraw Request ( /withdraw-request )",

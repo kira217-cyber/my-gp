@@ -171,7 +171,13 @@ const Sidebar = () => {
         key: "all-affiliate-users",
         to: "/all-affiliate-users",
         icon: <FaUsers />,
-        text: "All Affiliator",
+        text: "All Master Affiliator",
+      },
+      {
+        key: "all-super-affiliate-users",
+        to: "/all-super-affiliate-users",
+        icon: <FaUsers />,
+        text: "All Super Affiliator",
       },
       {
         key: "bulk-adjustment",
@@ -180,11 +186,11 @@ const Sidebar = () => {
         text: "Bulk Adjustment",
       },
       {
-  key: "user-refer-redeem",
-  to: "/user-refer-redeem",
-  icon: <FaCoins />,
-  text: "User Refer & Redeem",
-},
+        key: "user-refer-redeem",
+        to: "/user-refer-redeem",
+        icon: <FaCoins />,
+        text: "User Refer & Redeem",
+      },
     ],
     [],
   );

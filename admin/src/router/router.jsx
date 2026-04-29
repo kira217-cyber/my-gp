@@ -46,6 +46,8 @@ import AddAffNotice from "../pages/AddAffNotice/AddAffNotice";
 import AutoPersonalDepositSettings from "../pages/AutoPersonalDepositSettings/AutoPersonalDepositSettings";
 import AutoPersonalDepositHistory from "../pages/AutoPersonalDepositHistory/AutoPersonalDepositHistory";
 import UserReferRedeem from "../pages/UserReferRedeem/UserReferRedeem";
+import AllSuperAffiliates from "../pages/AllSuperAffiliates/AllSuperAffiliates";
+import SuperAffiliateUserDetials from "../pages/SuperAffiliateUserDetials/SuperAffiliateUserDetials";
 
 export const routes = createBrowserRouter([
   {
@@ -102,6 +104,22 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute permKey="affiliate-user-details">
             <AffiliateUserDetials />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "all-super-affiliate-users",
+        element: (
+          <PrivateRoute permKey="all-super-affiliate-users">
+            <AllSuperAffiliates />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "super-affiliate-user-details/:id",
+        element: (
+          <PrivateRoute permKey="super-affiliate-user-details">
+            <SuperAffiliateUserDetials />
           </PrivateRoute>
         ),
       },

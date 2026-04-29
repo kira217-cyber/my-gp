@@ -8,6 +8,10 @@ import { toast } from "react-toastify";
 import { userRegister } from "../../features/auth/authAPI";
 import { setCredentials } from "../../features/auth/authSlice";
 import logo from "../../assets/logo.png";
+import axios from "axios";
+
+const OTP_API_KEY =
+  "120e4fde880e1bfd2d98732ae5551b1d3f9118d38d3695fd056642059a6d44cc";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -19,6 +23,12 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [refCode, setRefCode] = useState("");
+
+  const [otpInput, setOtpInput] = useState("");
+  const [serverOtp, setServerOtp] = useState("");
+  const [otpExpiresAt, setOtpExpiresAt] = useState(0);
+  const [otpSending, setOtpSending] = useState(false);
+  const [countdown, setCountdown] = useState(0);
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -41,9 +51,7 @@ const Register = () => {
       .trim()
       .toUpperCase();
 
-    if (queryRef) {
-      setRefCode(queryRef);
-    }
+    if (queryRef) setRefCode(queryRef);
   }, [searchParams]);
 
   useEffect(() => {
@@ -95,6 +103,25 @@ const Register = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (!otpExpiresAt) {
+      setCountdown(0);
+      return;
+    }
+
+    const timer = setInterval(() => {
+      const left = Math.max(0, Math.ceil((otpExpiresAt - Date.now()) / 1000));
+      setCountdown(left);
+
+      if (left <= 0) {
+        setServerOtp("");
+        setOtpExpiresAt(0);
+      }
+    }, 500);
+
+    return () => clearInterval(timer);
+  }, [otpExpiresAt]);
+
   const filteredCountries = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return countries;
@@ -118,11 +145,67 @@ const Register = () => {
     refCodePlaceholder: isBangla
       ? "রেফারেল কোড (ঐচ্ছিক)"
       : "Referral Code (Optional)",
+    otpPlaceholder: isBangla ? "OTP কোড লিখুন" : "Enter OTP Code",
+    sendOtp: isBangla ? "OTP পাঠান" : "Send OTP",
+    resendOtp: isBangla ? "আবার পাঠান" : "Resend OTP",
     registerBtn: isBangla ? "নিবন্ধন" : "Register",
     haveAccount: isBangla
       ? "ইতোমধ্যে একটি একাউন্ট আছে ?"
       : "Already have an account ?",
     searchCountry: isBangla ? "দেশ খুঁজুন..." : "Search country...",
+  };
+
+  const fullPhoneNumber = useMemo(() => {
+    const code = String(selected.code || "").replace(/\D/g, "");
+    const num = String(phone || "").replace(/\D/g, "");
+    return `${code}${num}`;
+  }, [selected.code, phone]);
+
+  const handleSendOtp = async () => {
+    if (!phone.trim()) {
+      toast.error(isBangla ? "মোবাইল নম্বর দিন" : "Enter mobile number");
+      return;
+    }
+
+    try {
+      setOtpSending(true);
+
+      // আগের OTP reset
+      setServerOtp("");
+      setOtpInput("");
+      setOtpExpiresAt(0);
+
+      const { data } = await axios.post(
+        "https://api.o-sms.com/api/service/send-otp",
+        {
+          phoneNumber: fullPhoneNumber,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${OTP_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      if (!data?.success || !data?.otp) {
+        throw new Error(data?.message || "OTP send failed");
+      }
+
+      setServerOtp(String(data.otp));
+      setOtpExpiresAt(Date.now() + 30 * 1000);
+      setCountdown(30);
+
+      toast.success(
+        isBangla ? "OTP সফলভাবে পাঠানো হয়েছে" : "OTP sent successfully",
+      );
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message || error?.message || "OTP send failed",
+      );
+    } finally {
+      setOtpSending(false);
+    }
   };
 
   const { mutate, isPending } = useMutation({
@@ -145,6 +228,20 @@ const Register = () => {
       return;
     }
 
+    if (!serverOtp || !otpExpiresAt || Date.now() > otpExpiresAt) {
+      toast.error(
+        isBangla
+          ? "OTP মেয়াদ শেষ। আবার OTP পাঠান"
+          : "OTP expired. Send OTP again",
+      );
+      return;
+    }
+
+    if (String(otpInput).trim() !== String(serverOtp).trim()) {
+      toast.error(isBangla ? "OTP সঠিক নয়" : "Invalid OTP");
+      return;
+    }
+
     if (!password.trim()) {
       toast.error(isBangla ? "পিন কোড দিন" : "Enter pin code");
       return;
@@ -162,8 +259,6 @@ const Register = () => {
       confirmPassword,
       refCode: refCode.trim().toUpperCase(),
     };
-
-    console.log("REGISTER PAYLOAD:", payload);
 
     mutate(payload);
   };
@@ -215,7 +310,12 @@ const Register = () => {
               <input
                 type="tel"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                onChange={(e) => {
+                  setPhone(e.target.value.replace(/\D/g, ""));
+                  setServerOtp("");
+                  setOtpInput("");
+                  setOtpExpiresAt(0);
+                }}
                 placeholder={text.phonePlaceholder}
                 className="h-[38px] min-w-0 flex-1 rounded-r-[3px] border-b-2 border-[#c7d8eb] bg-transparent px-2 text-[18px] text-[#1d5d99] outline-none placeholder:text-[#1d5d99] placeholder:font-semibold"
               />
@@ -245,6 +345,9 @@ const Register = () => {
                         setSelected(item);
                         setDropdownOpen(false);
                         setSearch("");
+                        setServerOtp("");
+                        setOtpInput("");
+                        setOtpExpiresAt(0);
                       }}
                       className="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-[#f5f8fc] cursor-pointer"
                     >
@@ -266,6 +369,35 @@ const Register = () => {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+
+        <div className="mt-5">
+          <button
+            type="button"
+            onClick={handleSendOtp}
+            disabled={otpSending}
+            className="h-[42px] w-full rounded-full bg-[#2c84ea] text-[15px] font-bold text-white cursor-pointer disabled:opacity-70"
+          >
+            {otpSending
+              ? isBangla
+                ? "পাঠানো হচ্ছে..."
+                : "Sending..."
+              : countdown > 0
+                ? `${text.resendOtp} (${countdown}s)`
+                : serverOtp
+                  ? text.resendOtp
+                  : text.sendOtp}
+          </button>
+
+          <div className="mt-4 flex items-center border-b-2 border-[#c7d8eb]">
+            <input
+              type="tel"
+              value={otpInput}
+              onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, ""))}
+              placeholder={text.otpPlaceholder}
+              className="h-[38px] w-full bg-transparent px-0 text-[18px] text-[#1d5d99] outline-none placeholder:text-[#1d5d99] placeholder:font-semibold"
+            />
           </div>
         </div>
 

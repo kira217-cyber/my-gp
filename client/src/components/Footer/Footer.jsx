@@ -63,7 +63,7 @@ const Footer = () => {
   return (
     <>
       {/* Main Footer */}
-      <footer className="bg-[#1D5389] px-2 py-3 text-sm text-white">
+      <footer className="bg-gradient-to-br from-black via-[#2f79c9]/70 to-black px-2 py-3 text-sm text-white">
         {/* Payment */}
         <div>
           <h2 className="mb-3 text-lg font-black text-white">
@@ -123,7 +123,7 @@ const Footer = () => {
       </footer>
 
       {/* Providers */}
-      <div className="bg-[#1D5389] pb-3">
+      <div className="bg-gradient-to-br from-black via-[#2f79c9]/70 to-black pb-3">
         <h2 className="mb-2 px-2 text-lg font-black text-white">
           {getText(footerData.providerTitle)}
         </h2>

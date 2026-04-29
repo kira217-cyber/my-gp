@@ -44,7 +44,7 @@ const RootLayout = () => {
       />
 
       {/* Mobile App Container */}
-      <div className="relative z-10 w-full max-w-[480px] h-screen bg-[#1D5389] shadow-2xl overflow-hidden">
+      <div className="relative z-10 w-full max-w-[480px] h-screen bg-[#07111f] shadow-2xl overflow-hidden border border-2">
         {/* Navbar */}
         {!hideNavbar && <Navber setOpen={setOpen} />}
         <Sidebar open={open} setOpen={setOpen} />
