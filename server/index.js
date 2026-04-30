@@ -40,6 +40,8 @@ import superBulkAdjustmentRoutes from "./routes/superBulkAdjustmentRoutes.js";
 import superAffWithdrawMethodsRoutes from "./routes/superAffWithdrawMethodsRoutes.js";
 import superAffWithdrawRequestesRoutes from "./routes/superAffWithdrawRequestesRoutes.js";
 import registerBonusRoutes from "./routes/registerBonusRoutes.js";
+import noticeRoutes from "./routes/noticeRoutes.js";
+
 
 
 dotenv.config();
@@ -92,6 +94,7 @@ app.use("/api/admin", superBulkAdjustmentRoutes);
 app.use("/api", superAffWithdrawMethodsRoutes);
 app.use("/api", superAffWithdrawRequestesRoutes);
 app.use("/api", registerBonusRoutes);
+app.use("/api", noticeRoutes);
 
 // route
 app.get("/", (req, res) => {

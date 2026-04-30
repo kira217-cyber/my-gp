@@ -82,6 +82,30 @@ const FLAG_FIELDS = [
     textClass: "text-cyan-200",
     accent: "accent-cyan-500",
   },
+  {
+    key: "isFavorites",
+    label: "Favorites",
+    icon: <FaGamepad />,
+    activeClass: "bg-blue-500 text-white",
+    textClass: "text-blue-200",
+    accent: "accent-blue-500",
+  },
+  {
+    key: "isLatest",
+    label: "Latest",
+    icon: <FaBolt />,
+    activeClass: "bg-lime-500 text-black",
+    textClass: "text-lime-200",
+    accent: "accent-lime-500",
+  },
+  {
+    key: "isAZ",
+    label: "A-Z",
+    icon: <FaDice />,
+    activeClass: "bg-indigo-500 text-white",
+    textClass: "text-indigo-200",
+    accent: "accent-indigo-500",
+  },
 ];
 
 const getDefaultFlags = () =>

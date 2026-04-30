@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import { useNavigate, useParams, useSearchParams } from "react-router";
-import { FaImage, FaSearch, FaStar } from "react-icons/fa";
+import { FaImage, FaSearch } from "react-icons/fa";
 import { api } from "../../api/axios";
 import { useLanguage } from "../../Context/LanguageProvider";
 import { useSelector } from "react-redux";
@@ -40,6 +40,7 @@ const Games = () => {
 
   const [searchOpen, setSearchOpen] = useState(true);
   const [searchText, setSearchText] = useState("");
+  const [selectedFlag, setSelectedFlag] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
@@ -263,6 +264,10 @@ const Games = () => {
 
     let filtered = filteredByProvider;
 
+    if (selectedFlag) {
+      filtered = filtered.filter((item) => Boolean(item?.[selectedFlag]));
+    }
+
     if (keyword) {
       filtered = filtered.filter((item) => {
         const name = String(item.displayName || "").toLowerCase();
@@ -280,11 +285,11 @@ const Games = () => {
     return [...filtered].sort((a, b) => {
       return new Date(a.createdAt) - new Date(b.createdAt);
     });
-  }, [filteredByProvider, searchText]);
+  }, [filteredByProvider, searchText, selectedFlag]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedProviderDbId, searchText, categoryId]);
+  }, [selectedProviderDbId, searchText, selectedFlag, categoryId]);
 
   const totalPages = Math.ceil(finalFilteredGames.length / GAMES_PER_PAGE) || 1;
 
@@ -395,14 +400,14 @@ const Games = () => {
         }
       `}
       </style>
-      <h2 className="py-2 text-white text-center font-bold text-2xl bg-[#2469A7]  mb-2">
+
+      <h2 className="py-2 text-white text-center font-bold text-2xl bg-[#2469A7] mb-2">
         ---- {categoryTitle} ----
       </h2>
+
       <div className="px-2 pb-4 mb-48">
         {/* Provider Tabs */}
-        {/* Provider Tabs */}
         <div className="relative border border-[#8cb9e8] bg-[#2f79c9] px-2 sm:px-10 py-2 shadow-sm rounded-md">
-          {/* Left arrow */}
           <button
             type="button"
             onClick={() => {
@@ -419,7 +424,6 @@ const Games = () => {
             </span>
           </button>
 
-          {/* Right arrow */}
           <button
             type="button"
             onClick={() => {
@@ -436,7 +440,6 @@ const Games = () => {
             </span>
           </button>
 
-          {/* Scroll list */}
           <div
             ref={providerScrollRef}
             className="flex gap-2 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -495,7 +498,7 @@ const Games = () => {
           </div>
         </div>
 
-        {/* Search */}
+        {/* Search + Dropdown */}
         <div className="mt-2 flex items-center gap-2">
           <button
             type="button"
@@ -521,6 +524,17 @@ const Games = () => {
               />
             </div>
           )}
+
+          <select
+            value={selectedFlag}
+            onChange={(e) => setSelectedFlag(e.target.value)}
+            className="h-[40px] w-[118px] shrink-0 cursor-pointer rounded-[8px] border border-[#8cb9e8] bg-white px-2 text-sm font-bold text-[#1f5f98] outline-none"
+          >
+            <option value="">All</option>
+            <option value="isFavorites">Favorites</option>
+            <option value="isLatest">Latest</option>
+            <option value="isAZ">A-Z</option>
+          </select>
         </div>
 
         {/* Games */}
@@ -533,7 +547,7 @@ const Games = () => {
         ) : (
           <>
             <div className="mt-2 overflow-hidden rounded-[6px]">
-              <div className="mt-1 grid grid-cols-4 gap-2 bg-[#1D5389] pb-2 pt-1">
+              <div className="mt-1 grid grid-cols-4 gap-2 pb-2 pt-1">
                 {paginatedGames.map((game) => (
                   <button
                     key={game._id}

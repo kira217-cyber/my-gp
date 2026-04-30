@@ -646,7 +646,7 @@ const Withdraw = () => {
                           </div>
                         </div>
 
-                        <div className="flex flex-wrap gap-2">
+                        {/* <div className="flex flex-wrap gap-2">
                           <button
                             type="button"
                             onClick={openEditWalletModal}
@@ -664,7 +664,7 @@ const Withdraw = () => {
                             <FaTrash />
                             {t.deleteWallet}
                           </button>
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                   )}

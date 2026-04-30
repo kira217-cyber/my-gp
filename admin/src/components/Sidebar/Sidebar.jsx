@@ -35,7 +35,7 @@ import {
 } from "react-icons/pi";
 import { HiMiniCubeTransparent } from "react-icons/hi2";
 import { RiFootprintFill } from "react-icons/ri";
-import { IoAppsSharp } from "react-icons/io5";
+import { IoAppsSharp, IoDocumentText } from "react-icons/io5";
 import { GrAnnounce, GrUserAdmin } from "react-icons/gr";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { motion } from "framer-motion";
@@ -310,6 +310,12 @@ const Sidebar = () => {
         to: "/add-social-link",
         icon: <FaImage />,
         text: "Add Social Link",
+      },
+      {
+        key: "add-notice",
+        to: "/add-notice",
+        icon: <IoDocumentText />,
+        text: "Add Notice",
       },
     ],
     [],

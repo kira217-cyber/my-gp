@@ -1,55 +1,107 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
+import { FaBullhorn } from "react-icons/fa";
+import { api } from "../../api/axios";
 import { useLanguage } from "../../Context/LanguageProvider";
 
 const Notice = () => {
   const { isBangla } = useLanguage();
+  const [notices, setNotices] = useState([]);
 
-  const noticeText = useMemo(() => {
-    return isBangla
-      ? "আজই ৬০% পর্যন্ত কমিশন পান! আজই BABU88 এজেন্ট হন! আজই ৬০% পর্যন্ত কমিশন পান! আজই BABU88 এজেন্ট হন!"
-      : "Get up to 60% commission today! Become a BABU88 agent today! Get up to 60% commission today! Become a BABU88 agent today!";
-  }, [isBangla]);
+  const fetchNotices = async () => {
+    try {
+      const { data } = await api.get("/api/notices");
+      setNotices(Array.isArray(data?.data) ? data.data : []);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotices();
+  }, []);
+
+  const noticeTexts = useMemo(() => {
+    return notices
+      .filter((n) => n?.isActive)
+      .map((n) => ({
+        text: isBangla ? n?.text?.bn : n?.text?.en,
+        link: n?.linkUrl || "",
+      }))
+      .filter((n) => n.text);
+  }, [notices, isBangla]);
+
+  const handleClick = (link) => {
+    if (!link) return;
+    const url = link.startsWith("http")
+      ? link
+      : `${window.location.origin}${link}`;
+    window.open(url, "_blank");
+  };
+
+  if (!noticeTexts.length) return null;
 
   return (
-    <div className="w-full bg-[#2b2b2b]">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
-        {/* yellow pill */}
-        <div className="bg-[#f5b400] rounded-md sm:rounded-md px-3 sm:px-6 py-2 sm:py-3 overflow-hidden">
-          <div className="notice-viewport">
-            <div className="notice-single text-black font-bold text-sm sm:text-base md:text-lg whitespace-nowrap">
-              {noticeText}
+    <div className="w-full bg-[#07111f] mt-2">
+      <div className="mx-auto max-w-7xl px-3">
+        <div className="overflow-hidden rounded-xl border border-[#2f79c9]/30">
+          {/* ✅ ONE LINE HEADER + MARQUEE */}
+          <div className="flex items-center gap-4 px-3 py-2 bg-gradient-to-r from-[#2f79c9] to-[#1d4f91] text-white">
+            {/* icon + title */}
+            <div className="flex items-center gap-2 shrink-0">
+              <FaBullhorn />
+              <span className="text-sm font-bold whitespace-nowrap">
+                {isBangla ? "নোটিশ" : "Notice"}
+              </span>
+            </div>
+
+            {/* marquee area */}
+            <div className="overflow-hidden flex-1">
+              <div className="marquee">
+                {[...noticeTexts, ...noticeTexts].map((n, i) => (
+                  <span
+                    key={i}
+                    onClick={() => handleClick(n.link)}
+                    className="item"
+                  >
+                    🔹 {n.text}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <style>{`
-        .notice-viewport{
-          position: relative;
-          overflow: hidden;
-          width: 100%;
-        }
-
-        /* start from right outside, exit left outside, immediately restart */
-        .notice-single{
-          display: inline-block;
-          will-change: transform;
-          animation: noticeOne 16s linear infinite;
-        }
-
-        @keyframes noticeOne{
-          0%   { transform: translateX(100%); }
-          100% { transform: translateX(-100%); }
-        }
-
-        /* accessibility */
-        @media (prefers-reduced-motion: reduce){
-          .notice-single{
-            animation: none;
-            transform: translateX(0);
+      <style>
+        {`
+          .marquee {
+            display: inline-flex;
+            white-space: nowrap;
+            gap: 50px;
+            animation: scroll 25s linear infinite;
           }
-        }
-      `}</style>
+
+          .item {
+            flex-shrink: 0; /* 🔥 MUST */
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.3s;
+          }
+
+          .item:hover {
+            color: #63a8ee;
+          }
+
+          @keyframes scroll {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-50%); }
+          }
+
+          .marquee:hover {
+            animation-play-state: paused;
+          }
+        `}
+      </style>
     </div>
   );
 };

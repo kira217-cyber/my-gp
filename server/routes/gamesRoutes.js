@@ -39,18 +39,21 @@ const deleteLocalFile = (filePath = "") => {
 
 const toBool = (value) => String(value) === "true";
 
-const applyBooleanFlags = (target, source = {}) => {
-  const booleanFields = [
-    "isHot",
-    "isJili",
-    "isPg",
-    "isPoker",
-    "isCrash",
-    "isLiveCasino",
-    "isFish",
-  ];
+const BOOLEAN_FIELDS = [
+  "isHot",
+  "isJili",
+  "isPg",
+  "isPoker",
+  "isCrash",
+  "isLiveCasino",
+  "isFish",
+  "isFavorites",
+  "isLatest",
+  "isAZ",
+];
 
-  booleanFields.forEach((field) => {
+const applyBooleanFlags = (target, source = {}) => {
+  BOOLEAN_FIELDS.forEach((field) => {
     if (typeof source[field] !== "undefined") {
       target[field] = toBool(source[field]);
     }
@@ -125,6 +128,9 @@ router.post("/", async (req, res) => {
       isCrash: false,
       isLiveCasino: false,
       isFish: false,
+      isFavorites: false,
+      isLatest: false,
+      isAZ: false,
       status: status === "inactive" ? "inactive" : "active",
     };
 
@@ -156,18 +162,7 @@ router.post("/", async (req, res) => {
 // GET GAMES
 router.get("/", async (req, res) => {
   try {
-    const {
-      providerDbId,
-      categoryId,
-      status,
-      isHot,
-      isJili,
-      isPg,
-      isPoker,
-      isCrash,
-      isLiveCasino,
-      isFish,
-    } = req.query;
+    const { providerDbId, categoryId, status } = req.query;
 
     const filter = {};
 
@@ -197,19 +192,11 @@ router.get("/", async (req, res) => {
       filter.status = status;
     }
 
-    const booleanQueryFields = {
-      isHot,
-      isJili,
-      isPg,
-      isPoker,
-      isCrash,
-      isLiveCasino,
-      isFish,
-    };
+    BOOLEAN_FIELDS.forEach((field) => {
+      const value = req.query[field];
 
-    Object.entries(booleanQueryFields).forEach(([key, value]) => {
       if (value === "true" || value === "false") {
-        filter[key] = value === "true";
+        filter[field] = value === "true";
       }
     });
 

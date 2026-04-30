@@ -50,6 +50,7 @@ import AllSuperAffiliates from "../pages/AllSuperAffiliates/AllSuperAffiliates";
 import SuperAffiliateUserDetials from "../pages/SuperAffiliateUserDetials/SuperAffiliateUserDetials";
 import SuperBulkAdjustment from "../pages/SuperBulkAdjustment/SuperBulkAdjustment";
 import AddRegisterBonus from "../pages/AddRegisterBonus/AddRegisterBonus";
+import AddNotice from "../pages/AddNotice/AddNotice";
 
 export const routes = createBrowserRouter([
   {
@@ -82,6 +83,14 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute permKey="all-users">
             <AllUsers />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "add-notice",
+        element: (
+          <PrivateRoute permKey="add-notice">
+            <AddNotice />
           </PrivateRoute>
         ),
       },

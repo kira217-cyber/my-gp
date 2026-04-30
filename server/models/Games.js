@@ -70,6 +70,24 @@ const GameSchema = new mongoose.Schema(
       index: true,
     },
 
+    isFavorites: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
+    isLatest: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
+    isAZ: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
     status: {
       type: String,
       enum: ["active", "inactive"],
