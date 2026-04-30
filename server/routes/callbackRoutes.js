@@ -48,6 +48,88 @@ const applyTurnoverProgress = async ({ userId, amount }) => {
   }
 };
 
+const applyGameCommissions = async ({ user, betType, amountValue }) => {
+  if (!user?.referredBy) return;
+
+  const affiliator = await User.findById(user.referredBy).select(
+    "_id role isActive referredBy gameLossCommission gameWinCommission",
+  );
+
+  if (
+    !affiliator ||
+    affiliator.role !== "aff-user" ||
+    affiliator.isActive !== true
+  ) {
+    return;
+  }
+
+  if (betType === "BET" && num(affiliator.gameLossCommission) > 0) {
+    const affLossCommission =
+      (amountValue * num(affiliator.gameLossCommission)) / 100;
+
+    await User.updateOne(
+      { _id: affiliator._id },
+      {
+        $inc: {
+          gameLossCommissionBalance: affLossCommission,
+        },
+      },
+    );
+  }
+
+  if (betType === "SETTLE" && num(affiliator.gameWinCommission) > 0) {
+    const affWinCommission =
+      (amountValue * num(affiliator.gameWinCommission)) / 100;
+
+    await User.updateOne(
+      { _id: affiliator._id },
+      {
+        $inc: {
+          gameWinCommissionBalance: affWinCommission,
+        },
+      },
+    );
+  }
+
+  if (!affiliator.referredBy) return;
+
+  const superAffiliator = await User.findOne({
+    _id: affiliator.referredBy,
+    role: "super-aff-user",
+    isActive: true,
+  }).select("_id role isActive gameLossCommission gameWinCommission");
+
+  if (!superAffiliator) return;
+
+  if (betType === "BET" && num(superAffiliator.gameLossCommission) > 0) {
+    const superLossCommission =
+      (amountValue * num(superAffiliator.gameLossCommission)) / 100;
+
+    await User.updateOne(
+      { _id: superAffiliator._id },
+      {
+        $inc: {
+          gameLossCommissionBalance: superLossCommission,
+        },
+      },
+    );
+  }
+
+  if (betType === "SETTLE" && num(superAffiliator.gameWinCommission) > 0) {
+    const superWinCommission =
+      (amountValue * num(superAffiliator.gameWinCommission)) / 100;
+
+    await User.updateOne(
+      { _id: superAffiliator._id },
+      {
+        $inc: {
+          gameWinCommissionBalance: superWinCommission,
+        },
+      },
+    );
+  }
+};
+
 router.post("/", async (req, res) => {
   try {
     const {
@@ -184,7 +266,11 @@ router.post("/", async (req, res) => {
 
     await User.updateOne(
       { _id: user._id },
-      { $inc: { balance: balanceChange } },
+      {
+        $inc: {
+          balance: balanceChange,
+        },
+      },
     );
 
     if (betType === "BET" && amountValue > 0) {
@@ -194,34 +280,12 @@ router.post("/", async (req, res) => {
       });
     }
 
-    if (user.referredBy) {
-      const affiliator = await User.findById(user.referredBy);
-
-      if (
-        affiliator &&
-        affiliator.role === "aff-user" &&
-        affiliator.isActive === true
-      ) {
-        if (betType === "BET" && num(affiliator.gameLossCommission) > 0) {
-          const commission =
-            (amountValue * num(affiliator.gameLossCommission)) / 100;
-
-          await User.updateOne(
-            { _id: affiliator._id },
-            { $inc: { gameLossCommissionBalance: commission } },
-          );
-        }
-
-        if (betType === "SETTLE" && num(affiliator.gameWinCommission) > 0) {
-          const commission =
-            (amountValue * num(affiliator.gameWinCommission)) / 100;
-
-          await User.updateOne(
-            { _id: affiliator._id },
-            { $inc: { gameWinCommissionBalance: commission } },
-          );
-        }
-      }
+    if ((betType === "BET" || betType === "SETTLE") && amountValue > 0) {
+      await applyGameCommissions({
+        user,
+        betType,
+        amountValue,
+      });
     }
 
     return res.json({
@@ -244,6 +308,8 @@ router.post("/", async (req, res) => {
         message: "Already processed",
       });
     }
+
+    console.error("GAME CALLBACK ERROR:", error);
 
     return res.status(500).json({
       success: false,

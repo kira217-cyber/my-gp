@@ -16,6 +16,9 @@ const CreateAdmin = () => {
         key: "all-user-details",
         label: "User Details ( /all-user-details/:id )",
       },
+
+      { key: "add-notice", label: "Add Notice ( /add-notice )" },
+
       {
         key: "all-affiliate-users",
         label: "All Affiliate Users ( /all-affiliate-users )",
@@ -25,7 +28,30 @@ const CreateAdmin = () => {
         label: "Affiliate User Details ( /affiliate-user-details/:id )",
       },
 
+      {
+        key: "all-super-affiliate-users",
+        label: "All Super Affiliate Users ( /all-super-affiliate-users )",
+      },
+      {
+        key: "super-affiliate-user-details",
+        label:
+          "Super Affiliate User Details ( /super-affiliate-user-details/:id )",
+      },
+
       { key: "bulk-adjustment", label: "Bulk Adjustment ( /bulk-adjustment )" },
+      {
+        key: "super-bulk-adjustment",
+        label: "Super Bulk Adjustment ( /super-bulk-adjustment )",
+      },
+
+      {
+        key: "user-refer-redeem",
+        label: "User Refer Redeem ( /user-refer-redeem )",
+      },
+      {
+        key: "add-register-bonus",
+        label: "Add Register Bonus ( /add-register-bonus )",
+      },
 
       {
         key: "add-game-categories",
@@ -56,26 +82,19 @@ const CreateAdmin = () => {
         key: "deposit-request-details",
         label: "Deposit Request Details ( /deposit-request/:id )",
       },
-      // {
-      //   key: "auto-deposit-settings",
-      //   label: "Auto Deposit Settings ( /auto-deposit-settings )",
-      // },
-      // {
-      //   key: "auto-deposit-history",
-      //   label: "Auto Deposit History ( /auto-deposit-history )",
-      // },
 
       {
         key: "auto-personal-deposit-history",
-        label: "Auto Deposit History ( /auto-personal-deposit-history )",
+        label:
+          "Auto Personal Deposit History ( /auto-personal-deposit-history )",
       },
       {
         key: "auto-personal-deposit-settings",
-        label: "Auto Deposit Settings ( /auto-personal-deposit-settings )",
+        label:
+          "Auto Personal Deposit Settings ( /auto-personal-deposit-settings )",
       },
 
       { key: "add-withdraw", label: "Add Withdraw ( /add-withdraw )" },
-      { key: "user-refer-redeem", label: "User Refer Redeem ( /user-refer-redeem )" },
       {
         key: "withdraw-request",
         label: "Withdraw Request ( /withdraw-request )",
