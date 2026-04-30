@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
+import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import {
   FaSearch,
@@ -13,6 +14,10 @@ import {
 } from "react-icons/fa";
 import { PiHandWithdrawBold } from "react-icons/pi";
 import { api } from "../../api/axios";
+import {
+  selectUser,
+  selectIsSuperAffUser,
+} from "../../features/auth/authSelectors";
 
 const money = (n, currency = "BDT") => {
   const sym = String(currency || "BDT").toUpperCase() === "USDT" ? "$" : "৳";
@@ -49,6 +54,8 @@ const btnSecondary = `${btnBase} bg-black/35 text-blue-100 border border-blue-20
 const btnApprove = `${btnBase} bg-emerald-500/15 text-emerald-200 border border-emerald-400/30 hover:bg-emerald-500/20`;
 
 const btnReject = `${btnBase} bg-red-500/15 text-red-200 border border-red-400/30 hover:bg-red-500/20`;
+
+const getUserId = (user) => user?._id || user?.id || "";
 
 const StatCard = ({ icon, title, value, sub }) => (
   <div className="rounded-2xl border border-blue-200/12 bg-black/25 p-4">
@@ -105,7 +112,7 @@ const ConfirmModal = ({
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Write a note for super affiliate..."
+            placeholder="Write a note for affiliate..."
             className="mt-3 min-h-[110px] w-full rounded-2xl border border-blue-200/15 bg-black/50 p-4 text-white placeholder-blue-100/35 outline-none focus:border-[#63a8ee] focus:ring-2 focus:ring-[#63a8ee]/30"
           />
         </div>
@@ -138,6 +145,10 @@ const ConfirmModal = ({
 
 const AffWithdrawRequest = () => {
   const navigate = useNavigate();
+
+  const user = useSelector(selectUser);
+  const isSuperAffUser = useSelector(selectIsSuperAffUser);
+  const superAffiliateId = getUserId(user);
 
   const [list, setList] = useState([]);
   const [meta, setMeta] = useState({ page: 1, limit: 10, total: 0 });
@@ -178,18 +189,24 @@ const AffWithdrawRequest = () => {
     nextQ = q,
     nextStatus = status,
   ) => {
+    if (!isSuperAffUser || !superAffiliateId) {
+      setList([]);
+      return;
+    }
+
     try {
       setLoading(true);
 
       const params = {
         page,
         limit: meta.limit,
+        superAffiliateId,
       };
 
       if (nextQ) params.q = nextQ;
       if (nextStatus !== "all") params.status = nextStatus;
 
-      const { data } = await api.get("/api/admin/super-aff-withdraw-requests", {
+      const { data } = await api.get("/api/admin/aff-withdraw-requests", {
         params,
       });
 
@@ -205,8 +222,7 @@ const AffWithdrawRequest = () => {
       }));
     } catch (err) {
       toast.error(
-        err?.response?.data?.message ||
-          "Failed to load super affiliate withdraw requests",
+        err?.response?.data?.message || "Failed to load withdraw requests",
       );
     } finally {
       setLoading(false);
@@ -216,7 +232,7 @@ const AffWithdrawRequest = () => {
   useEffect(() => {
     fetchData(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [superAffiliateId, isSuperAffUser]);
 
   const onSearch = (e) => {
     e.preventDefault();
@@ -240,19 +256,20 @@ const AffWithdrawRequest = () => {
   };
 
   const approveNow = async () => {
-    if (!selected?._id) return;
+    if (!selected?._id || !superAffiliateId) return;
 
     try {
       setActing(true);
 
       await api.patch(
-        `/api/admin/super-aff-withdraw-requests/${selected._id}/approve`,
+        `/api/admin/aff-withdraw-requests/${selected._id}/approve`,
         {
+          superAffiliateId,
           adminNote: note,
         },
       );
 
-      toast.success("Super affiliate withdraw approved successfully");
+      toast.success("Withdraw approved successfully");
 
       setApproveOpen(false);
       setSelected(null);
@@ -267,19 +284,20 @@ const AffWithdrawRequest = () => {
   };
 
   const rejectNow = async () => {
-    if (!selected?._id) return;
+    if (!selected?._id || !superAffiliateId) return;
 
     try {
       setActing(true);
 
       await api.patch(
-        `/api/admin/super-aff-withdraw-requests/${selected._id}/reject`,
+        `/api/admin/aff-withdraw-requests/${selected._id}/reject`,
         {
+          superAffiliateId,
           adminNote: note,
         },
       );
 
-      toast.success("Super affiliate withdraw rejected successfully");
+      toast.success("Withdraw rejected successfully");
 
       setRejectOpen(false);
       setSelected(null);
@@ -292,6 +310,19 @@ const AffWithdrawRequest = () => {
       setActing(false);
     }
   };
+
+  if (!isSuperAffUser) {
+    return (
+      <div className="p-4 lg:p-6">
+        <div className="mx-auto max-w-3xl rounded-3xl border border-red-400/20 bg-red-500/10 p-6 text-red-200">
+          <h2 className="text-xl font-extrabold text-white">Access Denied</h2>
+          <p className="mt-2 text-sm text-red-100/80">
+            Only super affiliate users can manage affiliate withdraw requests.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 lg:p-6">
@@ -306,11 +337,10 @@ const AffWithdrawRequest = () => {
 
                 <div>
                   <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
-                    Super Affiliate Withdraw Requests
+                   Master Affiliate Withdraw Requests
                   </h1>
                   <p className="mt-1 text-sm text-blue-100/75">
-                    Approve or reject withdraw requests from super affiliate
-                    users.
+                    Only your referred affiliates' withdraw requests are shown.
                   </p>
                 </div>
               </div>
@@ -362,7 +392,7 @@ const AffWithdrawRequest = () => {
                 <input
                   value={qInput}
                   onChange={(e) => setQInput(e.target.value)}
-                  placeholder="Search by super userId / phone / email / method..."
+                  placeholder="Search by userId / phone / email / method..."
                   className="w-full rounded-2xl border border-blue-200/15 bg-black/45 py-3 pl-12 pr-4 text-white placeholder-blue-100/35 outline-none focus:border-[#63a8ee] focus:ring-2 focus:ring-[#63a8ee]/30"
                 />
               </form>
@@ -396,7 +426,7 @@ const AffWithdrawRequest = () => {
                   <thead className="bg-black/45">
                     <tr className="text-left">
                       <th className="px-5 py-4 text-sm font-bold text-[#a8d1fb]">
-                        Super Affiliate
+                        Affiliate
                       </th>
                       <th className="px-5 py-4 text-sm font-bold text-[#a8d1fb]">
                         Method
@@ -488,7 +518,7 @@ const AffWithdrawRequest = () => {
                                   type="button"
                                   onClick={() =>
                                     navigate(
-                                      `/aff-withdraw-request-details/${r._id}`,
+                                      `/super-dashboard/aff-withdraw-request-details/${r._id}`,
                                     )
                                   }
                                   className={btnSecondary}
@@ -535,7 +565,7 @@ const AffWithdrawRequest = () => {
                           colSpan={6}
                           className="px-5 py-12 text-center text-blue-100/55"
                         >
-                          No super affiliate withdraw requests found.
+                          No affiliate withdraw requests found.
                         </td>
                       </tr>
                     )}
@@ -616,7 +646,7 @@ const AffWithdrawRequest = () => {
                             type="button"
                             onClick={() =>
                               navigate(
-                                `/aff-withdraw-request-details/${r._id}`,
+                                `/super-dashboard/aff-withdraw-request-details/${r._id}`,
                               )
                             }
                             className={btnSecondary}
@@ -658,7 +688,7 @@ const AffWithdrawRequest = () => {
                   })
                 ) : (
                   <div className="py-10 text-center text-blue-100/55">
-                    No super affiliate withdraw requests found.
+                    No affiliate withdraw requests found.
                   </div>
                 )}
               </div>
@@ -698,7 +728,7 @@ const AffWithdrawRequest = () => {
 
       <ConfirmModal
         open={approveOpen}
-        title="Approve Super Affiliate Withdraw Request"
+        title="Approve Affiliate Withdraw Request"
         description={`You are going to approve this request. Amount: ${money(
           selected?.amount || 0,
           selected?.user?.currency || "BDT",
@@ -719,8 +749,8 @@ const AffWithdrawRequest = () => {
 
       <ConfirmModal
         open={rejectOpen}
-        title="Reject Super Affiliate Withdraw Request"
-        description="Rejecting will refund the super affiliate user's balance."
+        title="Reject Affiliate Withdraw Request"
+        description="Rejecting will refund the affiliate user's balance."
         confirmText="Reject"
         confirmClass={btnReject}
         loading={acting}

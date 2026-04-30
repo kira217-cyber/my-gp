@@ -22,6 +22,9 @@ import SuperWithdraw from "../pages/SuperWithdraw/SuperWithdraw";
 import SuperWithdrawHistory from "../pages/SuperWithdrawHistory/SuperWithdrawHistory";
 import SuperWithdrawHistoryDetails from "../pages/SuperWithdrawHistoryDetails/SuperWithdrawHistoryDetails";
 import SuperProfile from "../pages/SuperProfile/SuperProfile";
+import AffAddWithdraw from "../pages/AffAddWithdraw/AffAddWithdraw";
+import AffWithdrawRequest from "../pages/AffWithdrawRequest/AffWithdrawRequest";
+import AffWithdrawRequestDetails from "../pages/AffWithdrawRequestDetails/AffWithdrawRequestDetails";
 
 export const routes = createBrowserRouter([
   {
@@ -100,6 +103,18 @@ export const routes = createBrowserRouter([
       {
         path: "profile",
         element: <SuperProfile />,
+      },
+      {
+        path: "aff-add-withdraw",
+        element: <AffAddWithdraw />,
+      },
+      {
+        path: "aff-withdraw-request",
+        element: <AffWithdrawRequest />,
+      },
+      {
+        path: "aff-withdraw-request-details/:id",
+        element: <AffWithdrawRequestDetails />,
       },
       {
         path: "withdraw-history",

@@ -49,9 +49,9 @@ const chipClass = (status) => {
 };
 
 const FieldRow = ({ k, v }) => (
-  <div className="flex items-start justify-between gap-4 py-3 border-b border-blue-200/10 last:border-b-0">
+  <div className="flex items-start justify-between gap-4 border-b border-blue-200/10 py-3 last:border-b-0">
     <div className="text-[13px] font-semibold text-blue-100/70">{k}</div>
-    <div className="text-[13px] font-extrabold text-white text-right break-all">
+    <div className="break-all text-right text-[13px] font-extrabold text-white">
       {v}
     </div>
   </div>
@@ -61,16 +61,16 @@ const StatCard = ({ title, value, sub, icon }) => (
   <div className="rounded-2xl border border-blue-200/15 bg-gradient-to-br from-black/60 via-[#2f79c9]/10 to-black/60 p-4 shadow-lg shadow-blue-900/20">
     <div className="flex items-start justify-between gap-3">
       <div>
-        <div className="text-sm text-blue-100/70 font-medium">{title}</div>
-        <div className="text-xl sm:text-2xl font-extrabold text-white mt-1 tracking-tight">
+        <div className="text-sm font-medium text-blue-100/70">{title}</div>
+        <div className="mt-1 text-xl font-extrabold tracking-tight text-white sm:text-2xl">
           {value}
         </div>
         {sub ? (
-          <div className="text-xs text-blue-100/50 mt-1">{sub}</div>
+          <div className="mt-1 text-xs text-blue-100/50">{sub}</div>
         ) : null}
       </div>
 
-      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#63a8ee]/25 to-[#2f79c9]/25 border border-blue-300/15 flex items-center justify-center text-[#8fc2f5] text-lg shadow-md shadow-blue-900/20 shrink-0">
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-blue-300/15 bg-gradient-to-br from-[#63a8ee]/25 to-[#2f79c9]/25 text-lg text-[#8fc2f5] shadow-md shadow-blue-900/20">
         {icon}
       </div>
     </div>
@@ -78,11 +78,11 @@ const StatCard = ({ title, value, sub, icon }) => (
 );
 
 const Skeleton = () => (
-  <div className="p-5 sm:p-6 space-y-4">
+  <div className="space-y-4 p-5 sm:p-6">
     {[...Array(6)].map((_, i) => (
       <div
         key={i}
-        className="h-20 w-full rounded-2xl bg-white/5 animate-pulse border border-blue-200/10"
+        className="h-20 w-full animate-pulse rounded-2xl border border-blue-200/10 bg-white/5"
       />
     ))}
   </div>
@@ -106,28 +106,29 @@ const ConfirmModal = ({
         className="absolute inset-0 bg-black/75 backdrop-blur-sm"
         onClick={loading ? undefined : onClose}
       />
+
       <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-blue-200/15 bg-gradient-to-b from-black via-[#18345e] to-black text-white shadow-2xl shadow-blue-900/40">
-        <div className="px-6 py-5 border-b border-blue-200/10 flex items-start gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-400/20 flex items-center justify-center shrink-0">
-            <FaExclamationTriangle className="text-amber-300 text-xl" />
+        <div className="flex items-start gap-4 border-b border-blue-200/10 px-6 py-5">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-amber-400/20 bg-amber-500/15">
+            <FaExclamationTriangle className="text-xl text-amber-300" />
           </div>
 
           <div className="min-w-0">
             <div className="text-lg font-extrabold tracking-tight">{title}</div>
             {desc ? (
-              <div className="text-sm text-blue-100/70 mt-1 leading-6">
+              <div className="mt-1 text-sm leading-6 text-blue-100/70">
                 {desc}
               </div>
             ) : null}
           </div>
         </div>
 
-        <div className="px-6 py-5 flex items-center justify-end gap-3">
+        <div className="flex items-center justify-end gap-3 px-6 py-5">
           <button
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="cursor-pointer px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-white font-semibold text-sm disabled:opacity-50 transition"
+            className="cursor-pointer rounded-xl border border-white/10 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15 disabled:opacity-50"
           >
             {cancelText}
           </button>
@@ -136,7 +137,7 @@ const ConfirmModal = ({
             type="button"
             onClick={onConfirm}
             disabled={loading}
-            className="cursor-pointer px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#63a8ee] to-[#2f79c9] hover:from-[#7bb7f1] hover:to-[#3b88db] border border-blue-300/20 text-white font-semibold text-sm disabled:opacity-50 inline-flex items-center gap-2 shadow-lg shadow-blue-800/30 transition"
+            className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-blue-300/20 bg-gradient-to-r from-[#63a8ee] to-[#2f79c9] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-800/30 transition hover:from-[#7bb7f1] hover:to-[#3b88db] disabled:opacity-50"
           >
             {loading ? (
               <FaSyncAlt className="animate-spin" />
@@ -151,7 +152,7 @@ const ConfirmModal = ({
   );
 };
 
-const BulkAdjustment = () => {
+const SuperBulkAdjustment = () => {
   const auth = useSelector(selectAuth);
 
   const headers = useMemo(
@@ -204,7 +205,7 @@ const BulkAdjustment = () => {
       const params = { page: p, limit: l };
       if (query) params.q = query;
 
-      const { data } = await api.get("/api/admin/bulk-adjustment/users", {
+      const { data } = await api.get("/api/admin/super-bulk-adjustment/users", {
         params,
         headers,
       });
@@ -237,7 +238,9 @@ const BulkAdjustment = () => {
 
   const onSearch = (e) => {
     e.preventDefault();
+
     const query = qInput.trim();
+
     setQ(query);
     fetchData({ page: 1, query }, true);
   };
@@ -268,7 +271,7 @@ const BulkAdjustment = () => {
       setAdjusting(true);
 
       const { data } = await api.post(
-        `/api/admin/bulk-adjustment/adjust/${user._id}`,
+        `/api/admin/super-bulk-adjustment/adjust/${user._id}`,
         {},
         { headers },
       );
@@ -277,7 +280,7 @@ const BulkAdjustment = () => {
         throw new Error(data?.message || "Adjustment failed");
       }
 
-      toast.success("Bulk adjustment completed");
+      toast.success("Super bulk adjustment completed");
       closeSingleAdjust();
       await fetchData({ page }, true);
     } catch (e) {
@@ -294,17 +297,17 @@ const BulkAdjustment = () => {
       const body = q ? { q } : {};
 
       const { data } = await api.post(
-        "/api/admin/bulk-adjustment/adjust-all",
+        "/api/admin/super-bulk-adjustment/adjust-all",
         body,
         { headers },
       );
 
       if (!data?.success) {
-        throw new Error(data?.message || "Bulk adjustment failed");
+        throw new Error(data?.message || "Super bulk adjustment failed");
       }
 
       toast.success(
-        `Adjusted ${data?.data?.adjustedUsers ?? 0} affiliate users successfully`,
+        `Adjusted ${data?.data?.adjustedUsers ?? 0} super affiliate users successfully`,
       );
 
       setAllModal(false);
@@ -334,20 +337,20 @@ const BulkAdjustment = () => {
 
   return (
     <div className="p-4 lg:p-6">
-      <div className="mx-auto max-w-7xl overflow-hidden rounded-3xl border border-blue-200/15 bg-gradient-to-b from-black via-[#1d4175]/25 to-black shadow-2xl shadow-blue-900/30 text-white backdrop-blur-sm">
-        <div className="px-5 py-5 sm:px-6 sm:py-6 border-b border-blue-200/10 bg-gradient-to-r from-black/70 via-[#2f79c9]/55 to-black/70">
+      <div className="mx-auto max-w-7xl overflow-hidden rounded-3xl border border-blue-200/15 bg-gradient-to-b from-black via-[#1d4175]/25 to-black text-white shadow-2xl shadow-blue-900/30 backdrop-blur-sm">
+        <div className="border-b border-blue-200/10 bg-gradient-to-r from-black/70 via-[#2f79c9]/55 to-black/70 px-5 py-5 sm:px-6 sm:py-6">
           <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex items-center gap-4 min-w-0">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#63a8ee] to-[#2f79c9] border border-blue-300/20 shadow-lg shadow-blue-800/30 shrink-0">
-                <PiBridgeBold className="text-white text-3xl" />
+            <div className="flex min-w-0 items-center gap-4">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-blue-300/20 bg-gradient-to-br from-[#63a8ee] to-[#2f79c9] shadow-lg shadow-blue-800/30">
+                <PiBridgeBold className="text-3xl text-white" />
               </div>
 
               <div className="min-w-0">
-                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-                  Bulk Adjustment
+                <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+                  Super Bulk Adjustment
                 </h1>
-                <p className="text-sm text-blue-100/80 mt-1 leading-6">
-                  Move affiliate commission balances to{" "}
+                <p className="mt-1 text-sm leading-6 text-blue-100/80">
+                  Move super affiliate commission balances to{" "}
                   <span className="font-semibold text-white">
                     wallet balance
                   </span>
@@ -357,18 +360,20 @@ const BulkAdjustment = () => {
 
             <div className="flex flex-wrap items-center gap-3">
               <button
+                type="button"
                 onClick={onRefresh}
                 disabled={loading || refreshing}
-                className="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-white bg-black/35 hover:bg-black/55 border border-blue-200/15 disabled:opacity-60 transition shadow-sm"
+                className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-blue-200/15 bg-black/35 px-5 py-2.5 font-semibold text-white shadow-sm transition hover:bg-black/55 disabled:opacity-60"
               >
                 <FaSyncAlt className={refreshing ? "animate-spin" : ""} />
                 Refresh
               </button>
 
               <button
+                type="button"
                 onClick={() => setAllModal(true)}
                 disabled={loading || refreshing || adjusting}
-                className="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-[#63a8ee] to-[#2f79c9] hover:from-[#7bb7f1] hover:to-[#3b88db] border border-blue-300/20 shadow-lg shadow-blue-800/30 disabled:opacity-60 transition"
+                className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-blue-300/20 bg-gradient-to-r from-[#63a8ee] to-[#2f79c9] px-5 py-2.5 font-semibold text-white shadow-lg shadow-blue-800/30 transition hover:from-[#7bb7f1] hover:to-[#3b88db] disabled:opacity-60"
               >
                 <FaBolt className="text-base" />
                 Adjust All
@@ -377,20 +382,20 @@ const BulkAdjustment = () => {
           </div>
         </div>
 
-        <div className="p-5 sm:p-6 border-b border-blue-200/10 bg-black/30">
+        <div className="border-b border-blue-200/10 bg-black/30 p-5 sm:p-6">
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
             <form onSubmit={onSearch} className="relative xl:col-span-2">
-              <FaSearch className="absolute left-4 top-6 -translate-y-1/2 text-[#8fc2f5] text-lg" />
+              <FaSearch className="absolute left-4 top-6 -translate-y-1/2 text-lg text-[#8fc2f5]" />
               <input
                 value={qInput}
                 onChange={(e) => setQInput(e.target.value)}
-                placeholder="Search by userId / phone / email..."
-                className="w-full pl-12 pr-5 py-3 rounded-2xl bg-black/45 border border-blue-200/15 text-white placeholder-blue-100/40 outline-none focus:border-[#63a8ee] focus:ring-2 focus:ring-[#2f79c9]/25 transition"
+                placeholder="Search by super userId / phone / email..."
+                className="w-full rounded-2xl border border-blue-200/15 bg-black/45 py-3 pl-12 pr-5 text-white placeholder-blue-100/40 outline-none transition focus:border-[#63a8ee] focus:ring-2 focus:ring-[#2f79c9]/25"
               />
             </form>
 
             <div className="flex items-center gap-3">
-              <label className="text-sm font-semibold text-blue-100/85 whitespace-nowrap">
+              <label className="whitespace-nowrap text-sm font-semibold text-blue-100/85">
                 Per Page
               </label>
 
@@ -399,7 +404,7 @@ const BulkAdjustment = () => {
                 onChange={(e) =>
                   fetchData({ page: 1, limit: Number(e.target.value) }, true)
                 }
-                className="cursor-pointer w-full py-3 px-4 rounded-2xl bg-black/45 border border-blue-200/15 text-white outline-none focus:border-[#63a8ee] focus:ring-2 focus:ring-[#2f79c9]/25 transition"
+                className="w-full cursor-pointer rounded-2xl border border-blue-200/15 bg-black/45 px-4 py-3 text-white outline-none transition focus:border-[#63a8ee] focus:ring-2 focus:ring-[#2f79c9]/25"
               >
                 <option value={10}>10</option>
                 <option value={20}>20</option>
@@ -408,27 +413,27 @@ const BulkAdjustment = () => {
               </select>
             </div>
 
-            <div className="rounded-2xl border border-blue-200/15 bg-gradient-to-br from-black/50 via-[#2f79c9]/10 to-black/50 p-4 flex flex-col justify-center">
-              <div className="text-sm text-blue-100/75 font-medium">
+            <div className="flex flex-col justify-center rounded-2xl border border-blue-200/15 bg-gradient-to-br from-black/50 via-[#2f79c9]/10 to-black/50 p-4">
+              <div className="text-sm font-medium text-blue-100/75">
                 Current Page Preview
               </div>
-              <div className="text-[11px] text-blue-100/45 mt-1">
+              <div className="mt-1 text-[11px] text-blue-100/45">
                 gross / net
               </div>
-              <div className="text-lg sm:text-xl font-extrabold text-white mt-2 tracking-tight">
+              <div className="mt-2 text-lg font-extrabold tracking-tight text-white sm:text-xl">
                 {money(headerStats.pageGross)}{" "}
                 <span className="text-blue-200/35">/</span>{" "}
                 {money(headerStats.pageNet)}
               </div>
-              <div className="text-[11px] text-blue-100/45 mt-1">
+              <div className="mt-1 text-[11px] text-blue-100/45">
                 gross = loss + deposit + refer • net = gross − win
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-5">
+          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
             <StatCard
-              title="Total Affiliates"
+              title="Total Super Affiliates"
               value={headerStats.total}
               sub="All matched records"
               icon={<FaUser />}
@@ -451,25 +456,25 @@ const BulkAdjustment = () => {
         {loading ? (
           <Skeleton />
         ) : rows.length === 0 ? (
-          <div className="py-20 px-6 text-center">
-            <div className="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br from-[#63a8ee]/20 to-[#2f79c9]/20 border border-blue-300/15 flex items-center justify-center text-4xl shadow-lg shadow-blue-900/20">
+          <div className="px-6 py-20 text-center">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border border-blue-300/15 bg-gradient-to-br from-[#63a8ee]/20 to-[#2f79c9]/20 text-4xl shadow-lg shadow-blue-900/20">
               📭
             </div>
-            <h3 className="text-2xl font-bold text-white mt-6 mb-3">
-              No affiliate users found
+            <h3 className="mb-3 mt-6 text-2xl font-bold text-white">
+              No super affiliate users found
             </h3>
-            <p className="text-blue-100/65 max-w-md mx-auto">
+            <p className="mx-auto max-w-md text-blue-100/65">
               Try changing your search keyword or refresh the list again.
             </p>
           </div>
         ) : (
           <>
-            <div className="hidden lg:block overflow-x-auto">
+            <div className="hidden overflow-x-auto lg:block">
               <table className="min-w-full divide-y divide-blue-200/10">
                 <thead className="bg-black/35">
                   <tr>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-[#a8d1fb]">
-                      Affiliate
+                      Super Affiliate
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-[#a8d1fb]">
                       Wallet
@@ -494,7 +499,6 @@ const BulkAdjustment = () => {
                     const id = String(u?._id || "");
                     const isExpanded = expandedId === id;
                     const currency = u?.currency || "BDT";
-
                     const { gross, net } = computePreview(u);
                     const netType =
                       net > 0 ? "positive" : net < 0 ? "negative" : "zero";
@@ -509,18 +513,18 @@ const BulkAdjustment = () => {
                           }`}
                         >
                           <td className="px-6 py-5">
-                            <div className="flex items-center gap-4 min-w-0">
-                              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#63a8ee]/20 to-[#2f79c9]/20 border border-blue-300/15 shrink-0">
+                            <div className="flex min-w-0 items-center gap-4">
+                              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-blue-300/15 bg-gradient-to-br from-[#63a8ee]/20 to-[#2f79c9]/20">
                                 <FaUser className="text-[#8fc2f5]" />
                               </div>
 
                               <div className="min-w-0">
-                                <div className="font-bold text-white truncate">
+                                <div className="truncate font-bold text-white">
                                   {u?.fullName || "No name"}
                                 </div>
 
-                                <div className="text-sm text-blue-100/65 flex items-center gap-2 mt-1">
-                                  <FaIdCard className="text-xs shrink-0" />
+                                <div className="mt-1 flex items-center gap-2 text-sm text-blue-100/65">
+                                  <FaIdCard className="shrink-0 text-xs" />
                                   <span className="truncate">
                                     {u?.userId || "—"}
                                   </span>
@@ -543,7 +547,7 @@ const BulkAdjustment = () => {
 
                           <td className="px-6 py-5">
                             <span
-                              className={`inline-flex px-4 py-1.5 rounded-full text-sm font-bold border ${chipClass(
+                              className={`inline-flex rounded-full border px-4 py-1.5 text-sm font-bold ${chipClass(
                                 netType,
                               )}`}
                             >
@@ -554,19 +558,21 @@ const BulkAdjustment = () => {
                           <td className="px-6 py-5 text-right">
                             <div className="flex items-center justify-end gap-3">
                               <button
+                                type="button"
                                 onClick={() => openSingleAdjust(u)}
                                 disabled={adjusting}
-                                className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#63a8ee] to-[#2f79c9] hover:from-[#7bb7f1] hover:to-[#3b88db] text-white text-sm font-semibold border border-blue-300/20 shadow-lg shadow-blue-800/20 transition disabled:opacity-60"
+                                className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-blue-300/20 bg-gradient-to-r from-[#63a8ee] to-[#2f79c9] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-800/20 transition hover:from-[#7bb7f1] hover:to-[#3b88db] disabled:opacity-60"
                               >
                                 <FaBolt />
                                 Adjust
                               </button>
 
                               <button
+                                type="button"
                                 onClick={() =>
                                   setExpandedId(isExpanded ? "" : id)
                                 }
-                                className="cursor-pointer p-2.5 rounded-xl text-[#8fc2f5] hover:text-white hover:bg-white/5 transition"
+                                className="cursor-pointer rounded-xl p-2.5 text-[#8fc2f5] transition hover:bg-white/5 hover:text-white"
                               >
                                 {isExpanded ? (
                                   <FaChevronUp />
@@ -580,11 +586,11 @@ const BulkAdjustment = () => {
 
                         {isExpanded && (
                           <tr>
-                            <td colSpan={6} className="p-0 bg-black/25">
-                              <div className="p-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
+                            <td colSpan={6} className="bg-black/25 p-0">
+                              <div className="grid grid-cols-1 gap-6 p-6 xl:grid-cols-2">
                                 <div className="rounded-2xl border border-blue-200/10 bg-gradient-to-b from-black/50 to-[#2f79c9]/8 p-5">
-                                  <h3 className="text-base font-bold text-[#a8d1fb] mb-4">
-                                    Affiliate Information
+                                  <h3 className="mb-4 text-base font-bold text-[#a8d1fb]">
+                                    Super Affiliate Information
                                   </h3>
 
                                   <FieldRow
@@ -613,7 +619,7 @@ const BulkAdjustment = () => {
                                 </div>
 
                                 <div className="rounded-2xl border border-blue-200/10 bg-gradient-to-b from-black/50 to-[#2f79c9]/8 p-5">
-                                  <h3 className="text-base font-bold text-[#a8d1fb] mb-4">
+                                  <h3 className="mb-4 text-base font-bold text-[#a8d1fb]">
                                     Commission Breakdown
                                   </h3>
 
@@ -670,7 +676,7 @@ const BulkAdjustment = () => {
               </table>
             </div>
 
-            <div className="lg:hidden p-4 sm:p-5 space-y-4">
+            <div className="space-y-4 p-4 sm:p-5 lg:hidden">
               {rows.map((u) => {
                 const id = String(u?._id || "");
                 const isExpanded = expandedId === id;
@@ -682,30 +688,30 @@ const BulkAdjustment = () => {
                 return (
                   <div
                     key={id}
-                    className="rounded-3xl border border-blue-200/12 bg-gradient-to-b from-black/75 to-[#2f79c9]/10 overflow-hidden shadow-lg shadow-blue-900/10"
+                    className="overflow-hidden rounded-3xl border border-blue-200/12 bg-gradient-to-b from-black/75 to-[#2f79c9]/10 shadow-lg shadow-blue-900/10"
                   >
                     <div className="p-4">
                       <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#63a8ee]/20 to-[#2f79c9]/20 border border-blue-300/15 shrink-0">
+                        <div className="flex min-w-0 items-center gap-3">
+                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-blue-300/15 bg-gradient-to-br from-[#63a8ee]/20 to-[#2f79c9]/20">
                             <FaUser className="text-[#8fc2f5]" />
                           </div>
 
                           <div className="min-w-0">
-                            <div className="font-bold text-white truncate">
+                            <div className="truncate font-bold text-white">
                               {u?.fullName || "No name"}
                             </div>
-                            <div className="text-sm text-blue-100/65 truncate mt-1">
+                            <div className="mt-1 truncate text-sm text-blue-100/65">
                               ID: {u?.userId || "—"}
                             </div>
-                            <div className="text-sm text-blue-100/65 truncate">
+                            <div className="truncate text-sm text-blue-100/65">
                               {u?.phone || "—"}
                             </div>
                           </div>
                         </div>
 
                         <span
-                          className={`inline-flex px-3 py-1 rounded-full text-xs font-bold border shrink-0 ${chipClass(
+                          className={`inline-flex shrink-0 rounded-full border px-3 py-1 text-xs font-bold ${chipClass(
                             netType,
                           )}`}
                         >
@@ -713,35 +719,37 @@ const BulkAdjustment = () => {
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3 mt-4">
-                        <div className="rounded-2xl bg-black/35 border border-blue-200/10 p-3">
+                      <div className="mt-4 grid grid-cols-2 gap-3">
+                        <div className="rounded-2xl border border-blue-200/10 bg-black/35 p-3">
                           <div className="text-xs text-blue-100/60">Wallet</div>
-                          <div className="text-sm font-bold text-white mt-1">
+                          <div className="mt-1 text-sm font-bold text-white">
                             {money(u?.balance ?? 0, currency)}
                           </div>
                         </div>
 
-                        <div className="rounded-2xl bg-black/35 border border-blue-200/10 p-3">
+                        <div className="rounded-2xl border border-blue-200/10 bg-black/35 p-3">
                           <div className="text-xs text-blue-100/60">Gross</div>
-                          <div className="text-sm font-bold text-emerald-300 mt-1">
+                          <div className="mt-1 text-sm font-bold text-emerald-300">
                             {money(gross, currency)}
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3 mt-4">
+                      <div className="mt-4 flex items-center gap-3">
                         <button
+                          type="button"
                           onClick={() => openSingleAdjust(u)}
                           disabled={adjusting}
-                          className="cursor-pointer flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-gradient-to-r from-[#63a8ee] to-[#2f79c9] hover:from-[#7bb7f1] hover:to-[#3b88db] text-white text-sm font-semibold border border-blue-300/20 shadow-lg shadow-blue-800/20 transition disabled:opacity-60"
+                          className="inline-flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-2xl border border-blue-300/20 bg-gradient-to-r from-[#63a8ee] to-[#2f79c9] px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-800/20 transition hover:from-[#7bb7f1] hover:to-[#3b88db] disabled:opacity-60"
                         >
                           <FaBolt />
                           Adjust
                         </button>
 
                         <button
+                          type="button"
                           onClick={() => setExpandedId(isExpanded ? "" : id)}
-                          className="cursor-pointer px-4 py-3 rounded-2xl bg-black/35 border border-blue-200/10 text-[#8fc2f5] hover:text-white hover:bg-white/5 transition"
+                          className="cursor-pointer rounded-2xl border border-blue-200/10 bg-black/35 px-4 py-3 text-[#8fc2f5] transition hover:bg-white/5 hover:text-white"
                         >
                           {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
                         </button>
@@ -749,9 +757,9 @@ const BulkAdjustment = () => {
                     </div>
 
                     {isExpanded && (
-                      <div className="border-t border-blue-200/10 p-4 space-y-4 bg-black/20">
+                      <div className="space-y-4 border-t border-blue-200/10 bg-black/20 p-4">
                         <div className="rounded-2xl border border-blue-200/10 bg-black/25 p-4">
-                          <h3 className="text-sm font-bold text-[#a8d1fb] mb-3">
+                          <h3 className="mb-3 text-sm font-bold text-[#a8d1fb]">
                             User Info
                           </h3>
                           <FieldRow k="Full Name" v={u?.fullName || "—"} />
@@ -761,7 +769,7 @@ const BulkAdjustment = () => {
                         </div>
 
                         <div className="rounded-2xl border border-blue-200/10 bg-black/25 p-4">
-                          <h3 className="text-sm font-bold text-[#a8d1fb] mb-3">
+                          <h3 className="mb-3 text-sm font-bold text-[#a8d1fb]">
                             Adjustment Preview
                           </h3>
                           <FieldRow
@@ -804,8 +812,8 @@ const BulkAdjustment = () => {
             </div>
 
             {totalPages > 1 && (
-              <div className="px-6 py-5 border-t border-blue-200/10 flex flex-col sm:flex-row items-center justify-between gap-4 bg-black/25">
-                <div className="text-sm text-blue-100/70 order-2 sm:order-1">
+              <div className="flex flex-col items-center justify-between gap-4 border-t border-blue-200/10 bg-black/25 px-6 py-5 sm:flex-row">
+                <div className="order-2 text-sm text-blue-100/70 sm:order-1">
                   Showing{" "}
                   <strong className="text-white">
                     {(page - 1) * limit + 1}
@@ -817,11 +825,12 @@ const BulkAdjustment = () => {
                   of <strong className="text-white">{pagination.total}</strong>
                 </div>
 
-                <div className="flex items-center gap-3 order-1 sm:order-2">
+                <div className="order-1 flex items-center gap-3 sm:order-2">
                   <button
+                    type="button"
                     onClick={() => onPageChange(page - 1)}
                     disabled={page === 1 || refreshing}
-                    className="cursor-pointer px-5 py-2.5 rounded-xl bg-black/45 border border-blue-200/12 text-white disabled:opacity-40 hover:bg-white/5 transition"
+                    className="cursor-pointer rounded-xl border border-blue-200/12 bg-black/45 px-5 py-2.5 text-white transition hover:bg-white/5 disabled:opacity-40"
                   >
                     Previous
                   </button>
@@ -831,9 +840,10 @@ const BulkAdjustment = () => {
                   </span>
 
                   <button
+                    type="button"
                     onClick={() => onPageChange(page + 1)}
                     disabled={page === totalPages || refreshing}
-                    className="cursor-pointer px-5 py-2.5 rounded-xl bg-black/45 border border-blue-200/12 text-white disabled:opacity-40 hover:bg-white/5 transition"
+                    className="cursor-pointer rounded-xl border border-blue-200/12 bg-black/45 px-5 py-2.5 text-white transition hover:bg-white/5 disabled:opacity-40"
                   >
                     Next
                   </button>
@@ -846,7 +856,7 @@ const BulkAdjustment = () => {
 
       <ConfirmModal
         open={singleModal.open}
-        title={`Adjust: ${singleModal.user?.userId || "Affiliate User"}`}
+        title={`Adjust: ${singleModal.user?.userId || "Super Affiliate User"}`}
         desc={
           singleModal.user
             ? (() => {
@@ -869,11 +879,11 @@ const BulkAdjustment = () => {
 
       <ConfirmModal
         open={allModal}
-        title="Adjust ALL Affiliates?"
+        title="Adjust ALL Super Affiliates?"
         desc={
           q
-            ? `This will process all affiliates matching: "${q}". Net amounts will be added to balance.`
-            : "This action will process all affiliate users. Net amounts will be added to balance and all source balances will reset to 0."
+            ? `This will process all super affiliates matching: "${q}". Net amounts will be added to balance.`
+            : "This action will process all super affiliate users. Net amounts will be added to balance and all source balances will reset to 0."
         }
         confirmText="Confirm Adjust All"
         loading={adjusting}
@@ -884,4 +894,4 @@ const BulkAdjustment = () => {
   );
 };
 
-export default BulkAdjustment;
+export default SuperBulkAdjustment;

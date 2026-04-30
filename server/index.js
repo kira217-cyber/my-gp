@@ -36,6 +36,10 @@ import autoPersonalDepositRoutes from "./routes/autoPersonalDepositRoutes.js";
 import adminReferRedeemRoutes from "./routes/adminReferRedeemRoutes.js";
 import userReferRedeemRoutes from "./routes/userReferRedeemRoutes.js";
 import superAffiliateRoutes from "./routes/superAffiliateRoutes.js";
+import superBulkAdjustmentRoutes from "./routes/superBulkAdjustmentRoutes.js";
+import superAffWithdrawMethodsRoutes from "./routes/superAffWithdrawMethodsRoutes.js";
+import superAffWithdrawRequestesRoutes from "./routes/superAffWithdrawRequestesRoutes.js";
+import registerBonusRoutes from "./routes/registerBonusRoutes.js";
 
 
 dotenv.config();
@@ -84,6 +88,10 @@ app.use("/api/auto-personal-deposit", autoPersonalDepositRoutes);
 app.use("/api/admin/refer-redeem", adminReferRedeemRoutes);
 app.use("/api/user/refer-redeem", protectUser, userReferRedeemRoutes);
 app.use("/api/super-affiliate", superAffiliateRoutes);
+app.use("/api/admin", superBulkAdjustmentRoutes);
+app.use("/api", superAffWithdrawMethodsRoutes);
+app.use("/api", superAffWithdrawRequestesRoutes);
+app.use("/api", registerBonusRoutes);
 
 // route
 app.get("/", (req, res) => {

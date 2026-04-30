@@ -314,10 +314,10 @@ const Dashboard = () => {
         <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#8fc2f5] to-white bg-clip-text text-transparent">
-              Affiliate Dashboard
+              Master Affiliate Dashboard
             </h1>
             <p className="text-blue-100/75 mt-2">
-              Welcome back! Here's your performance overview
+              Welcome back! Here's your master affiliate performance overview
             </p>
           </div>
 

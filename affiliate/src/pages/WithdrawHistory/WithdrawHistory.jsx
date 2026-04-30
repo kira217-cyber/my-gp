@@ -13,9 +13,12 @@ import {
 
 import { api } from "../../api/axios";
 import {
-  selectAuth,
   selectUser,
+  selectIsAuthenticated,
+  selectIsAffUser,
 } from "../../features/auth/authSelectors";
+
+const getUserId = (user) => user?._id || user?.id || "";
 
 const symbolByCurrency = (c) =>
   String(c || "BDT").toUpperCase() === "USDT" ? "$" : "৳";
@@ -23,6 +26,7 @@ const symbolByCurrency = (c) =>
 const formatMoney = (n, sym = "৳") => {
   const num = Number(n || 0);
   if (!Number.isFinite(num)) return `${sym} 0.00`;
+
   return `${sym} ${num.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -31,12 +35,15 @@ const formatMoney = (n, sym = "৳") => {
 
 const chip = (status) => {
   const s = String(status || "pending");
+
   if (s === "approved") {
     return "bg-emerald-500/15 text-emerald-200 border-emerald-400/30";
   }
+
   if (s === "rejected") {
     return "bg-red-500/15 text-red-200 border-red-400/30";
   }
+
   return "bg-amber-500/15 text-amber-200 border-amber-400/30";
 };
 
@@ -44,7 +51,7 @@ const cardBase =
   "rounded-3xl border border-blue-200/15 bg-gradient-to-br from-black via-[#2f79c9]/15 to-black shadow-2xl shadow-blue-900/30 overflow-hidden";
 
 const btnSecondary =
-  "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-semibold bg-black/35 text-blue-100 border border-blue-200/15 hover:bg-black/55 transition disabled:opacity-60 disabled:cursor-not-allowed";
+  "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-semibold bg-black/35 text-blue-100 border border-blue-200/15 hover:bg-black/55 transition disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer";
 
 const StatCard = ({ icon, title, value, sub }) => (
   <div className="rounded-2xl border border-blue-200/12 bg-black/25 p-4">
@@ -52,9 +59,12 @@ const StatCard = ({ icon, title, value, sub }) => (
       <div>
         <div className="text-sm text-blue-100/60">{title}</div>
         <div className="mt-1 text-xl font-extrabold text-white">{value}</div>
-        {sub ? <div className="mt-1 text-xs text-blue-100/45">{sub}</div> : null}
+        {sub ? (
+          <div className="mt-1 text-xs text-blue-100/45">{sub}</div>
+        ) : null}
       </div>
-      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#2f79c9]/20 border border-blue-300/10 text-[#8fc2f5]">
+
+      <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-blue-300/10 bg-[#2f79c9]/20 text-[#8fc2f5]">
         {icon}
       </div>
     </div>
@@ -64,9 +74,12 @@ const StatCard = ({ icon, title, value, sub }) => (
 const WithdrawHistory = () => {
   const navigate = useNavigate();
 
-  const auth = useSelector(selectAuth);
-  const token = auth?.token;
   const user = useSelector(selectUser);
+  const isAuthed = useSelector(selectIsAuthenticated);
+  const isAffUser = useSelector(selectIsAffUser);
+
+  const userId = getUserId(user);
+  const accountOk = !!isAuthed && !!userId && isAffUser;
 
   const currency = user?.currency || "BDT";
   const sym = useMemo(() => symbolByCurrency(currency), [currency]);
@@ -99,7 +112,7 @@ const WithdrawHistory = () => {
   }, [items]);
 
   const fetchData = async (page = 1) => {
-    if (!token) {
+    if (!accountOk) {
       setItems([]);
       setMeta((m) => ({ ...m, page: 1, total: 0 }));
       return;
@@ -108,18 +121,22 @@ const WithdrawHistory = () => {
     try {
       setLoading(true);
 
-      const params = { page, limit: meta.limit };
+      const params = {
+        userId,
+        page,
+        limit: meta.limit,
+      };
+
       if (status !== "all") params.status = status;
 
       const { data } = await api.get("/api/aff-withdraw-requests/my", {
         params,
-        headers: { Authorization: `Bearer ${token}` },
       });
 
-      const rows = data?.data || [];
+      const rows = Array.isArray(data?.data) ? data.data : [];
       const total = data?.meta?.total ?? rows.length;
 
-      setItems(Array.isArray(rows) ? rows : []);
+      setItems(rows);
       setMeta((m) => ({
         ...m,
         page: data?.meta?.page || page,
@@ -127,7 +144,9 @@ const WithdrawHistory = () => {
         total,
       }));
     } catch (e) {
-      toast.error(e?.response?.data?.message || "Failed to load withdraw history");
+      toast.error(
+        e?.response?.data?.message || "Failed to load withdraw history",
+      );
       setItems([]);
     } finally {
       setLoading(false);
@@ -137,7 +156,7 @@ const WithdrawHistory = () => {
   useEffect(() => {
     fetchData(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [userId, accountOk]);
 
   useEffect(() => {
     fetchData(1);
@@ -149,19 +168,20 @@ const WithdrawHistory = () => {
       <div className="mx-auto max-w-7xl">
         <div className={cardBase}>
           <div className="border-b border-blue-200/10 bg-gradient-to-r from-black/70 via-[#2f79c9]/45 to-black/70 px-5 py-5 sm:px-6 sm:py-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <div className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+                <div className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
                   Withdraw History
                 </div>
                 <div className="mt-1 text-sm text-blue-100/75">
-                  Your previous withdraw requests
+                  Your previous affiliate withdraw requests
                 </div>
               </div>
 
               <button
+                type="button"
                 onClick={() => fetchData(meta.page)}
-                disabled={loading}
+                disabled={loading || !accountOk}
                 className={btnSecondary}
               >
                 <FaSyncAlt className={loading ? "animate-spin" : ""} />
@@ -171,7 +191,29 @@ const WithdrawHistory = () => {
           </div>
 
           <div className="p-5 sm:p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+            {!isAuthed && (
+              <div className="mb-5 rounded-2xl border border-amber-400/25 bg-amber-500/10 p-4">
+                <div className="text-sm font-extrabold text-amber-200">
+                  Login Required
+                </div>
+                <div className="mt-1 text-sm text-amber-100/85">
+                  Please login to view withdraw history.
+                </div>
+              </div>
+            )}
+
+            {isAuthed && !isAffUser && (
+              <div className="mb-5 rounded-2xl border border-red-400/25 bg-red-500/10 p-4">
+                <div className="text-sm font-extrabold text-red-200">
+                  Access Denied
+                </div>
+                <div className="mt-1 text-sm text-red-100/85">
+                  Only affiliate users can view withdraw history.
+                </div>
+              </div>
+            )}
+
+            <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
               <StatCard
                 icon={<FaListAlt />}
                 title="Total Requests"
@@ -198,15 +240,17 @@ const WithdrawHistory = () => {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-[220px_1fr]">
               <div className="flex items-center gap-2">
                 <div className="text-sm font-extrabold text-blue-100/80">
                   Status
                 </div>
+
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
-                  className="cursor-pointer w-full py-3 px-4 rounded-2xl bg-black/45 border border-blue-200/15 text-white outline-none focus:ring-2 focus:ring-[#63a8ee]/30 focus:border-[#63a8ee]"
+                  disabled={!accountOk}
+                  className="w-full cursor-pointer rounded-2xl border border-blue-200/15 bg-black/45 px-4 py-3 text-white outline-none focus:border-[#63a8ee] focus:ring-2 focus:ring-[#63a8ee]/30 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <option value="all">All</option>
                   <option value="pending">Pending</option>
@@ -215,7 +259,7 @@ const WithdrawHistory = () => {
                 </select>
               </div>
 
-              <div className="flex items-center justify-between rounded-2xl bg-black/25 border border-blue-200/10 px-4 py-3">
+              <div className="flex items-center justify-between rounded-2xl border border-blue-200/10 bg-black/25 px-4 py-3">
                 <div className="text-sm text-blue-100/60">Total</div>
                 <div className="text-sm font-extrabold text-white">
                   {meta.total || 0}
@@ -223,7 +267,7 @@ const WithdrawHistory = () => {
               </div>
             </div>
 
-            <div className="mt-6 hidden md:block rounded-3xl border border-blue-200/10 overflow-hidden">
+            <div className="mt-6 hidden overflow-hidden rounded-3xl border border-blue-200/10 md:block">
               <div className="overflow-x-auto">
                 <table className="min-w-[900px] w-full">
                   <thead className="bg-black/45">
@@ -249,7 +293,10 @@ const WithdrawHistory = () => {
                   <tbody className="bg-black/20">
                     {loading ? (
                       <tr>
-                        <td colSpan={5} className="px-5 py-12 text-center text-blue-100/60">
+                        <td
+                          colSpan={5}
+                          className="px-5 py-12 text-center text-blue-100/60"
+                        >
                           Loading...
                         </td>
                       </tr>
@@ -263,7 +310,7 @@ const WithdrawHistory = () => {
                         return (
                           <tr
                             key={r._id}
-                            className="border-t border-blue-200/10 hover:bg-[#2f79c9]/8 transition"
+                            className="border-t border-blue-200/10 transition hover:bg-[#2f79c9]/8"
                           >
                             <td className="px-5 py-4">
                               <div className="text-sm font-extrabold text-white">
@@ -279,7 +326,7 @@ const WithdrawHistory = () => {
 
                             <td className="px-5 py-4">
                               <span
-                                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold border ${chip(
+                                className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-extrabold ${chip(
                                   st,
                                 )}`}
                               >
@@ -293,8 +340,11 @@ const WithdrawHistory = () => {
 
                             <td className="px-5 py-4">
                               <button
+                                type="button"
                                 onClick={() =>
-                                  navigate(`/dashboard/withdraw-history/${r._id}`)
+                                  navigate(
+                                    `/dashboard/withdraw-history/${r._id}`,
+                                  )
                                 }
                                 className={btnSecondary}
                               >
@@ -307,7 +357,10 @@ const WithdrawHistory = () => {
                       })
                     ) : (
                       <tr>
-                        <td colSpan={5} className="px-5 py-12 text-center text-blue-100/55">
+                        <td
+                          colSpan={5}
+                          className="px-5 py-12 text-center text-blue-100/55"
+                        >
                           No withdraw history found.
                         </td>
                       </tr>
@@ -317,9 +370,9 @@ const WithdrawHistory = () => {
               </div>
             </div>
 
-            <div className="mt-6 md:hidden space-y-4">
+            <div className="mt-6 space-y-4 md:hidden">
               {loading ? (
-                <div className="p-5 rounded-3xl border border-blue-200/10 bg-black/25 text-sm text-blue-100/60 text-center">
+                <div className="rounded-3xl border border-blue-200/10 bg-black/25 p-5 text-center text-sm text-blue-100/60">
                   Loading...
                 </div>
               ) : items.length ? (
@@ -339,11 +392,13 @@ const WithdrawHistory = () => {
                           <div className="text-sm font-extrabold text-white">
                             {String(r?.methodId || "—").toUpperCase()}
                           </div>
-                          <div className="mt-1 text-xs text-blue-100/60">{dt}</div>
+                          <div className="mt-1 text-xs text-blue-100/60">
+                            {dt}
+                          </div>
                         </div>
 
                         <span
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-extrabold border ${chip(
+                          className={`inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-extrabold ${chip(
                             st,
                           )}`}
                         >
@@ -356,6 +411,7 @@ const WithdrawHistory = () => {
                       </div>
 
                       <button
+                        type="button"
                         onClick={() =>
                           navigate(`/dashboard/withdraw-history/${r._id}`)
                         }
@@ -368,41 +424,40 @@ const WithdrawHistory = () => {
                   );
                 })
               ) : (
-                <div className="p-5 rounded-3xl border border-blue-200/10 bg-black/25 text-sm text-blue-100/55 text-center">
+                <div className="rounded-3xl border border-blue-200/10 bg-black/25 p-5 text-center text-sm text-blue-100/55">
                   No withdraw history found.
                 </div>
               )}
             </div>
 
-            <div className="mt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-sm text-blue-100/65">
-                Page <span className="font-extrabold text-white">{meta.page}</span> of{" "}
+                Page{" "}
+                <span className="font-extrabold text-white">{meta.page}</span>{" "}
+                of{" "}
                 <span className="font-extrabold text-white">{pageCount}</span>
               </div>
 
               <div className="flex items-center gap-3">
                 <button
+                  type="button"
                   onClick={() => fetchData(Math.max(1, meta.page - 1))}
-                  disabled={meta.page <= 1 || loading}
+                  disabled={meta.page <= 1 || loading || !accountOk}
                   className={btnSecondary}
                 >
                   Prev
                 </button>
+
                 <button
+                  type="button"
                   onClick={() => fetchData(Math.min(pageCount, meta.page + 1))}
-                  disabled={meta.page >= pageCount || loading}
+                  disabled={meta.page >= pageCount || loading || !accountOk}
                   className={btnSecondary}
                 >
                   Next
                 </button>
               </div>
             </div>
-
-            {!token && (
-              <div className="mt-4 text-sm text-blue-100/65">
-                You are not logged in. Please login to view withdraw history.
-              </div>
-            )}
           </div>
         </div>
       </div>

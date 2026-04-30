@@ -2,7 +2,9 @@ import express from "express";
 import fs from "fs";
 import path from "path";
 import multer from "multer";
+import mongoose from "mongoose";
 import AffWithdrawMethod from "../models/AffWithdrawMethod.js";
+import User from "../models/User.js";
 
 const router = express.Router();
 
@@ -34,7 +36,8 @@ const storage = multer.diskStorage({
   },
   filename: function (_req, file, cb) {
     const ext = path.extname(file.originalname || "").toLowerCase();
-    cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`);
+    const safeExt = allowedExt.includes(ext) ? ext : ".bin";
+    cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${safeExt}`);
   },
 });
 
@@ -82,6 +85,58 @@ const normalizeFields = (fields = []) => {
   }));
 };
 
+const getOwnerId = (req) => {
+  return (
+    req.body?.ownerId ||
+    req.body?.superAffiliateId ||
+    req.query?.ownerId ||
+    req.query?.superAffiliateId ||
+    null
+  );
+};
+
+const validateOwner = async (ownerId) => {
+  if (!ownerId || !mongoose.isValidObjectId(ownerId)) {
+    return {
+      ok: false,
+      message: "Valid super affiliate ownerId is required",
+      owner: null,
+    };
+  }
+
+  const owner = await User.findById(ownerId).select("_id role isActive").lean();
+
+  if (!owner) {
+    return {
+      ok: false,
+      message: "Super affiliate user not found",
+      owner: null,
+    };
+  }
+
+  if (owner.role !== "super-aff-user") {
+    return {
+      ok: false,
+      message: "Only super-aff-user can manage affiliate withdraw methods",
+      owner: null,
+    };
+  }
+
+  if (!owner.isActive) {
+    return {
+      ok: false,
+      message: "Super affiliate user is inactive",
+      owner: null,
+    };
+  }
+
+  return {
+    ok: true,
+    message: "",
+    owner,
+  };
+};
+
 const validateMethod = ({
   methodId,
   name,
@@ -89,7 +144,9 @@ const validateMethod = ({
   minimumWithdrawAmount,
   maximumWithdrawAmount,
 }) => {
-  const mid = String(methodId || "").trim().toUpperCase();
+  const mid = String(methodId || "")
+    .trim()
+    .toUpperCase();
 
   if (!mid) return "Method ID is required";
 
@@ -120,9 +177,11 @@ const validateMethod = ({
     if (!key) return "Field key is required";
 
     const lowerKey = key.toLowerCase();
+
     if (seen.has(lowerKey)) {
       return `Duplicate field key found: ${key}`;
     }
+
     seen.add(lowerKey);
 
     if (!field?.label?.bn || !field?.label?.en) {
@@ -134,12 +193,52 @@ const validateMethod = ({
 };
 
 /**
- * PUBLIC
- * GET /api/aff-withdraw-methods
+ * PUBLIC / AFF USER
+ * GET /api/aff-withdraw-methods?userId=AFF_USER_ID
+ *
+ * aff-user jar referredBy super-aff-user,
+ * shudhu oi super-aff-user er withdraw methods dekhbe.
  */
-router.get("/aff-withdraw-methods", async (_req, res) => {
+router.get("/aff-withdraw-methods", async (req, res) => {
   try {
-    const methods = await AffWithdrawMethod.find({ isActive: true })
+    const userId = req.query?.userId;
+
+    if (!userId || !mongoose.isValidObjectId(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Valid userId is required",
+      });
+    }
+
+    const user = await User.findById(userId)
+      .select("_id role isActive referredBy")
+      .lean();
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Affiliate user not found",
+      });
+    }
+
+    if (user.role !== "aff-user") {
+      return res.status(403).json({
+        success: false,
+        message: "Only aff-user can see affiliate withdraw methods",
+      });
+    }
+
+    if (!user.referredBy) {
+      return res.json({
+        success: true,
+        data: [],
+      });
+    }
+
+    const methods = await AffWithdrawMethod.find({
+      owner: user.referredBy,
+      isActive: true,
+    })
       .sort({ createdAt: -1 })
       .lean();
 
@@ -157,16 +256,32 @@ router.get("/aff-withdraw-methods", async (_req, res) => {
 });
 
 /**
- * ADMIN LIST
- * GET /api/admin/aff-withdraw-methods
+ * SUPER AFFILIATE LIST
+ * GET /api/admin/aff-withdraw-methods?ownerId=SUPER_AFF_USER_ID
  */
-router.get("/admin/aff-withdraw-methods", async (_req, res) => {
+router.get("/admin/aff-withdraw-methods", async (req, res) => {
   try {
-    const methods = await AffWithdrawMethod.find({})
+    const ownerId = getOwnerId(req);
+
+    const ownerCheck = await validateOwner(ownerId);
+
+    if (!ownerCheck.ok) {
+      return res.status(400).json({
+        success: false,
+        message: ownerCheck.message,
+      });
+    }
+
+    const methods = await AffWithdrawMethod.find({
+      owner: ownerCheck.owner._id,
+    })
       .sort({ createdAt: -1 })
       .lean();
 
-    return res.json(methods);
+    return res.json({
+      success: true,
+      data: methods,
+    });
   } catch (err) {
     console.error("admin aff-withdraw-methods list error:", err);
     return res.status(500).json({
@@ -177,19 +292,46 @@ router.get("/admin/aff-withdraw-methods", async (_req, res) => {
 });
 
 /**
- * ADMIN CREATE
+ * SUPER AFFILIATE CREATE
  * POST /api/admin/aff-withdraw-methods
+ *
+ * FormData:
+ * ownerId = super-aff-user _id
+ * methodId
+ * name = JSON.stringify({bn,en})
+ * fields = JSON.stringify([...])
+ * minimumWithdrawAmount
+ * maximumWithdrawAmount
+ * isActive
+ * logo
  */
 router.post(
   "/admin/aff-withdraw-methods",
   upload.single("logo"),
   async (req, res) => {
     try {
-      const methodId = String(req.body?.methodId || "").trim().toUpperCase();
+      const ownerId = getOwnerId(req);
+
+      const ownerCheck = await validateOwner(ownerId);
+
+      if (!ownerCheck.ok) {
+        return res.status(400).json({
+          success: false,
+          message: ownerCheck.message,
+        });
+      }
+
+      const methodId = String(req.body?.methodId || "")
+        .trim()
+        .toUpperCase();
       const name = parseJSON(req.body?.name, {});
       const fields = normalizeFields(parseJSON(req.body?.fields, []));
-      const minimumWithdrawAmount = Number(req.body?.minimumWithdrawAmount || 0);
-      const maximumWithdrawAmount = Number(req.body?.maximumWithdrawAmount || 0);
+      const minimumWithdrawAmount = Number(
+        req.body?.minimumWithdrawAmount || 0,
+      );
+      const maximumWithdrawAmount = Number(
+        req.body?.maximumWithdrawAmount || 0,
+      );
       const isActive = String(req.body?.isActive) !== "false";
 
       const error = validateMethod({
@@ -207,11 +349,15 @@ router.post(
         });
       }
 
-      const exists = await AffWithdrawMethod.findOne({ methodId });
+      const exists = await AffWithdrawMethod.findOne({
+        owner: ownerCheck.owner._id,
+        methodId,
+      });
+
       if (exists) {
         return res.status(400).json({
           success: false,
-          message: "Method ID already exists",
+          message: "Method ID already exists for this super affiliate",
         });
       }
 
@@ -220,6 +366,7 @@ router.post(
         : "";
 
       const doc = await AffWithdrawMethod.create({
+        owner: ownerCheck.owner._id,
         methodId,
         name: {
           bn: String(name?.bn || "").trim(),
@@ -239,6 +386,14 @@ router.post(
       });
     } catch (err) {
       console.error("create aff-withdraw-method error:", err);
+
+      if (err?.code === 11000) {
+        return res.status(400).json({
+          success: false,
+          message: "Method ID already exists for this super affiliate",
+        });
+      }
+
       return res.status(500).json({
         success: false,
         message: "Server error",
@@ -248,8 +403,10 @@ router.post(
 );
 
 /**
- * ADMIN UPDATE
+ * SUPER AFFILIATE UPDATE
  * PUT /api/admin/aff-withdraw-methods/:id
+ *
+ * ownerId required
  */
 router.put(
   "/admin/aff-withdraw-methods/:id",
@@ -257,20 +414,47 @@ router.put(
   async (req, res) => {
     try {
       const { id } = req.params;
+      const ownerId = getOwnerId(req);
 
-      const doc = await AffWithdrawMethod.findById(id);
-      if (!doc) {
-        return res.status(404).json({
+      if (!mongoose.isValidObjectId(id)) {
+        return res.status(400).json({
           success: false,
-          message: "Withdraw method not found",
+          message: "Invalid method id",
         });
       }
 
-      const methodId = String(req.body?.methodId || "").trim().toUpperCase();
+      const ownerCheck = await validateOwner(ownerId);
+
+      if (!ownerCheck.ok) {
+        return res.status(400).json({
+          success: false,
+          message: ownerCheck.message,
+        });
+      }
+
+      const doc = await AffWithdrawMethod.findOne({
+        _id: id,
+        owner: ownerCheck.owner._id,
+      });
+
+      if (!doc) {
+        return res.status(404).json({
+          success: false,
+          message: "Withdraw method not found for this super affiliate",
+        });
+      }
+
+      const methodId = String(req.body?.methodId || "")
+        .trim()
+        .toUpperCase();
       const name = parseJSON(req.body?.name, {});
       const fields = normalizeFields(parseJSON(req.body?.fields, []));
-      const minimumWithdrawAmount = Number(req.body?.minimumWithdrawAmount || 0);
-      const maximumWithdrawAmount = Number(req.body?.maximumWithdrawAmount || 0);
+      const minimumWithdrawAmount = Number(
+        req.body?.minimumWithdrawAmount || 0,
+      );
+      const maximumWithdrawAmount = Number(
+        req.body?.maximumWithdrawAmount || 0,
+      );
       const isActive = String(req.body?.isActive) !== "false";
 
       const error = validateMethod({
@@ -289,6 +473,7 @@ router.put(
       }
 
       const exists = await AffWithdrawMethod.findOne({
+        owner: ownerCheck.owner._id,
         methodId,
         _id: { $ne: id },
       });
@@ -296,7 +481,7 @@ router.put(
       if (exists) {
         return res.status(400).json({
           success: false,
-          message: "Method ID already exists",
+          message: "Method ID already exists for this super affiliate",
         });
       }
 
@@ -323,6 +508,14 @@ router.put(
       });
     } catch (err) {
       console.error("update aff-withdraw-method error:", err);
+
+      if (err?.code === 11000) {
+        return res.status(400).json({
+          success: false,
+          message: "Method ID already exists for this super affiliate",
+        });
+      }
+
       return res.status(500).json({
         success: false,
         message: "Server error",
@@ -332,19 +525,39 @@ router.put(
 );
 
 /**
- * ADMIN DELETE
- * DELETE /api/admin/aff-withdraw-methods/:id
+ * SUPER AFFILIATE DELETE
+ * DELETE /api/admin/aff-withdraw-methods/:id?ownerId=SUPER_AFF_USER_ID
  */
 router.delete("/admin/aff-withdraw-methods/:id", async (req, res) => {
   try {
     const { id } = req.params;
+    const ownerId = getOwnerId(req);
 
-    const doc = await AffWithdrawMethod.findByIdAndDelete(id);
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid method id",
+      });
+    }
+
+    const ownerCheck = await validateOwner(ownerId);
+
+    if (!ownerCheck.ok) {
+      return res.status(400).json({
+        success: false,
+        message: ownerCheck.message,
+      });
+    }
+
+    const doc = await AffWithdrawMethod.findOneAndDelete({
+      _id: id,
+      owner: ownerCheck.owner._id,
+    });
 
     if (!doc) {
       return res.status(404).json({
         success: false,
-        message: "Withdraw method not found",
+        message: "Withdraw method not found for this super affiliate",
       });
     }
 

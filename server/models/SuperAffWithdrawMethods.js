@@ -48,19 +48,12 @@ const FieldSchema = new mongoose.Schema(
   { _id: false },
 );
 
-const AffWithdrawMethodSchema = new mongoose.Schema(
+const SuperAffWithdrawMethodSchema = new mongoose.Schema(
   {
-    // ✅ kon super-aff-user ei method create koreche
-    owner: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      default: null,
-      index: true,
-    },
-
     methodId: {
       type: String,
       required: true,
+      unique: true,
       uppercase: true,
       trim: true,
       index: true,
@@ -111,12 +104,10 @@ const AffWithdrawMethodSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-// ✅ same super-aff-user er under same methodId duplicate hobe na
-// owner null thakle old/global data support korbe
-AffWithdrawMethodSchema.index({ owner: 1, methodId: 1 }, { unique: true });
+SuperAffWithdrawMethodSchema.index({ isActive: 1, createdAt: -1 });
 
-const AffWithdrawMethod =
-  mongoose.models.AffWithdrawMethod ||
-  mongoose.model("AffWithdrawMethod", AffWithdrawMethodSchema);
+const SuperAffWithdrawMethod =
+  mongoose.models.SuperAffWithdrawMethod ||
+  mongoose.model("SuperAffWithdrawMethod", SuperAffWithdrawMethodSchema);
 
-export default AffWithdrawMethod;
+export default SuperAffWithdrawMethod;

@@ -10,9 +10,9 @@ import { useNavigate } from "react-router";
 import { useSelector } from "react-redux";
 import { api } from "../../api/axios";
 import {
-  selectAuth,
   selectIsAuthenticated,
   selectUser,
+  selectIsAffUser,
 } from "../../features/auth/authSelectors";
 
 const card =
@@ -24,7 +24,19 @@ const inputCls =
   "mt-2 w-full h-[46px] rounded-2xl border border-blue-200/15 bg-black/45 px-4 text-sm text-white outline-none placeholder-blue-100/35 focus:border-[#63a8ee] focus:ring-2 focus:ring-[#63a8ee]/30 transition-all";
 
 const btnSecondary =
-  "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-semibold bg-black/35 text-blue-100 border border-blue-200/15 hover:bg-black/55 transition disabled:opacity-60 disabled:cursor-not-allowed";
+  "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-semibold bg-black/35 text-blue-100 border border-blue-200/15 hover:bg-black/55 transition disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer";
+
+const getUserId = (user) => user?._id || user?.id || "";
+
+const getAssetUrl = (url = "") => {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url;
+
+  const base = import.meta.env.VITE_API_URL || "";
+  const clean = url.startsWith("/") ? url : `/${url}`;
+
+  return `${base}${clean}`;
+};
 
 const symbolByCurrency = (currency = "BDT") =>
   String(currency).toUpperCase() === "USDT" ? "$" : "৳";
@@ -44,16 +56,12 @@ const formatMoney = (value, currency = "BDT") => {
 const Withdraw = () => {
   const navigate = useNavigate();
 
-  const auth = useSelector(selectAuth);
-  const token = auth?.token;
-
   const isAuthed = useSelector(selectIsAuthenticated);
+  const isAffUser = useSelector(selectIsAffUser);
   const me = useSelector(selectUser);
 
-  const headers = useMemo(
-    () => (token ? { Authorization: `Bearer ${token}` } : {}),
-    [token],
-  );
+  const userId = getUserId(me);
+  const accountOk = !!isAuthed && !!userId && isAffUser;
 
   const notices = useMemo(
     () => [
@@ -63,7 +71,7 @@ const Withdraw = () => {
       },
       {
         title: "Use Official Withdrawal Method",
-        body: "শুধু system-এর official withdraw method ব্যবহার করুন।",
+        body: "শুধু আপনার super affiliate-এর official withdraw method ব্যবহার করুন।",
       },
       {
         title: "Correct Account Information",
@@ -88,28 +96,35 @@ const Withdraw = () => {
   const [amount, setAmount] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const accountOk = !!token && !!isAuthed;
-
   const loadMethods = async () => {
+    if (!accountOk) {
+      setMethods([]);
+      return;
+    }
+
     try {
       setLoadingMethods(true);
-      const res = await api.get("/api/aff-withdraw-methods");
+
+      const res = await api.get(`/api/aff-withdraw-methods?userId=${userId}`);
+
       const rows = res?.data?.data || res?.data || [];
       setMethods(Array.isArray(rows) ? rows : []);
     } catch (e) {
       setMethods([]);
-      console.error(e);
+      toast.error(e?.response?.data?.message || "Failed to load methods");
     } finally {
       setLoadingMethods(false);
     }
   };
 
   const loadEligibility = async () => {
-    if (!token) {
+    if (!accountOk) {
       setElig({
         eligible: false,
         remaining: 0,
-        message: "Please login to withdraw.",
+        message: !isAuthed
+          ? "Please login to withdraw."
+          : "Only affiliate users can withdraw.",
       });
       return;
     }
@@ -117,9 +132,9 @@ const Withdraw = () => {
     try {
       setEligLoading(true);
 
-      const { data } = await api.get("/api/aff-withdraw-requests/eligibility", {
-        headers,
-      });
+      const { data } = await api.get(
+        `/api/aff-withdraw-requests/eligibility?userId=${userId}`,
+      );
 
       const payload = data?.data || data || {};
 
@@ -141,23 +156,13 @@ const Withdraw = () => {
 
   useEffect(() => {
     loadMethods();
-  }, []);
-
-  useEffect(() => {
-    if (token) {
-      loadEligibility();
-    } else {
-      setElig({
-        eligible: false,
-        remaining: 0,
-        message: "Please login to withdraw.",
-      });
-    }
+    loadEligibility();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [userId, accountOk]);
 
   const selectedMethod = useMemo(() => {
     if (!methods.length) return null;
+
     return (
       methods.find((m) => String(m.methodId) === String(selectedId)) || null
     );
@@ -167,15 +172,28 @@ const Withdraw = () => {
     if (!selectedId && methods.length) {
       setSelectedId(methods[0]?.methodId || "");
     }
+
+    if (selectedId && methods.length) {
+      const exists = methods.some(
+        (m) => String(m.methodId) === String(selectedId),
+      );
+      if (!exists) {
+        setSelectedId(methods[0]?.methodId || "");
+      }
+    }
   }, [methods, selectedId]);
 
   useEffect(() => {
-    if (!selectedMethod) return;
+    if (!selectedMethod) {
+      setFormValues({});
+      return;
+    }
 
     const next = {};
     (selectedMethod.fields || []).forEach((f) => {
       next[f.key] = "";
     });
+
     setFormValues(next);
   }, [selectedMethod?._id]);
 
@@ -213,21 +231,28 @@ const Withdraw = () => {
     }
 
     if (amountNum < Number(min)) {
-      return `Minimum withdraw amount is ${formatMoney(min)}.`;
+      return `Minimum withdraw amount is ${formatMoney(
+        min,
+        me?.currency || "BDT",
+      )}.`;
     }
 
     if (hasMax && amountNum > Number(max)) {
-      return `Maximum withdraw amount is ${formatMoney(max)}.`;
+      return `Maximum withdraw amount is ${formatMoney(
+        max,
+        me?.currency || "BDT",
+      )}.`;
     }
 
     if (amountNum > Number(elig.remaining || 0)) {
       return `You cannot withdraw more than ${formatMoney(
         elig.remaining || 0,
+        me?.currency || "BDT",
       )}.`;
     }
 
     return "";
-  }, [amount, amountNum, min, max, hasMax, elig.remaining]);
+  }, [amount, amountNum, min, max, hasMax, elig.remaining, me?.currency]);
 
   const fieldErrors = useMemo(() => {
     const errs = {};
@@ -292,6 +317,7 @@ const Withdraw = () => {
     if (!canSubmit || submitting) return;
 
     const payload = {
+      userId,
       methodId: selectedMethod?.methodId,
       amount: amountNum,
       fields: { ...formValues },
@@ -300,7 +326,7 @@ const Withdraw = () => {
     try {
       setSubmitting(true);
 
-      await api.post("/api/aff-withdraw-requests", payload, { headers });
+      await api.post("/api/aff-withdraw-requests", payload);
 
       toast.success("Withdraw request submitted!");
       navigate("/dashboard/withdraw-history");
@@ -324,12 +350,12 @@ const Withdraw = () => {
 
   return (
     <div className="p-4 lg:p-6">
-      <div className="mx-auto max-w-7xl grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-6">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 xl:grid-cols-[1fr_320px]">
         <div className={card}>
           <div className="border-b border-blue-200/10 bg-gradient-to-r from-black/70 via-[#2f79c9]/45 to-black/70 px-5 py-5 sm:px-6 sm:py-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <div className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+                <div className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
                   Withdraw
                 </div>
                 <div className="mt-1 text-sm text-blue-100/75">
@@ -339,24 +365,42 @@ const Withdraw = () => {
 
               <button
                 type="button"
-                onClick={loadMethods}
+                onClick={() => {
+                  loadMethods();
+                  loadEligibility();
+                }}
                 className={btnSecondary}
-                disabled={loadingMethods}
+                disabled={loadingMethods || eligLoading}
               >
-                <FaSyncAlt className={loadingMethods ? "animate-spin" : ""} />
+                <FaSyncAlt
+                  className={
+                    loadingMethods || eligLoading ? "animate-spin" : ""
+                  }
+                />
                 Refresh
               </button>
             </div>
           </div>
 
-          <div className="p-5 sm:p-6 space-y-5">
-            {!accountOk && (
+          <div className="space-y-5 p-5 sm:p-6">
+            {!isAuthed && (
               <div className="rounded-2xl border border-amber-400/25 bg-amber-500/10 p-4">
                 <div className="text-sm font-extrabold text-amber-200">
                   Login Required
                 </div>
                 <div className="mt-1 text-sm text-amber-100/85">
                   Please login to submit a withdraw request.
+                </div>
+              </div>
+            )}
+
+            {isAuthed && !isAffUser && (
+              <div className="rounded-2xl border border-red-400/25 bg-red-500/10 p-4">
+                <div className="text-sm font-extrabold text-red-200">
+                  Withdrawal Not Allowed
+                </div>
+                <div className="mt-1 text-sm text-red-100/85">
+                  Only affiliate users can submit withdraw requests.
                 </div>
               </div>
             )}
@@ -390,7 +434,7 @@ const Withdraw = () => {
                     </div>
                   </div>
 
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-200 border border-emerald-400/20">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-emerald-400/20 bg-emerald-500/15 text-emerald-200">
                     <FaWallet />
                   </div>
                 </div>
@@ -410,9 +454,7 @@ const Withdraw = () => {
                 ) : methods.length ? (
                   methods.map((m) => {
                     const active = String(selectedId) === String(m.methodId);
-                    const logo = m.logoUrl
-                      ? `${import.meta.env.VITE_API_URL}${m.logoUrl}`
-                      : "";
+                    const logo = getAssetUrl(m.logoUrl);
 
                     return (
                       <button
@@ -420,13 +462,13 @@ const Withdraw = () => {
                         type="button"
                         onClick={() => setSelectedId(m.methodId)}
                         disabled={!accountOk}
-                        className={`h-[84px] w-[190px] rounded-2xl border bg-black/35 flex items-center justify-center transition ${
+                        className={`flex h-[84px] w-[190px] items-center justify-center rounded-2xl border bg-black/35 transition ${
                           active
                             ? "border-[#63a8ee] shadow-[0_10px_30px_rgba(47,121,201,0.25)]"
                             : "border-blue-200/10 hover:border-blue-300/25"
                         } ${
                           !accountOk
-                            ? "opacity-60 cursor-not-allowed"
+                            ? "cursor-not-allowed opacity-60"
                             : "cursor-pointer"
                         }`}
                       >
@@ -437,7 +479,7 @@ const Withdraw = () => {
                             className="max-h-[76px] max-w-[182px] object-contain"
                           />
                         ) : (
-                          <div className="text-xs font-extrabold text-blue-100/80 px-3 text-center">
+                          <div className="px-3 text-center text-xs font-extrabold text-blue-100/80">
                             {m?.name?.en || m?.methodId}
                           </div>
                         )}
@@ -489,10 +531,14 @@ const Withdraw = () => {
                           onChange={(e) => setVal(f.key, e.target.value)}
                           placeholder={placeholder}
                           className={`${inputCls} ${
-                            !accountOk ? "opacity-60 cursor-not-allowed" : ""
+                            !accountOk ? "cursor-not-allowed opacity-60" : ""
                           }`}
                           inputMode={
-                            f.type === "number" ? "numeric" : undefined
+                            f.type === "number"
+                              ? "numeric"
+                              : f.type === "tel"
+                                ? "tel"
+                                : undefined
                           }
                         />
 
@@ -520,11 +566,14 @@ const Withdraw = () => {
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder={
                   hasMax
-                    ? `Min ${formatMoney(min)} - Max ${formatMoney(max)}`
-                    : `Min ${formatMoney(min)}`
+                    ? `Min ${formatMoney(
+                        min,
+                        me?.currency || "BDT",
+                      )} - Max ${formatMoney(max, me?.currency || "BDT")}`
+                    : `Min ${formatMoney(min, me?.currency || "BDT")}`
                 }
                 className={`${inputCls} ${
-                  !accountOk ? "opacity-60 cursor-not-allowed" : ""
+                  !accountOk ? "cursor-not-allowed opacity-60" : ""
                 }`}
                 inputMode="numeric"
               />
@@ -541,10 +590,10 @@ const Withdraw = () => {
                 type="button"
                 disabled={!canSubmit || submitting}
                 onClick={onSubmit}
-                className={`w-full h-[52px] rounded-2xl text-sm font-extrabold transition ${
+                className={`h-[52px] w-full rounded-2xl text-sm font-extrabold transition ${
                   canSubmit && !submitting
-                    ? "bg-gradient-to-r from-[#63a8ee] to-[#2f79c9] hover:from-[#7bb7f1] hover:to-[#3b88db] text-white shadow-lg shadow-blue-800/30 border border-blue-300/20 cursor-pointer"
-                    : "bg-gray-800/60 text-white/30 border border-blue-900/30 cursor-not-allowed"
+                    ? "cursor-pointer border border-blue-300/20 bg-gradient-to-r from-[#63a8ee] to-[#2f79c9] text-white shadow-lg shadow-blue-800/30 hover:from-[#7bb7f1] hover:to-[#3b88db]"
+                    : "cursor-not-allowed border border-blue-900/30 bg-gray-800/60 text-white/30"
                 }`}
               >
                 {submitting ? "Submitting..." : "WITHDRAW"}
@@ -552,19 +601,21 @@ const Withdraw = () => {
 
               {!canSubmit && !submitting && (
                 <div className="mt-3 text-xs text-blue-100/60">
-                  {!accountOk
+                  {!isAuthed
                     ? "Please login."
-                    : !elig.eligible
-                      ? elig.message || "Not eligible right now."
-                      : !selectedMethod
-                        ? "Select a method."
-                        : !allRequiredOk
-                          ? "Fill all required fields."
-                          : !noTypeErrors
-                            ? "Some inputs are invalid."
-                            : !validAmount
-                              ? "Amount is invalid."
-                              : null}
+                    : !isAffUser
+                      ? "Only affiliate users can withdraw."
+                      : !elig.eligible
+                        ? elig.message || "Not eligible right now."
+                        : !selectedMethod
+                          ? "Select a method."
+                          : !allRequiredOk
+                            ? "Fill all required fields."
+                            : !noTypeErrors
+                              ? "Some inputs are invalid."
+                              : !validAmount
+                                ? "Amount is invalid."
+                                : null}
                 </div>
               )}
             </div>
@@ -581,8 +632,8 @@ const Withdraw = () => {
             </div>
           </div>
 
-          <div className="p-5 space-y-4 text-sm leading-7 text-blue-100/80">
-            {notices.map((n, idx) => (
+          <div className="space-y-4 p-5 text-sm leading-7 text-blue-100/80">
+            {notices.map((item, idx) => (
               <div
                 key={idx}
                 className="rounded-2xl border border-blue-200/10 bg-black/25 p-4"
@@ -591,11 +642,12 @@ const Withdraw = () => {
                   <div className="mt-0.5 text-[#8fc2f5]">
                     <FaInfoCircle />
                   </div>
+
                   <div>
                     <div className="font-extrabold text-white">
-                      {idx + 1}. {n.title}
+                      {idx + 1}. {item.title}
                     </div>
-                    <p className="mt-1">{n.body}</p>
+                    <p className="mt-1">{item.body}</p>
                   </div>
                 </div>
               </div>

@@ -48,6 +48,8 @@ import AutoPersonalDepositHistory from "../pages/AutoPersonalDepositHistory/Auto
 import UserReferRedeem from "../pages/UserReferRedeem/UserReferRedeem";
 import AllSuperAffiliates from "../pages/AllSuperAffiliates/AllSuperAffiliates";
 import SuperAffiliateUserDetials from "../pages/SuperAffiliateUserDetials/SuperAffiliateUserDetials";
+import SuperBulkAdjustment from "../pages/SuperBulkAdjustment/SuperBulkAdjustment";
+import AddRegisterBonus from "../pages/AddRegisterBonus/AddRegisterBonus";
 
 export const routes = createBrowserRouter([
   {
@@ -132,10 +134,26 @@ export const routes = createBrowserRouter([
         ),
       },
       {
+        path: "super-bulk-adjustment",
+        element: (
+          <PrivateRoute permKey="super-bulk-adjustment">
+            <SuperBulkAdjustment />
+          </PrivateRoute>
+        ),
+      },
+      {
         path: "/user-refer-redeem",
         element: (
           <PrivateRoute permKey="user-refer-redeem">
             <UserReferRedeem />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "add-register-bonus",
+        element: (
+          <PrivateRoute permKey="add-register-bonus">
+            <AddRegisterBonus />
           </PrivateRoute>
         ),
       },

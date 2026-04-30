@@ -11,6 +11,7 @@ import {
   FaWallet,
   FaChartBar,
 } from "react-icons/fa";
+import { FaCodePullRequest } from "react-icons/fa6";
 import { RiMoneyDollarCircleFill } from "react-icons/ri";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { motion } from "framer-motion";
@@ -22,6 +23,7 @@ import {
   selectUser,
   selectToken,
 } from "../../features/auth/authSelectors";
+import { IoMdAddCircle } from "react-icons/io";
 import { api } from "../../api/axios";
 
 const SuperSidebar = () => {
@@ -124,6 +126,16 @@ const SuperSidebar = () => {
         text: "My Affiliates",
       },
       {
+        to: "/super-dashboard/aff-add-withdraw",
+        icon: <IoMdAddCircle />,
+        text: "Add Withdraw",
+      },
+      {
+        to: "/super-dashboard/aff-withdraw-request",
+        icon: <FaCodePullRequest />,
+        text: "M Withdraw Request",
+      },
+      {
         to: "/super-dashboard/withdraw",
         icon: <RiMoneyDollarCircleFill />,
         text: "Withdraw",
@@ -204,10 +216,10 @@ const SuperSidebar = () => {
 
                 <div>
                   <h2 className="text-2xl font-bold tracking-tight text-white">
-                    SUPER AFF
+                    SUPER
                   </h2>
                   <p className="text-sm font-medium text-blue-100/90">
-                    Super Panel
+                    AFFILIATE Panel
                   </p>
                 </div>
               </div>

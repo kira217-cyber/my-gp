@@ -1,7 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
-import AffWithdrawMethod from "../models/AffWithdrawMethod.js";
-import AffWithdrawRequest from "../models/AffWithdrawRequest.js";
+import SuperAffWithdrawMethod from "../models/SuperAffWithdrawMethods.js";
+import SuperAffWithdrawRequest from "../models/SuperAffWithdrawRequestes.js";
 import User from "../models/User.js";
 
 const router = express.Router();
@@ -17,12 +17,8 @@ const fullName = (u) =>
 const getUserId = (req) =>
   req.body?.userId || req.query?.userId || req.params?.userId || null;
 
-const getSuperAffiliateId = (req) =>
-  req.body?.superAffiliateId ||
-  req.body?.ownerId ||
-  req.query?.superAffiliateId ||
-  req.query?.ownerId ||
-  null;
+const getAdminId = (req) =>
+  req.body?.adminId || req.query?.adminId || req?.admin?._id || null;
 
 const hasPendingBulkAdjustment = (user) => {
   const total =
@@ -68,7 +64,7 @@ const validateSubmittedFields = (method, fields = {}) => {
   return errors;
 };
 
-const validateAffUser = async (userId) => {
+const validateSuperAffUser = async (userId) => {
   if (!userId || !mongoose.isValidObjectId(userId)) {
     return {
       ok: false,
@@ -82,59 +78,7 @@ const validateAffUser = async (userId) => {
   if (!user) {
     return {
       ok: false,
-      message: "Affiliate user not found",
-      user: null,
-    };
-  }
-
-  if (user.role !== "aff-user") {
-    return {
-      ok: false,
-      message: "Only aff-user can withdraw",
-      user: null,
-    };
-  }
-
-  if (!user.isActive) {
-    return {
-      ok: false,
-      message: "Affiliate user is inactive",
-      user: null,
-    };
-  }
-
-  if (!user.referredBy) {
-    return {
-      ok: false,
-      message: "This affiliate user has no super affiliate reference",
-      user: null,
-    };
-  }
-
-  return {
-    ok: true,
-    message: "",
-    user,
-  };
-};
-
-const validateSuperAffiliate = async (superAffiliateId) => {
-  if (!superAffiliateId || !mongoose.isValidObjectId(superAffiliateId)) {
-    return {
-      ok: false,
-      message: "Valid superAffiliateId is required",
-      user: null,
-    };
-  }
-
-  const user = await User.findById(superAffiliateId)
-    .select("_id role isActive")
-    .lean();
-
-  if (!user) {
-    return {
-      ok: false,
-      message: "Super affiliate not found",
+      message: "Super affiliate user not found",
       user: null,
     };
   }
@@ -142,7 +86,7 @@ const validateSuperAffiliate = async (superAffiliateId) => {
   if (user.role !== "super-aff-user") {
     return {
       ok: false,
-      message: "Only super-aff-user can manage affiliate withdraw requests",
+      message: "Only super-aff-user can withdraw",
       user: null,
     };
   }
@@ -150,7 +94,7 @@ const validateSuperAffiliate = async (superAffiliateId) => {
   if (!user.isActive) {
     return {
       ok: false,
-      message: "Super affiliate is inactive",
+      message: "Super affiliate user is inactive",
       user: null,
     };
   }
@@ -163,13 +107,12 @@ const validateSuperAffiliate = async (superAffiliateId) => {
 };
 
 /**
- * AFFILIATE: eligibility
- * GET /api/aff-withdraw-requests/eligibility?userId=AFF_USER_ID
+ * SUPER AFF: eligibility
+ * GET /api/super-aff-withdraw-requests/eligibility?userId=SUPER_AFF_USER_ID
  */
-router.get("/aff-withdraw-requests/eligibility", async (req, res) => {
+router.get("/super-aff-withdraw-requests/eligibility", async (req, res) => {
   try {
-    const userId = getUserId(req);
-    const userCheck = await validateAffUser(userId);
+    const userCheck = await validateSuperAffUser(getUserId(req));
 
     if (!userCheck.ok) {
       return res.status(400).json({
@@ -192,7 +135,7 @@ router.get("/aff-withdraw-requests/eligibility", async (req, res) => {
       });
     }
 
-    const pending = await AffWithdrawRequest.countDocuments({
+    const pending = await SuperAffWithdrawRequest.countDocuments({
       user: user._id,
       status: "pending",
     });
@@ -224,12 +167,11 @@ router.get("/aff-withdraw-requests/eligibility", async (req, res) => {
       data: {
         eligible: true,
         remaining: n(user.balance),
-        superAffiliate: user.referredBy,
         message: "Eligible",
       },
     });
   } catch (err) {
-    console.error("aff withdraw eligibility error:", err);
+    console.error("super aff withdraw eligibility error:", err);
     return res.status(500).json({
       success: false,
       message: "Server error",
@@ -238,21 +180,13 @@ router.get("/aff-withdraw-requests/eligibility", async (req, res) => {
 });
 
 /**
- * AFFILIATE: create request
- * POST /api/aff-withdraw-requests
- *
- * Body:
- * {
- *   userId,
- *   methodId,
- *   amount,
- *   fields
- * }
+ * SUPER AFF: create request
+ * POST /api/super-aff-withdraw-requests
+ * body: { userId, methodId, amount, fields }
  */
-router.post("/aff-withdraw-requests", async (req, res) => {
+router.post("/super-aff-withdraw-requests", async (req, res) => {
   try {
-    const userId = getUserId(req);
-    const userCheck = await validateAffUser(userId);
+    const userCheck = await validateSuperAffUser(getUserId(req));
 
     if (!userCheck.ok) {
       return res.status(400).json({
@@ -262,7 +196,6 @@ router.post("/aff-withdraw-requests", async (req, res) => {
     }
 
     const user = userCheck.user;
-    const superAffiliate = user.referredBy;
 
     if (hasPendingBulkAdjustment(user)) {
       return res.status(400).json({
@@ -271,7 +204,7 @@ router.post("/aff-withdraw-requests", async (req, res) => {
       });
     }
 
-    const pending = await AffWithdrawRequest.findOne({
+    const pending = await SuperAffWithdrawRequest.findOne({
       user: user._id,
       status: "pending",
     });
@@ -283,10 +216,7 @@ router.post("/aff-withdraw-requests", async (req, res) => {
       });
     }
 
-    const methodId = String(req.body?.methodId || "")
-      .trim()
-      .toUpperCase();
-
+    const methodId = String(req.body?.methodId || "").trim().toUpperCase();
     const amount = Number(req.body?.amount || 0);
     const fields = req.body?.fields || {};
 
@@ -304,8 +234,7 @@ router.post("/aff-withdraw-requests", async (req, res) => {
       });
     }
 
-    const method = await AffWithdrawMethod.findOne({
-      owner: superAffiliate,
+    const method = await SuperAffWithdrawMethod.findOne({
       methodId,
       isActive: true,
     }).lean();
@@ -313,7 +242,7 @@ router.post("/aff-withdraw-requests", async (req, res) => {
     if (!method) {
       return res.status(404).json({
         success: false,
-        message: "Withdraw method not found for your super affiliate",
+        message: "Withdraw method not found",
       });
     }
 
@@ -357,9 +286,8 @@ router.post("/aff-withdraw-requests", async (req, res) => {
     user.balance = balanceAfter;
     await user.save();
 
-    const request = await AffWithdrawRequest.create({
+    const request = await SuperAffWithdrawRequest.create({
       user: user._id,
-      superAffiliate,
       methodId,
       amount,
       fields,
@@ -374,7 +302,7 @@ router.post("/aff-withdraw-requests", async (req, res) => {
       data: request,
     });
   } catch (err) {
-    console.error("aff withdraw create error:", err);
+    console.error("super aff withdraw create error:", err);
     return res.status(500).json({
       success: false,
       message: "Server error",
@@ -383,10 +311,10 @@ router.post("/aff-withdraw-requests", async (req, res) => {
 });
 
 /**
- * AFFILIATE: my list
- * GET /api/aff-withdraw-requests/my?userId=AFF_USER_ID&page=1&limit=10&status=all
+ * SUPER AFF: my list
+ * GET /api/super-aff-withdraw-requests/my?userId=SUPER_AFF_USER_ID&page=1&limit=10&status=all
  */
-router.get("/aff-withdraw-requests/my", async (req, res) => {
+router.get("/super-aff-withdraw-requests/my", async (req, res) => {
   try {
     const userId = getUserId(req);
 
@@ -398,10 +326,7 @@ router.get("/aff-withdraw-requests/my", async (req, res) => {
     }
 
     const page = Math.max(parseInt(req.query.page || "1", 10), 1);
-    const limit = Math.min(
-      Math.max(parseInt(req.query.limit || "10", 10), 1),
-      100,
-    );
+    const limit = Math.min(Math.max(parseInt(req.query.limit || "10", 10), 1), 100);
     const skip = (page - 1) * limit;
     const status = String(req.query.status || "all").trim();
 
@@ -412,12 +337,12 @@ router.get("/aff-withdraw-requests/my", async (req, res) => {
     }
 
     const [rows, total] = await Promise.all([
-      AffWithdrawRequest.find(match)
+      SuperAffWithdrawRequest.find(match)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .lean(),
-      AffWithdrawRequest.countDocuments(match),
+      SuperAffWithdrawRequest.countDocuments(match),
     ]);
 
     return res.json({
@@ -430,7 +355,7 @@ router.get("/aff-withdraw-requests/my", async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("aff withdraw my list error:", err);
+    console.error("super aff withdraw my list error:", err);
     return res.status(500).json({
       success: false,
       message: "Server error",
@@ -439,10 +364,10 @@ router.get("/aff-withdraw-requests/my", async (req, res) => {
 });
 
 /**
- * AFFILIATE: my details
- * GET /api/aff-withdraw-requests/my/:id?userId=AFF_USER_ID
+ * SUPER AFF: my details
+ * GET /api/super-aff-withdraw-requests/my/:id?userId=SUPER_AFF_USER_ID
  */
-router.get("/aff-withdraw-requests/my/:id", async (req, res) => {
+router.get("/super-aff-withdraw-requests/my/:id", async (req, res) => {
   try {
     const userId = getUserId(req);
     const { id } = req.params;
@@ -461,7 +386,7 @@ router.get("/aff-withdraw-requests/my/:id", async (req, res) => {
       });
     }
 
-    const row = await AffWithdrawRequest.findOne({
+    const row = await SuperAffWithdrawRequest.findOne({
       _id: id,
       user: userId,
     }).lean();
@@ -478,7 +403,7 @@ router.get("/aff-withdraw-requests/my/:id", async (req, res) => {
       data: row,
     });
   } catch (err) {
-    console.error("aff withdraw my details error:", err);
+    console.error("super aff withdraw my details error:", err);
     return res.status(500).json({
       success: false,
       message: "Server error",
@@ -487,34 +412,19 @@ router.get("/aff-withdraw-requests/my/:id", async (req, res) => {
 });
 
 /**
- * SUPER AFFILIATE: request list
- * GET /api/admin/aff-withdraw-requests?superAffiliateId=SUPER_AFF_USER_ID&page=1&limit=10&status=all&q=
+ * ADMIN: list
+ * GET /api/admin/super-aff-withdraw-requests?page=1&limit=10&status=all&q=
  */
-router.get("/admin/aff-withdraw-requests", async (req, res) => {
+router.get("/admin/super-aff-withdraw-requests", async (req, res) => {
   try {
-    const superAffiliateId = getSuperAffiliateId(req);
-    const superCheck = await validateSuperAffiliate(superAffiliateId);
-
-    if (!superCheck.ok) {
-      return res.status(400).json({
-        success: false,
-        message: superCheck.message,
-      });
-    }
-
     const page = Math.max(parseInt(req.query.page || "1", 10), 1);
-    const limit = Math.min(
-      Math.max(parseInt(req.query.limit || "10", 10), 1),
-      100,
-    );
+    const limit = Math.min(Math.max(parseInt(req.query.limit || "10", 10), 1), 100);
     const skip = (page - 1) * limit;
 
     const q = String(req.query.q || "").trim();
     const status = String(req.query.status || "all").trim();
 
-    const match = {
-      superAffiliate: superCheck.user._id,
-    };
+    const match = {};
 
     if (["pending", "approved", "rejected"].includes(status)) {
       match.status = status;
@@ -522,8 +432,7 @@ router.get("/admin/aff-withdraw-requests", async (req, res) => {
 
     if (q) {
       const users = await User.find({
-        role: "aff-user",
-        referredBy: superCheck.user._id,
+        role: "super-aff-user",
         $or: [
           { userId: { $regex: q, $options: "i" } },
           { phone: { $regex: q, $options: "i" } },
@@ -546,17 +455,13 @@ router.get("/admin/aff-withdraw-requests", async (req, res) => {
     }
 
     const [rows, total] = await Promise.all([
-      AffWithdrawRequest.find(match)
-        .populate(
-          "user",
-          "userId phone email firstName lastName balance currency referredBy",
-        )
-        .populate("superAffiliate", "userId phone email firstName lastName")
+      SuperAffWithdrawRequest.find(match)
+        .populate("user", "userId phone email firstName lastName balance currency")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .lean(),
-      AffWithdrawRequest.countDocuments(match),
+      SuperAffWithdrawRequest.countDocuments(match),
     ]);
 
     const data = rows.map((r) => ({
@@ -565,12 +470,6 @@ router.get("/admin/aff-withdraw-requests", async (req, res) => {
         ? {
             ...r.user,
             fullName: fullName(r.user) || "No Name",
-          }
-        : null,
-      superAffiliate: r.superAffiliate
-        ? {
-            ...r.superAffiliate,
-            fullName: fullName(r.superAffiliate) || "No Name",
           }
         : null,
     }));
@@ -585,7 +484,7 @@ router.get("/admin/aff-withdraw-requests", async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("admin aff withdraw list error:", err);
+    console.error("admin super aff withdraw list error:", err);
     return res.status(500).json({
       success: false,
       message: "Server error",
@@ -594,13 +493,12 @@ router.get("/admin/aff-withdraw-requests", async (req, res) => {
 });
 
 /**
- * SUPER AFFILIATE: request details
- * GET /api/admin/aff-withdraw-requests/:id?superAffiliateId=SUPER_AFF_USER_ID
+ * ADMIN: details
+ * GET /api/admin/super-aff-withdraw-requests/:id
  */
-router.get("/admin/aff-withdraw-requests/:id", async (req, res) => {
+router.get("/admin/super-aff-withdraw-requests/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const superAffiliateId = getSuperAffiliateId(req);
 
     if (!mongoose.isValidObjectId(id)) {
       return res.status(400).json({
@@ -609,30 +507,14 @@ router.get("/admin/aff-withdraw-requests/:id", async (req, res) => {
       });
     }
 
-    const superCheck = await validateSuperAffiliate(superAffiliateId);
-
-    if (!superCheck.ok) {
-      return res.status(400).json({
-        success: false,
-        message: superCheck.message,
-      });
-    }
-
-    const row = await AffWithdrawRequest.findOne({
-      _id: id,
-      superAffiliate: superCheck.user._id,
-    })
-      .populate(
-        "user",
-        "userId phone email firstName lastName balance currency referredBy",
-      )
-      .populate("superAffiliate", "userId phone email firstName lastName")
+    const row = await SuperAffWithdrawRequest.findById(id)
+      .populate("user", "userId phone email firstName lastName balance currency")
       .lean();
 
     if (!row) {
       return res.status(404).json({
         success: false,
-        message: "Withdraw request not found for this super affiliate",
+        message: "Withdraw request not found",
       });
     }
 
@@ -646,16 +528,10 @@ router.get("/admin/aff-withdraw-requests/:id", async (req, res) => {
               fullName: fullName(row.user) || "No Name",
             }
           : null,
-        superAffiliate: row.superAffiliate
-          ? {
-              ...row.superAffiliate,
-              fullName: fullName(row.superAffiliate) || "No Name",
-            }
-          : null,
       },
     });
   } catch (err) {
-    console.error("admin aff withdraw details error:", err);
+    console.error("admin super aff withdraw details error:", err);
     return res.status(500).json({
       success: false,
       message: "Server error",
@@ -664,46 +540,21 @@ router.get("/admin/aff-withdraw-requests/:id", async (req, res) => {
 });
 
 /**
- * SUPER AFFILIATE: approve
- * PATCH /api/admin/aff-withdraw-requests/:id/approve
- *
- * Body:
- * {
- *   superAffiliateId,
- *   adminNote
- * }
+ * ADMIN: approve
+ * PATCH /api/admin/super-aff-withdraw-requests/:id/approve
  */
-router.patch("/admin/aff-withdraw-requests/:id/approve", async (req, res) => {
+router.patch("/admin/super-aff-withdraw-requests/:id/approve", async (req, res) => {
   try {
     const { id } = req.params;
-    const superAffiliateId = getSuperAffiliateId(req);
+    const adminId = getAdminId(req);
     const adminNote = String(req.body?.adminNote || "").trim();
 
-    if (!mongoose.isValidObjectId(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid request id",
-      });
-    }
-
-    const superCheck = await validateSuperAffiliate(superAffiliateId);
-
-    if (!superCheck.ok) {
-      return res.status(400).json({
-        success: false,
-        message: superCheck.message,
-      });
-    }
-
-    const row = await AffWithdrawRequest.findOne({
-      _id: id,
-      superAffiliate: superCheck.user._id,
-    });
+    const row = await SuperAffWithdrawRequest.findById(id);
 
     if (!row) {
       return res.status(404).json({
         success: false,
-        message: "Withdraw request not found for this super affiliate",
+        message: "Withdraw request not found",
       });
     }
 
@@ -715,7 +566,7 @@ router.patch("/admin/aff-withdraw-requests/:id/approve", async (req, res) => {
     }
 
     row.status = "approved";
-    row.adminId = superCheck.user._id;
+    row.adminId = adminId || null;
     row.adminNote = adminNote;
     row.approvedAt = new Date();
 
@@ -723,11 +574,11 @@ router.patch("/admin/aff-withdraw-requests/:id/approve", async (req, res) => {
 
     return res.json({
       success: true,
-      message: "Affiliate withdraw approved successfully",
+      message: "Super affiliate withdraw approved successfully",
       data: row,
     });
   } catch (err) {
-    console.error("admin aff withdraw approve error:", err);
+    console.error("admin super aff withdraw approve error:", err);
     return res.status(500).json({
       success: false,
       message: "Server error",
@@ -736,46 +587,21 @@ router.patch("/admin/aff-withdraw-requests/:id/approve", async (req, res) => {
 });
 
 /**
- * SUPER AFFILIATE: reject
- * PATCH /api/admin/aff-withdraw-requests/:id/reject
- *
- * Body:
- * {
- *   superAffiliateId,
- *   adminNote
- * }
+ * ADMIN: reject
+ * PATCH /api/admin/super-aff-withdraw-requests/:id/reject
  */
-router.patch("/admin/aff-withdraw-requests/:id/reject", async (req, res) => {
+router.patch("/admin/super-aff-withdraw-requests/:id/reject", async (req, res) => {
   try {
     const { id } = req.params;
-    const superAffiliateId = getSuperAffiliateId(req);
+    const adminId = getAdminId(req);
     const adminNote = String(req.body?.adminNote || "").trim();
 
-    if (!mongoose.isValidObjectId(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid request id",
-      });
-    }
-
-    const superCheck = await validateSuperAffiliate(superAffiliateId);
-
-    if (!superCheck.ok) {
-      return res.status(400).json({
-        success: false,
-        message: superCheck.message,
-      });
-    }
-
-    const row = await AffWithdrawRequest.findOne({
-      _id: id,
-      superAffiliate: superCheck.user._id,
-    });
+    const row = await SuperAffWithdrawRequest.findById(id);
 
     if (!row) {
       return res.status(404).json({
         success: false,
-        message: "Withdraw request not found for this super affiliate",
+        message: "Withdraw request not found",
       });
     }
 
@@ -788,14 +614,13 @@ router.patch("/admin/aff-withdraw-requests/:id/reject", async (req, res) => {
 
     const user = await User.findOne({
       _id: row.user,
-      referredBy: superCheck.user._id,
-      role: "aff-user",
+      role: "super-aff-user",
     });
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "Affiliate user not found for this super affiliate",
+        message: "Super affiliate user not found",
       });
     }
 
@@ -803,7 +628,7 @@ router.patch("/admin/aff-withdraw-requests/:id/reject", async (req, res) => {
     await user.save();
 
     row.status = "rejected";
-    row.adminId = superCheck.user._id;
+    row.adminId = adminId || null;
     row.adminNote = adminNote;
     row.rejectedAt = new Date();
     row.balanceAfter = n(user.balance);
@@ -812,11 +637,11 @@ router.patch("/admin/aff-withdraw-requests/:id/reject", async (req, res) => {
 
     return res.json({
       success: true,
-      message: "Affiliate withdraw rejected successfully",
+      message: "Super affiliate withdraw rejected successfully",
       data: row,
     });
   } catch (err) {
-    console.error("admin aff withdraw reject error:", err);
+    console.error("admin super aff withdraw reject error:", err);
     return res.status(500).json({
       success: false,
       message: "Server error",

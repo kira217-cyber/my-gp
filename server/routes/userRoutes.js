@@ -4,6 +4,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import GameHistory from "../models/GameHistory.js";
+import RegisterBonusSetting from "../models/RegisterBonusSetting.js";
+import TurnOver from "../models/TurnOver.js";
 import { protectAdmin } from "./adminRoutes.js";
 
 const router = express.Router();
@@ -106,7 +108,9 @@ router.post("/register", async (req, res) => {
 
     const countryCode = normalizeCountryCode(rawCountryCode);
     const phone = normalizePhone(rawPhone);
-    const refCode = String(rawRefCode || "").trim().toUpperCase();
+    const refCode = String(rawRefCode || "")
+      .trim()
+      .toUpperCase();
 
     if (!countryCode || !phone || !password || !confirmPassword) {
       return res.status(400).json({
@@ -154,12 +158,13 @@ router.post("/register", async (req, res) => {
     }
 
     let referredByUser = null;
+    let superReferrerUser = null;
 
     if (refCode) {
       referredByUser = await User.findOne({
         referralCode: refCode,
       }).select(
-        "_id referralCode role referCommission createdUsers referralCount commissionBalance referCommissionBalance",
+        "_id referralCode role referredBy referCommission createdUsers referralCount commissionBalance referCommissionBalance",
       );
 
       if (!referredByUser) {
@@ -168,11 +173,31 @@ router.post("/register", async (req, res) => {
           message: "Invalid referral code",
         });
       }
+
+      if (referredByUser?.referredBy) {
+        superReferrerUser = await User.findOne({
+          _id: referredByUser.referredBy,
+          role: "super-aff-user",
+        }).select(
+          "_id referralCode role referCommission createdUsers referralCount commissionBalance referCommissionBalance",
+        );
+      }
     }
 
     const userId = await generateUniqueValue("userId", 6);
     const referralCode = await generateUniqueValue("referralCode", 6);
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    const activeRegisterBonus = await RegisterBonusSetting.findOne({
+      isActive: true,
+    })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const registerBonusAmount = Number(activeRegisterBonus?.amount || 0);
+    const turnoverMultiplier = Number(
+      activeRegisterBonus?.turnoverMultiplier || 0,
+    );
 
     const user = await User.create({
       userId,
@@ -182,8 +207,33 @@ router.post("/register", async (req, res) => {
       password: hashedPassword,
       role: "user",
       isActive: true,
+      balance:
+        registerBonusAmount > 0 && Number.isFinite(registerBonusAmount)
+          ? registerBonusAmount
+          : 0,
       referredBy: referredByUser ? referredByUser._id : null,
     });
+
+    if (
+      activeRegisterBonus?._id &&
+      registerBonusAmount > 0 &&
+      Number.isFinite(registerBonusAmount)
+    ) {
+      const requiredTurnover =
+        registerBonusAmount *
+        (Number.isFinite(turnoverMultiplier) ? turnoverMultiplier : 0);
+
+      await TurnOver.create({
+        user: user._id,
+        sourceType: "register-bonus",
+        sourceId: activeRegisterBonus._id,
+        required: requiredTurnover,
+        progress: 0,
+        status: requiredTurnover > 0 ? "running" : "completed",
+        creditedAmount: registerBonusAmount,
+        completedAt: requiredTurnover > 0 ? null : new Date(),
+      });
+    }
 
     if (referredByUser) {
       const referCommissionAmount = Number(referredByUser.referCommission || 0);
@@ -194,29 +244,64 @@ router.post("/register", async (req, res) => {
           $addToSet: { createdUsers: user._id },
           $inc: {
             referralCount: 1,
-            referCommissionBalance: referCommissionAmount,
+            referCommissionBalance: Number.isFinite(referCommissionAmount)
+              ? referCommissionAmount
+              : 0,
           },
         },
       );
+
+      if (superReferrerUser) {
+        const superReferCommissionAmount = Number(
+          superReferrerUser.referCommission || 0,
+        );
+
+        await User.updateOne(
+          { _id: superReferrerUser._id },
+          {
+            $addToSet: { createdUsers: user._id },
+            $inc: {
+              referralCount: 1,
+              referCommissionBalance: Number.isFinite(
+                superReferCommissionAmount,
+              )
+                ? superReferCommissionAmount
+                : 0,
+            },
+          },
+        );
+      }
     }
 
-    const token = signToken(user);
+    const freshUser = await User.findById(user._id).lean();
+
+    const token = signToken(freshUser || user);
 
     return res.status(201).json({
       success: true,
       message: "Registration successful",
       token,
       user: {
-        id: user._id,
-        userId: user.userId,
-        countryCode: user.countryCode,
-        phone: user.phone,
-        role: user.role,
-        isActive: user.isActive,
-        referralCode: user.referralCode,
-        balance: user.balance,
-        currency: user.currency,
-        referredBy: user.referredBy || null,
+        id: freshUser?._id || user._id,
+        userId: freshUser?.userId || user.userId,
+        countryCode: freshUser?.countryCode || user.countryCode,
+        phone: freshUser?.phone || user.phone,
+        role: freshUser?.role || user.role,
+        isActive: freshUser?.isActive ?? user.isActive,
+        referralCode: freshUser?.referralCode || user.referralCode,
+        balance: Number(freshUser?.balance ?? user.balance ?? 0),
+        currency: freshUser?.currency || user.currency,
+        referredBy: freshUser?.referredBy || user.referredBy || null,
+        registerBonus: activeRegisterBonus
+          ? {
+              bonusId: activeRegisterBonus._id,
+              amount: registerBonusAmount,
+              turnoverMultiplier,
+              requiredTurnover:
+                registerBonusAmount *
+                (Number.isFinite(turnoverMultiplier) ? turnoverMultiplier : 0),
+            }
+          : null,
       },
     });
   } catch (error) {
@@ -356,7 +441,6 @@ router.get("/me/balance", protectUser, async (req, res) => {
   }
 });
 
-
 /* =========================
    GET /api/users/me/exposure
 ========================= */
@@ -377,10 +461,7 @@ router.get("/me/exposure", protectUser, async (req, res) => {
     const result = await GameHistory.aggregate([
       {
         $match: {
-          $or: [
-            { user: objectUserId },
-            { userId: userIdString },
-          ],
+          $or: [{ user: objectUserId }, { userId: userIdString }],
           bet_type: "SETTLE",
         },
       },
@@ -419,7 +500,6 @@ router.get("/me/exposure", protectUser, async (req, res) => {
     });
   }
 });
-
 
 // ✅ GET /api/users/me
 router.get("/me", protectUser, async (req, res) => {
@@ -479,7 +559,9 @@ router.put("/update-profile", protectUser, async (req, res) => {
     const { userId, email, phone, firstName, lastName } = req.body || {};
 
     const cleanUserId = String(userId || "").trim();
-    const cleanEmail = String(email || "").trim().toLowerCase();
+    const cleanEmail = String(email || "")
+      .trim()
+      .toLowerCase();
     const cleanPhone = String(phone || "").trim();
     const cleanFirstName = String(firstName || "").trim();
     const cleanLastName = String(lastName || "").trim();

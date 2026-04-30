@@ -10,7 +10,12 @@ const TurnOverSchema = new mongoose.Schema(
 
     sourceType: {
       type: String,
-      enum: ["deposit", "auto-deposit", "auto-personal-deposit"],
+      enum: [
+        "deposit",
+        "auto-deposit",
+        "auto-personal-deposit",
+        "register-bonus",
+      ],
       required: true,
       index: true,
     },
@@ -53,10 +58,7 @@ const TurnOverSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-TurnOverSchema.index(
-  { user: 1, sourceType: 1, sourceId: 1 },
-  { unique: true },
-);
+TurnOverSchema.index({ user: 1, sourceType: 1, sourceId: 1 }, { unique: true });
 
 TurnOverSchema.index({ user: 1, status: 1 });
 TurnOverSchema.index({ createdAt: -1 });

@@ -201,15 +201,15 @@ const Sidebar = () => {
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#63a8ee] to-[#2f79c9] flex items-center justify-center shadow-lg shadow-blue-500/40">
                   <span className="text-white font-black text-3xl tracking-wider">
-                    A
+                    M
                   </span>
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-white tracking-tight">
-                    AFFILIATE
+                    MASTER
                   </h2>
                   <p className="text-sm text-blue-100/90 font-medium">
-                    Aff Panel
+                    AFFILIATE Panel
                   </p>
                 </div>
               </div>

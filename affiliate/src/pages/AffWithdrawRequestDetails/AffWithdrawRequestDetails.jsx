@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import {
   FaArrowLeft,
@@ -12,6 +13,10 @@ import {
 } from "react-icons/fa";
 import { PiHandWithdrawBold } from "react-icons/pi";
 import { api } from "../../api/axios";
+import {
+  selectUser,
+  selectIsSuperAffUser,
+} from "../../features/auth/authSelectors";
 
 const money = (n, currency = "BDT") => {
   const sym = String(currency || "BDT").toUpperCase() === "USDT" ? "$" : "৳";
@@ -49,11 +54,13 @@ const btnApprove = `${btnBase} bg-emerald-500/15 text-emerald-200 border border-
 
 const btnReject = `${btnBase} bg-red-500/15 text-red-200 border border-red-400/30 hover:bg-red-500/20`;
 
+const getUserId = (user) => user?._id || user?.id || "";
+
 const FieldRow = ({ k, v }) => (
   <div className="flex items-start justify-between gap-4 border-b border-blue-200/10 py-3 last:border-b-0">
     <div className="text-sm font-semibold text-blue-100/60">{k}</div>
     <div className="break-all text-right text-sm font-extrabold text-white">
-      {v || "—"}
+      {v}
     </div>
   </div>
 );
@@ -82,7 +89,7 @@ const ConfirmInline = ({
       <textarea
         value={note}
         onChange={(e) => setNote(e.target.value)}
-        placeholder="Write a note for super affiliate..."
+        placeholder="Write a note for affiliate..."
         className="mt-3 min-h-[110px] w-full rounded-2xl border border-blue-200/15 bg-black/45 p-4 text-white placeholder-blue-100/35 outline-none focus:border-[#63a8ee] focus:ring-2 focus:ring-[#63a8ee]/30"
       />
 
@@ -115,6 +122,10 @@ const AffWithdrawRequestDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  const user = useSelector(selectUser);
+  const isSuperAffUser = useSelector(selectIsSuperAffUser);
+  const superAffiliateId = getUserId(user);
+
   const [row, setRow] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -124,12 +135,19 @@ const AffWithdrawRequestDetails = () => {
   const [acting, setActing] = useState(false);
 
   const fetchOne = async () => {
+    if (!isSuperAffUser || !superAffiliateId) {
+      setRow(null);
+      return;
+    }
+
     try {
       setLoading(true);
 
-      const { data } = await api.get(
-        `/api/admin/super-aff-withdraw-requests/${id}`,
-      );
+      const { data } = await api.get(`/api/admin/aff-withdraw-requests/${id}`, {
+        params: {
+          superAffiliateId,
+        },
+      });
 
       setRow(data?.data || null);
     } catch (e) {
@@ -144,7 +162,7 @@ const AffWithdrawRequestDetails = () => {
   useEffect(() => {
     fetchOne();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [id, superAffiliateId, isSuperAffUser]);
 
   const statusText = String(row?.status || "pending");
 
@@ -170,19 +188,17 @@ const AffWithdrawRequestDetails = () => {
   const fields = useMemo(() => row?.fields || {}, [row]);
 
   const approveNow = async () => {
-    if (!row?._id) return;
+    if (!row?._id || !superAffiliateId) return;
 
     try {
       setActing(true);
 
-      await api.patch(
-        `/api/admin/super-aff-withdraw-requests/${row._id}/approve`,
-        {
-          adminNote: note,
-        },
-      );
+      await api.patch(`/api/admin/aff-withdraw-requests/${row._id}/approve`, {
+        superAffiliateId,
+        adminNote: note,
+      });
 
-      toast.success("Super affiliate withdraw approved successfully");
+      toast.success("Withdraw approved successfully");
 
       setApproveOpen(false);
       setRejectOpen(false);
@@ -197,19 +213,17 @@ const AffWithdrawRequestDetails = () => {
   };
 
   const rejectNow = async () => {
-    if (!row?._id) return;
+    if (!row?._id || !superAffiliateId) return;
 
     try {
       setActing(true);
 
-      await api.patch(
-        `/api/admin/super-aff-withdraw-requests/${row._id}/reject`,
-        {
-          adminNote: note,
-        },
-      );
+      await api.patch(`/api/admin/aff-withdraw-requests/${row._id}/reject`, {
+        superAffiliateId,
+        adminNote: note,
+      });
 
-      toast.success("Super affiliate withdraw rejected successfully");
+      toast.success("Withdraw rejected successfully");
 
       setApproveOpen(false);
       setRejectOpen(false);
@@ -222,6 +236,20 @@ const AffWithdrawRequestDetails = () => {
       setActing(false);
     }
   };
+
+  if (!isSuperAffUser) {
+    return (
+      <div className="p-4 lg:p-6">
+        <div className="mx-auto max-w-3xl rounded-3xl border border-red-400/20 bg-red-500/10 p-6 text-red-200">
+          <h2 className="text-xl font-extrabold text-white">Access Denied</h2>
+          <p className="mt-2 text-sm text-red-100/80">
+            Only super affiliate users can view affiliate withdraw request
+            details.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 lg:p-6">
@@ -236,7 +264,7 @@ const AffWithdrawRequestDetails = () => {
 
                 <div>
                   <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
-                    Super Affiliate Withdraw Request Details
+                    Affiliate Withdraw Request Details
                   </h1>
                   <p className="mt-1 text-sm text-blue-100/75">
                     Request ID:{" "}
@@ -267,7 +295,7 @@ const AffWithdrawRequestDetails = () => {
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <div className="rounded-2xl border border-blue-200/10 bg-black/25 p-4">
                   <div className="text-sm font-semibold text-blue-100/60">
-                    Super Affiliate
+                    Affiliate
                   </div>
 
                   <div className="mt-2 text-lg font-extrabold text-white">
@@ -350,7 +378,7 @@ const AffWithdrawRequestDetails = () => {
                     </div>
                   ) : (
                     <div className="mt-3 text-sm text-blue-100/55">
-                      Waiting for admin action
+                      Waiting for super affiliate action
                     </div>
                   )}
                 </div>

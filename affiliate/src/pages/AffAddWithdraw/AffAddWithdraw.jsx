@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import {
   FaPlus,
@@ -15,6 +16,10 @@ import {
 } from "react-icons/fa";
 import { PiHandWithdrawBold } from "react-icons/pi";
 import { api } from "../../api/axios";
+import {
+  selectUser,
+  selectIsSuperAffUser,
+} from "../../features/auth/authSelectors";
 
 const emptyBi = { bn: "", en: "" };
 
@@ -55,9 +60,11 @@ const getAssetUrl = (url = "") => {
   return `${base}${clean}`;
 };
 
+const getUserId = (user) => user?._id || user?.id || "";
+
 const Toggle = ({ checked, onChange, label }) => {
   return (
-    <label className="inline-flex cursor-pointer select-none items-center gap-3">
+    <label className="inline-flex items-center gap-3 cursor-pointer select-none">
       <div className="relative">
         <input
           type="checkbox"
@@ -158,14 +165,21 @@ const ConfirmDeleteModal = ({
 const AffAddWithdraw = () => {
   const qc = useQueryClient();
 
+  const user = useSelector(selectUser);
+  const isSuperAffUser = useSelector(selectIsSuperAffUser);
+  const ownerId = getUserId(user);
+
   const {
     data: list = [],
     isLoading,
     refetch,
   } = useQuery({
-    queryKey: ["admin-super-aff-withdraw-methods"],
+    queryKey: ["admin-aff-withdraw-methods", ownerId],
+    enabled: !!ownerId && isSuperAffUser,
     queryFn: async () => {
-      const res = await api.get("/api/admin/super-aff-withdraw-methods");
+      const res = await api.get(
+        `/api/admin/aff-withdraw-methods?ownerId=${ownerId}`,
+      );
 
       if (Array.isArray(res.data)) return res.data;
       if (Array.isArray(res.data?.data)) return res.data.data;
@@ -316,6 +330,10 @@ const AffAddWithdraw = () => {
   };
 
   const validateBeforeSave = (values) => {
+    if (!isSuperAffUser || !ownerId) {
+      return "Only super affiliate user can manage withdraw methods";
+    }
+
     const methodId = String(values.methodId || "")
       .trim()
       .toUpperCase();
@@ -381,6 +399,8 @@ const AffAddWithdraw = () => {
 
       const payload = new FormData();
 
+      payload.append("ownerId", ownerId);
+
       payload.append(
         "methodId",
         String(values.methodId || "")
@@ -405,6 +425,7 @@ const AffAddWithdraw = () => {
         "maximumWithdrawAmount",
         String(values.maximumWithdrawAmount ?? 0),
       );
+
       payload.append("fields", JSON.stringify(fields));
 
       if (logoFile) {
@@ -413,24 +434,24 @@ const AffAddWithdraw = () => {
 
       if (selected?._id) {
         await api.put(
-          `/api/admin/super-aff-withdraw-methods/${selected._id}`,
+          `/api/admin/aff-withdraw-methods/${selected._id}`,
           payload,
           {
             headers: { "Content-Type": "multipart/form-data" },
           },
         );
 
-        toast.success("Super affiliate withdraw method updated successfully");
+        toast.success("Affiliate withdraw method updated successfully");
       } else {
-        await api.post("/api/admin/super-aff-withdraw-methods", payload, {
+        await api.post("/api/admin/aff-withdraw-methods", payload, {
           headers: { "Content-Type": "multipart/form-data" },
         });
 
-        toast.success("Super affiliate withdraw method created successfully");
+        toast.success("Affiliate withdraw method created successfully");
       }
 
       await qc.invalidateQueries({
-        queryKey: ["admin-super-aff-withdraw-methods"],
+        queryKey: ["admin-aff-withdraw-methods", ownerId],
       });
 
       await refetch();
@@ -453,18 +474,25 @@ const AffAddWithdraw = () => {
   const confirmDelete = async () => {
     if (!deleteId) return;
 
+    if (!isSuperAffUser || !ownerId) {
+      toast.error("Only super affiliate user can delete withdraw methods");
+      return;
+    }
+
     try {
       setSaving(true);
 
-      await api.delete(`/api/admin/super-aff-withdraw-methods/${deleteId}`);
+      await api.delete(
+        `/api/admin/aff-withdraw-methods/${deleteId}?ownerId=${ownerId}`,
+      );
 
-      toast.success("Super affiliate withdraw method deleted successfully");
+      toast.success("Affiliate withdraw method deleted successfully");
 
       setDeleteId("");
       setDeleteName("");
 
       await qc.invalidateQueries({
-        queryKey: ["admin-super-aff-withdraw-methods"],
+        queryKey: ["admin-aff-withdraw-methods", ownerId],
       });
 
       await refetch();
@@ -478,6 +506,19 @@ const AffAddWithdraw = () => {
       setSaving(false);
     }
   };
+
+  if (!isSuperAffUser) {
+    return (
+      <div className="p-4 lg:p-6">
+        <div className="mx-auto max-w-3xl rounded-3xl border border-red-400/20 bg-red-500/10 p-6 text-red-200">
+          <h2 className="text-xl font-extrabold text-white">Access Denied</h2>
+          <p className="mt-2 text-sm text-red-100/80">
+            Only super affiliate users can manage affiliate withdraw methods.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 lg:p-6">
@@ -493,12 +534,12 @@ const AffAddWithdraw = () => {
                 <div>
                   <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
                     {isCreateMode
-                      ? "Create Super Affiliate Withdraw Method"
-                      : "Update Super Affiliate Withdraw Method"}
+                      ? "Create Affiliate Withdraw Method"
+                      : "Update Affiliate Withdraw Method"}
                   </h1>
                   <p className="mt-1 text-sm text-blue-100/75">
-                    Admin managed methods. All active super-aff-user can use
-                    these withdraw methods.
+                    Only your referred affiliate users can see these withdraw
+                    methods.
                   </p>
                 </div>
               </div>
@@ -566,7 +607,7 @@ const AffAddWithdraw = () => {
 
                 <div>
                   <label className={labelBase}>
-                    Method ID (unique, uppercase)
+                    Method ID (unique for this super affiliate)
                   </label>
                   <input
                     className={inputBase}
@@ -648,16 +689,13 @@ const AffAddWithdraw = () => {
                   </div>
 
                   <div className="space-y-3">
-                    <label
-                      htmlFor="super-aff-withdraw-logo"
-                      className={btnSecondary}
-                    >
+                    <label htmlFor="aff-withdraw-logo" className={btnSecondary}>
                       <FaImage />
                       Choose Image
                     </label>
 
                     <input
-                      id="super-aff-withdraw-logo"
+                      id="aff-withdraw-logo"
                       type="file"
                       accept="image/*"
                       onChange={handleLogoChange}
@@ -686,7 +724,7 @@ const AffAddWithdraw = () => {
                     Withdraw Form Fields
                   </h2>
                   <p className="mt-1 text-sm text-blue-100/55">
-                    Add custom fields for super affiliate withdraw request form.
+                    Add custom fields for affiliate withdraw request form.
                   </p>
                 </div>
 
@@ -832,10 +870,11 @@ const AffAddWithdraw = () => {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-2xl font-extrabold tracking-tight text-white">
-                  All Super Affiliate Withdraw Methods
+                  My Affiliate Withdraw Methods
                 </h2>
                 <p className="mt-1 text-sm text-blue-100/70">
-                  These methods are visible to all active super-aff-user.
+                  These methods are visible only to your referred affiliate
+                  users.
                 </p>
               </div>
 
@@ -868,7 +907,7 @@ const AffAddWithdraw = () => {
               </div>
             ) : list.length === 0 ? (
               <div className="py-16 text-center text-blue-100/45">
-                No super affiliate withdraw methods found.
+                No affiliate withdraw methods found.
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">

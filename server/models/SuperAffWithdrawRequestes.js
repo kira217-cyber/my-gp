@@ -1,19 +1,11 @@
 import mongoose from "mongoose";
 
-const AffWithdrawRequestSchema = new mongoose.Schema(
+const SuperAffWithdrawRequestSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
-    },
-
-    // ✅ ei request kon super-aff-user er kache jabe
-    superAffiliate: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      default: null,
       index: true,
     },
 
@@ -77,13 +69,12 @@ const AffWithdrawRequestSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-AffWithdrawRequestSchema.index({ user: 1, createdAt: -1 });
-AffWithdrawRequestSchema.index({ superAffiliate: 1, createdAt: -1 });
-AffWithdrawRequestSchema.index({ superAffiliate: 1, status: 1, createdAt: -1 });
-AffWithdrawRequestSchema.index({ status: 1, createdAt: -1 });
+SuperAffWithdrawRequestSchema.index({ user: 1, createdAt: -1 });
+SuperAffWithdrawRequestSchema.index({ status: 1, createdAt: -1 });
+SuperAffWithdrawRequestSchema.index({ user: 1, status: 1, createdAt: -1 });
 
-const AffWithdrawRequest =
-  mongoose.models.AffWithdrawRequest ||
-  mongoose.model("AffWithdrawRequest", AffWithdrawRequestSchema);
+const SuperAffWithdrawRequest =
+  mongoose.models.SuperAffWithdrawRequest ||
+  mongoose.model("SuperAffWithdrawRequest", SuperAffWithdrawRequestSchema);
 
-export default AffWithdrawRequest;
+export default SuperAffWithdrawRequest;
